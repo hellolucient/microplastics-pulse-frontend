@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Add scroll margin for fixed header */
+.prose [id] {
+  scroll-margin-top: 64px; /* Adjust if header height changes */
+}
