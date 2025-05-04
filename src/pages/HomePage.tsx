@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CircleDot, Newspaper } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import WhitepaperSection from '../components/WhitepaperSection'; // Path relative to src/pages/
+import { createClient } from '@supabase/supabase-js'; // Import Supabase
 
 // Define chapter titles for the homepage links
 const chapterTitles = [
@@ -44,7 +45,69 @@ const slugify = (text: string): string => {
     .replace(/-+$/, '');         // Trim trailing hyphen
 };
 
+// --- Define NewsItem type (duplicate from LatestNewsPage for now, consider sharing later) ---
+interface NewsItem {
+  id: string;
+  created_at: string;
+  url: string;
+  title: string | null;
+  source: string | null;
+  published_date: string | null; 
+  ai_summary: string | null;
+  ai_category: string | null;
+  manual_category_override: string | null;
+}
+// --- End NewsItem type ---
+
+// --- Initialize Supabase client --- 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('HomePage: Supabase URL or Anon Key is missing.');
+}
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// --- End Supabase client ---
+
 const HomePage: React.FC = () => {
+  // --- State for Latest News --- 
+  const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+  const [newsError, setNewsError] = useState<string | null>(null);
+  // --- End State ---
+
+  // --- Effect to fetch latest news --- 
+  useEffect(() => {
+    const fetchLatestNews = async () => {
+      setNewsLoading(true);
+      setNewsError(null);
+      try {
+        const { data, error } = await supabase
+          .from('latest_news')
+          .select('*')
+          .order('published_date', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false })
+          .limit(3); // Limit to 3 results
+
+        if (error) throw error;
+        if (data) setLatestNews(data);
+
+      } catch (error: unknown) {
+        console.error('Error fetching latest news for homepage:', error);
+        if (error instanceof Error) {
+             setNewsError(`Failed to load news: ${error.message}`);
+        } else {
+            setNewsError('An unknown error occurred loading news.');
+        }
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+
+    fetchLatestNews();
+  }, []);
+  // --- End Effect ---
+
   return (
     <div className="bg-[#F8FAFC]">
       {/* Hero Section */}
@@ -66,35 +129,43 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Feature Cards */}
-      <section className="max-w-6xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-             <Newspaper className="text-blue-500" size={20} />
-           </div>
-           <h3 className="text-xl font-semibold mb-2">Featured News Story 1</h3>
-           <p className="text-gray-600">
-             Summary of the first featured news story will go here. Click 'Latest News' to see all updates.
-           </p>
-         </div>
-         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-             <Newspaper className="text-blue-500" size={20} />
-           </div>
-           <h3 className="text-xl font-semibold mb-2">Featured News Story 2</h3>
-           <p className="text-gray-600">
-             Summary of the second featured news story will go here. Stay informed on recent developments.
-           </p>
-         </div>
-         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-             <Newspaper className="text-blue-500" size={20} />
-           </div>
-           <h3 className="text-xl font-semibold mb-2">Featured News Story 3</h3>
-           <p className="text-gray-600">
-             Summary of the third featured news story. The latest findings and articles updated regularly.
-           </p>
-         </div>
+      {/* Latest News Feature Cards */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        {newsLoading && <p className="text-center">Loading latest news...</p>}
+        {newsError && <p className="text-center text-red-600">{newsError}</p>}
+        {!newsLoading && !newsError && (
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {latestNews.length === 0 ? (
+                <p className="text-center md:col-span-3">No recent news found.</p>
+            ) : (
+                latestNews.map((item) => (
+                    <div key={item.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                            <Newspaper className="text-blue-500" size={20} />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2 flex-grow">{item.title || 'No Title'}</h3>
+                        <p className="text-gray-600 text-sm mb-4 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p>
+                         <a 
+                            href={item.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-medium mt-auto text-sm no-underline"
+                         >
+                             Read Full Article
+                         </a>
+                    </div>
+                ))
+            )}
+            </div>
+        )}
+        {/* Optional: Link to see all news */} 
+        {!newsLoading && (
+             <div className="text-center mt-8">
+                 <Link to="/latest-news" className="text-indigo-600 hover:text-indigo-800 font-medium">
+                     View All News →
+                 </Link>
+             </div>
+        )}
       </section>
 
       {/* Whitepaper Sections (Homepage version - Links) */}
