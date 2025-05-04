@@ -13,7 +13,7 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex items-center gap-8">
           <Link to="/" className="text-gray-600 hover:text-gray-900 no-underline">Home</Link>
           <Link to="/whitepaper" className="text-gray-600 hover:text-gray-900 no-underline">Whitepaper</Link>
-          <a href="#" className="text-gray-600 hover:text-gray-900">Latest Research</a>
+          <Link to="/latest-news" className="text-gray-600 hover:text-gray-900 no-underline">Latest News</Link>
           <a href="#" className="text-gray-600 hover:text-gray-900">About</a>
         </nav>
 

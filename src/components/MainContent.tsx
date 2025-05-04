@@ -79,7 +79,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeChapterContent }) => {
             )}
             
             <div id="research" className="my-12">
-              <h2 className="text-2xl font-bold mb-6">Latest Research Timeline</h2>
+              <h2 className="text-2xl font-bold mb-6">Latest News Timeline</h2>
               <p className="text-gray-700 mb-6">
                 This timeline represents key research publications and findings related to microplastics and human health. 
                 It is continuously updated as new research emerges.

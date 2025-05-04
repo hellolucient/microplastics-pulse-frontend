@@ -1,5 +1,5 @@
 import React from 'react';
-import { CircleDot } from 'lucide-react';
+import { CircleDot, Newspaper } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import WhitepaperSection from '../components/WhitepaperSection'; // Path relative to src/pages/
 
@@ -60,9 +60,9 @@ const HomePage: React.FC = () => {
             <CircleDot size={20} />
             Read Whitepaper
           </Link>
-          <button className="bg-white text-gray-800 px-6 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-            Latest Research
-          </button>
+          <Link to="/latest-news" className="bg-white text-gray-800 px-6 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors no-underline">
+            Latest News
+          </Link>
         </div>
       </section>
 
@@ -70,29 +70,29 @@ const HomePage: React.FC = () => {
       <section className="max-w-6xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-6">
          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-             <CircleDot className="text-blue-500" size={20} />
+             <Newspaper className="text-blue-500" size={20} />
            </div>
-           <h3 className="text-xl font-semibold mb-2">Everywhere Present</h3>
+           <h3 className="text-xl font-semibold mb-2">Featured News Story 1</h3>
            <p className="text-gray-600">
-             Microplastics have been found in our food, water, air, and even human blood and organs. They are truly ubiquitous in our environment.
+             Summary of the first featured news story will go here. Click 'Latest News' to see all updates.
            </p>
          </div>
          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-             <CircleDot className="text-blue-500" size={20} />
+             <Newspaper className="text-blue-500" size={20} />
            </div>
-           <h3 className="text-xl font-semibold mb-2">Emerging Health Risks</h3>
+           <h3 className="text-xl font-semibold mb-2">Featured News Story 2</h3>
            <p className="text-gray-600">
-             Recent research reveals potential links to inflammation, hormone disruption, and other health concerns as these particles accumulate in our bodies.
+             Summary of the second featured news story will go here. Stay informed on recent developments.
            </p>
          </div>
          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-             <CircleDot className="text-blue-500" size={20} />
+             <Newspaper className="text-blue-500" size={20} />
            </div>
-           <h3 className="text-xl font-semibold mb-2">Living Document</h3>
+           <h3 className="text-xl font-semibold mb-2">Featured News Story 3</h3>
            <p className="text-gray-600">
-             This whitepaper evolves as new research emerges, providing you with the most current understanding of the microplastic challenge.
+             Summary of the third featured news story. The latest findings and articles updated regularly.
            </p>
          </div>
       </section>
