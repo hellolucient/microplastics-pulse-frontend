@@ -5,6 +5,15 @@ import WhitepaperSection from '../components/WhitepaperSection'; // Path relativ
 import axios from 'axios'; // <-- Add axios
 import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
 
+// Define colors for title letters
+const titleColors = [
+  'text-red-500', 'text-orange-500', 'text-amber-500', 'text-yellow-400', 'text-lime-500',
+  'text-green-500', 'text-emerald-500', 'text-teal-500', 'text-cyan-500', 'text-sky-500',
+  'text-blue-600', 'text-indigo-500', 'text-violet-500', 'text-purple-500', 'text-fuchsia-500',
+  'text-pink-500', 'text-rose-500'
+];
+const titleName = "MicroPlasticPulse";
+
 // Define chapter titles for the homepage links
 const chapterTitles = [
   "Chapter 1: Microplastics and Human Health – Introduction",
@@ -122,8 +131,11 @@ const HomePage: React.FC = () => {
             <div className="lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
                 {/* Text Content Area (Takes up more space on large screens) */}
                 <div className="lg:col-span-7 text-center lg:text-left">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-brand-darker mb-5"> 
-                      MicroPlasticPulse
+                    {/* Apply colors to each letter of the title */}
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-5"> 
+                      {titleName.split('').map((letter, index) => (
+                        <span key={index} className={titleColors[index % titleColors.length]}>{letter}</span>
+                      ))}
                     </h1>
                     <p className="text-xl text-brand-dark mb-10 max-w-2xl mx-auto lg:mx-0">
                       Understanding the invisible threat. A living whitepaper on microplastics and human health.
