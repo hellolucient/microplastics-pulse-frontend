@@ -49,6 +49,7 @@ const AdminPage: React.FC = () => {
   const [currentQueryIndex, setCurrentQueryIndex] = useState<number | null>(null);
   const [totalAdded, setTotalAdded] = useState(0);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [fetchCompleted, setFetchCompleted] = useState(false);
 
   // Fetch search queries on mount
   useEffect(() => {
@@ -122,7 +123,8 @@ const AdminPage: React.FC = () => {
       if (index >= searchQueries.length || !isFetching) { 
           setIsFetching(false);
           setCurrentQueryIndex(null);
-          console.log("Fetch queue finished.");
+          setFetchCompleted(true);
+          console.log("Fetch queue finished or stopped.");
           return;
       }
 
@@ -148,6 +150,7 @@ const AdminPage: React.FC = () => {
           } else {
               setIsFetching(false);
               setCurrentQueryIndex(null);
+              setFetchCompleted(true);
           }
 
       } catch (error: unknown) {
@@ -180,6 +183,7 @@ const AdminPage: React.FC = () => {
           setFetchError(`Failed on query ${index + 1}. ${errorMessage}`);
           setIsFetching(false); // Stop the queue on error
           setCurrentQueryIndex(null);
+          setFetchCompleted(true);
       }
   };
 
@@ -191,6 +195,7 @@ const AdminPage: React.FC = () => {
     setFetchProgress({}); // Reset progress
     setTotalAdded(0);
     setCurrentQueryIndex(0);
+    setFetchCompleted(false);
 
     const initialProgress: FetchProgress = {};
     searchQueries.forEach((_, index) => {
@@ -265,7 +270,7 @@ const AdminPage: React.FC = () => {
             </button>
             {searchQueries.length === 0 && !fetchError && <p className="mt-2 text-sm text-gray-500">Loading search queries...</p>}
             {fetchError && <p className="mt-2 text-sm text-red-600">Error: {fetchError}</p>}
-            {!isFetching && Object.keys(fetchProgress).length > 0 && ( // Show total only when done
+            {fetchCompleted && (
                 <p className="mt-2 text-sm font-semibold text-green-700">
                     Fetch complete. Total new articles added: {totalAdded}
                 </p>
