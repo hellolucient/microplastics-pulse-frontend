@@ -113,7 +113,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="bg-slate-50">
       {/* Hero Section */}
-      <section className="py-24 md:py-32 text-center bg-white">
+      <section className="py-24 md:py-32 text-center bg-gradient-radial from-slate-100 via-white to-white">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
           MicroPlastic<span className="text-blue-600">Pulse</span>
         </h1>
@@ -138,72 +138,76 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Latest News Feature Cards */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <h2 className="text-3xl font-bold tracking-tight text-center mb-12 md:mb-16">Latest Updates</h2>
-        {/* Loading Spinner / Error Handling */}
-        {newsLoading && (
-          <div className="flex justify-center items-center h-40">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        )}
-        {newsError && <p className="text-center text-red-600">{newsError}</p>}
-        {!newsLoading && !newsError && (
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8"> 
-            {latestNews.length === 0 ? (
-                <p className="text-center md:col-span-3 text-slate-600">No recent news found.</p>
-            ) : (
-                latestNews.map((item) => (
-                    <div key={item.id} className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md border border-slate-200 flex flex-col transition-all duration-200 hover:scale-[1.02]">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-5 flex-shrink-0">
-                            <Newspaper className="text-blue-600" size={22} />
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.title || 'No Title'}</h3> 
-                        <p className="text-slate-700 text-sm mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p> 
-                         <a 
-                            href={item.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-700 font-medium text-sm no-underline mt-auto self-start"
-                         >
-                             Read Full Article →
-                         </a>
-                    </div>
-                ))
-            )}
+      <section className="bg-slate-100 py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold tracking-tight text-center mb-12 md:mb-16 text-slate-900">Latest Updates</h2>
+          {/* Loading Spinner / Error Handling */}
+          {newsLoading && (
+            <div className="flex justify-center items-center h-40">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-        )}
-        {/* Link to see all news - use consistent blue */}
-        {!newsLoading && !newsError && latestNews.length > 0 && (
-             <div className="text-center mt-12 md:mt-16">
-                 <Link to="/latest-news" className="text-blue-600 hover:text-blue-700 font-semibold text-base no-underline transition-colors duration-150">
-                     View All News →
-                 </Link>
-             </div>
-        )}
+          )}
+          {newsError && <p className="text-center text-red-600">{newsError}</p>}
+          {!newsLoading && !newsError && (
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-8"> 
+              {latestNews.length === 0 ? (
+                  <p className="text-center md:col-span-3 text-slate-600">No recent news found.</p>
+              ) : (
+                  latestNews.map((item) => (
+                      <div key={item.id} className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg border border-slate-200 flex flex-col transition-all duration-200 hover:scale-[1.02]">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-5 flex-shrink-0">
+                              <Newspaper className="text-blue-600" size={22} />
+                          </div>
+                          <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.title || 'No Title'}</h3> 
+                          <p className="text-slate-700 text-sm mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p> 
+                           <a 
+                              href={item.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-700 font-medium text-sm no-underline mt-auto self-start"
+                           >
+                               Read Full Article →
+                           </a>
+                      </div>
+                  ))
+              )}
+              </div>
+          )}
+          {/* Link to see all news */}
+          {!newsLoading && !newsError && latestNews.length > 0 && (
+               <div className="text-center mt-12 md:mt-16">
+                   <Link to="/latest-news" className="text-blue-600 hover:text-blue-700 font-semibold text-base no-underline transition-colors duration-150">
+                       View All News →
+                   </Link>
+               </div>
+          )}
+        </div>
       </section>
 
       {/* Whitepaper Sections (Homepage version - Links) */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 bg-white rounded-2xl shadow-sm border border-slate-200 my-16 md:my-24">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4 text-slate-900">The Whitepaper</h2> 
-        <p className="text-lg text-slate-700 text-center mb-12">
-          Explore our comprehensive analysis of microplastics, their impact on human health, and prevention strategies.
-        </p>
-        <div className="space-y-3">
-          {chapterTitles.map((title, index) => {
-            const anchorId = slugify(title); 
-            return (
-              <Link 
-                to={`/whitepaper#${anchorId}`} 
-                key={index} 
-                className="block p-4 rounded-lg bg-slate-100 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 transition-all duration-150 no-underline group"
-              >
-                <div className="flex items-center justify-between">
-                    <span className="font-medium text-slate-800 group-hover:text-blue-700">{title}</span>
-                    <ChevronRight size={20} className="text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-transform duration-150" />
-                </div>
-              </Link>
-            );
-          })}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 md:p-12">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4 text-slate-900">The Whitepaper</h2> 
+          <p className="text-lg text-slate-700 text-center mb-12">
+            Explore our comprehensive analysis of microplastics, their impact on human health, and prevention strategies.
+          </p>
+          <div className="space-y-3">
+            {chapterTitles.map((title, index) => {
+              const anchorId = slugify(title); 
+              return (
+                <Link 
+                  to={`/whitepaper#${anchorId}`} 
+                  key={index} 
+                  className="block p-4 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition-all duration-150 no-underline group"
+                >
+                  <div className="flex items-center justify-between">
+                      <span className="font-medium text-slate-800 group-hover:text-blue-700">{title}</span>
+                      <ChevronRight size={20} className="text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-transform duration-150" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
     </div>
