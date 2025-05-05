@@ -7,8 +7,8 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex justify-center md:justify-start mb-4 md:mb-0">
-            <Link to="/" className="font-semibold text-slate-800 hover:text-blue-600 transition-colors no-underline">
-              MicroPlastic<span className="text-blue-600">Pulse</span>
+            <Link to="/" className="font-semibold text-slate-900 hover:text-slate-700 transition-colors no-underline">
+              MicroPlasticPulse
             </Link>
           </div>
 

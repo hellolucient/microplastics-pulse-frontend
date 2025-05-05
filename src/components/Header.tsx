@@ -7,7 +7,7 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         <div className="flex items-center">
           <Link to="/" className="font-bold text-xl tracking-tight text-slate-900 no-underline">
-             MicroPlastic<span className="text-blue-600">Pulse</span>
+             MicroPlasticPulse 
           </Link>
         </div>
 

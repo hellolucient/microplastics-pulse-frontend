@@ -115,7 +115,7 @@ const HomePage: React.FC = () => {
       {/* Hero Section */}
       <section className="py-24 md:py-32 text-center bg-gradient-radial from-slate-100 via-white to-white">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-          MicroPlastic<span className="text-blue-600">Pulse</span>
+          MicroPlasticPulse
         </h1>
         <p className="text-lg text-slate-700 mb-10 max-w-2xl mx-auto">
           A living whitepaper on the growing threat of microplastics to human health and wellbeing
@@ -123,14 +123,14 @@ const HomePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Link 
             to="/whitepaper" 
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold text-base shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150 no-underline"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-slate-900 text-white font-semibold text-base shadow-sm hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors duration-150 no-underline"
           >
             <CircleDot size={20} />
             Read Whitepaper
           </Link>
           <Link 
             to="/latest-news" 
-            className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium text-base shadow-sm hover:bg-slate-100 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150 no-underline"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium text-base shadow-sm hover:bg-slate-100 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors duration-150 no-underline"
           >
             Latest News
           </Link>
@@ -155,7 +155,7 @@ const HomePage: React.FC = () => {
               ) : (
                   latestNews.map((item) => (
                       <div key={item.id} className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg border border-slate-200 flex flex-col transition-shadow duration-200 group">
-                          <Newspaper className="text-slate-400 group-hover:text-blue-600 mb-4 flex-shrink-0" size={24} /> 
+                          <Newspaper className="text-slate-500 mb-4 flex-shrink-0" size={24} /> 
                           <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.title || 'No Title'}</h3> 
                           <p className="text-slate-700 text-sm mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p> 
                            <a 
@@ -171,7 +171,7 @@ const HomePage: React.FC = () => {
               )}
               </div>
           )}
-          {/* View All News link - standard text color */}
+          {/* View All News link - monochrome */}
           {!newsLoading && !newsError && latestNews.length > 0 && (
                <div className="text-center mt-12 md:mt-16">
                    <Link to="/latest-news" className="font-semibold text-base no-underline text-slate-700 hover:text-slate-900 transition-colors duration-150">

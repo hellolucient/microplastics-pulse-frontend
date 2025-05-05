@@ -92,7 +92,8 @@ const LatestNewsPage: React.FC = () => {
                 {/* Category/Date Area */}
                  <div className="flex items-center justify-between mb-3">
                     {(item.manual_category_override || item.ai_category) ? (
-                        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">
+                        // Use subtle gray tag
+                        <p className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full font-medium uppercase tracking-wide">
                             {item.manual_category_override || item.ai_category}
                         </p>
                      ) : <div/> /* Empty div to keep space-between working */}
