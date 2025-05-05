@@ -120,11 +120,11 @@ const AdminPage: React.FC = () => {
 
   // --- Dynamic Manual Fetch Logic ---
   const processFetchQueue = async (index: number) => {
-      if (index >= searchQueries.length || !isFetching) { 
+      if (index >= searchQueries.length) { 
           setIsFetching(false);
           setCurrentQueryIndex(null);
           setFetchCompleted(true);
-          console.log("Fetch queue finished or stopped.");
+          console.log("Fetch queue finished (index out of bounds).");
           return;
       }
 
