@@ -3,6 +3,7 @@ import { CircleDot, Newspaper, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import WhitepaperSection from '../components/WhitepaperSection'; // Path relative to src/pages/
 import axios from 'axios'; // <-- Add axios
+import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
 
 // Define chapter titles for the homepage links
 const chapterTitles = [
@@ -112,34 +113,46 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="bg-brand-light">
-      {/* Hero Section - Incorporate mascot theme */}
-      {/* This is conceptual - replace bg image/styling as needed */} 
-      <section className="relative overflow-hidden bg-white py-24 md:py-40 text-center">
-        {/* Optional: Subtle dot pattern background */}
+      {/* Hero Section - Modified Layout */}
+      <section className="relative overflow-hidden bg-white py-20 md:py-28">
+         {/* Background Pattern */}
          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px]"></div>
-         {/* Content Container */}
-         <div className="relative z-10 max-w-3xl mx-auto px-4">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-brand-darker mb-5"> 
-              MicroPlasticPulse
-            </h1>
-            <p className="text-xl text-brand-dark mb-10">
-              Understanding the invisible threat. A living whitepaper on microplastics and human health.
-            </p>
-            {/* Buttons use brand colors */}
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link 
-                to="/whitepaper" 
-                className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
-              >
-                <CircleDot size={20} />
-                Explore the Whitepaper
-              </Link>
-              <Link 
-                to="/latest-news" 
-                className="inline-flex items-center justify-center px-8 py-3 rounded-full border border-slate-300 bg-white text-brand-dark font-semibold text-lg shadow-sm hover:bg-gray-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
-              >
-                Latest News
-              </Link>
+         {/* Content Container - Use Flex/Grid for side-by-side layout */} 
+         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
+                {/* Text Content Area (Takes up more space on large screens) */}
+                <div className="lg:col-span-7 text-center lg:text-left">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-brand-darker mb-5"> 
+                      MicroPlasticPulse
+                    </h1>
+                    <p className="text-xl text-brand-dark mb-10 max-w-2xl mx-auto lg:mx-0">
+                      Understanding the invisible threat. A living whitepaper on microplastics and human health.
+                    </p>
+                    {/* Buttons */} 
+                    <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+                      <Link 
+                        to="/whitepaper" 
+                        className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
+                      >
+                        <CircleDot size={20} />
+                        Explore the Whitepaper
+                      </Link>
+                      <Link 
+                        to="/latest-news" 
+                        className="inline-flex items-center justify-center px-8 py-3 rounded-full border border-slate-300 bg-white text-brand-dark font-semibold text-lg shadow-sm hover:bg-gray-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
+                      >
+                        Latest News
+                      </Link>
+                    </div>
+                </div>
+                {/* Image Area (Takes up less space on large screens) */}
+                <div className="mt-12 lg:mt-0 lg:col-span-5 flex justify-center">
+                    <img 
+                      src={mascotImage} 
+                      alt="Elephant composed of microplastics illustration" 
+                      className="w-full max-w-md lg:max-w-none rounded-lg object-contain" // Adjust max-w as needed
+                    />
+                </div>
             </div>
          </div>
       </section>
