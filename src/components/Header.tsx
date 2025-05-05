@@ -3,23 +3,19 @@ import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   return (
-    <header className="bg-white border-b border-gray-100 h-16 sticky top-0 z-10">
-      <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
-          <Link to="/" className="font-medium no-underline text-gray-800">MicroPlastic Pulse</Link>
+    <header className="bg-white/95 backdrop-blur-sm border-b border-slate-200 h-20 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        <div className="flex items-center">
+          <Link to="/" className="font-bold text-xl tracking-tight text-slate-900 no-underline">
+             MicroPlastic<span className="text-blue-600">Pulse</span>
+          </Link>
         </div>
 
         <nav className="hidden md:flex items-center gap-8">
-          <Link to="/" className="text-gray-600 hover:text-gray-900 no-underline">Home</Link>
-          <Link to="/whitepaper" className="text-gray-600 hover:text-gray-900 no-underline">Whitepaper</Link>
-          <Link to="/latest-news" className="text-gray-600 hover:text-gray-900 no-underline">Latest News</Link>
-          <a href="#" className="text-gray-600 hover:text-gray-900">About</a>
+          <Link to="/" className="text-base font-medium text-slate-700 hover:text-slate-900 transition-colors no-underline">Home</Link>
+          <Link to="/whitepaper" className="text-base font-medium text-slate-700 hover:text-slate-900 transition-colors no-underline">Whitepaper</Link>
+          <Link to="/latest-news" className="text-base font-medium text-slate-700 hover:text-slate-900 transition-colors no-underline">Latest News</Link>
         </nav>
-
-        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-          Subscribe
-        </button>
       </div>
     </header>
   );

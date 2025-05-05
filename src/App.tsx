@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import HomePage from './pages/HomePage.tsx';
 import WhitepaperPage from './pages/WhitepaperPage.tsx';
 import LatestNewsPage from './pages/LatestNewsPage.tsx';
@@ -12,21 +13,26 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Header />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/whitepaper" element={<WhitepaperPage />} />
-          <Route path="/latest-news" element={<LatestNewsPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route 
-            path="/admin" 
-            element={ 
-              <ProtectedRoute> 
-                <AdminPage /> 
-              </ProtectedRoute> 
-            }
-          />
-        </Routes>
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/whitepaper" element={<WhitepaperPage />} />
+              <Route path="/latest-news" element={<LatestNewsPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route 
+                path="/admin" 
+                element={ 
+                  <ProtectedRoute> 
+                    <AdminPage /> 
+                  </ProtectedRoute> 
+                }
+              />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
       </AuthProvider>
     </BrowserRouter>
   );

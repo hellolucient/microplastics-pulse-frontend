@@ -2,7 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Inter font */
+@import '@fontsource-variable/inter';
+
+@layer base {
+  body {
+    /* Apply Inter as the default font */
+    font-family: 'InterVariable', system-ui, sans-serif;
+    /* Set a slightly softer default text color */
+    @apply text-slate-800;
+    /* Improve default text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
 /* Add scroll margin for fixed header */
+/* Consider moving prose specific styles elsewhere if index.css grows */
 .prose [id] {
   scroll-margin-top: 64px; /* Adjust if header height changes */
 }
