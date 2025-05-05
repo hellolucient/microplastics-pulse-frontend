@@ -132,29 +132,30 @@ const WhitepaperPage: React.FC = () => {
   const activeChapterContent = chapters.find((ch: Chapter) => ch.id === activeChapterId)?.content || null;
 
   return (
-    // Use flex layout for sidebar + main content
-    // flex-1 needed if App.tsx is also flex col
-    <div className="flex flex-1">
-      {/* Sidebar */}
-      {/* Ensure sidebar scrolls independently and stays fixed relative to Header */}
-      <aside className="w-72 flex-shrink-0 overflow-y-auto bg-white border-r border-gray-200 p-6 hidden md:block sticky top-[64px] h-[calc(100vh-64px)]">
-        <h2 className="text-lg font-semibold mb-6 text-gray-800">Whitepaper Chapters</h2>
-        <nav className="space-y-2">
-          {chapters.map((chapter: Chapter) => (
-            <WhitepaperSection 
-              key={chapter.id}
-              title={chapter.title}
-              isActive={activeChapterId === chapter.id}
-              onClick={() => handleChapterClick(chapter.id)}
-            />
-          ))}
-        </nav>
-      </aside>
+    // Apply consistent max-width and padding to the overall container
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex">
+        {/* Sidebar */}
+        {/* Adjusted width, padding, border color, top offset to match new header height */}
+        <aside className="w-80 flex-shrink-0 overflow-y-auto bg-white border-r border-slate-200 p-6 hidden md:block sticky top-[80px] h-[calc(100vh-80px)]">
+          <h2 className="text-base font-semibold mb-4 text-slate-800">Whitepaper Chapters</h2>
+          <nav className="space-y-1">
+            {chapters.map((chapter: Chapter) => (
+              <WhitepaperSection 
+                key={chapter.id}
+                title={chapter.title}
+                isActive={activeChapterId === chapter.id}
+                onClick={() => handleChapterClick(chapter.id)}
+              />
+            ))}
+          </nav>
+        </aside>
 
-      {/* Main Content Area */}
-      {/* This div should handle its own scrolling */}
-      <div className="flex-1 overflow-y-auto">
-         <MainContent activeChapterContent={activeChapterContent} />
+        {/* Main Content Area */} 
+        {/* Added padding to the main content area */}
+        <div className="flex-1 overflow-y-auto py-8 md:pl-12">
+           <MainContent activeChapterContent={activeChapterContent} />
+        </div>
       </div>
     </div>
   );

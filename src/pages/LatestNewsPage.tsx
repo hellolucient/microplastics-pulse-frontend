@@ -67,43 +67,58 @@ const LatestNewsPage: React.FC = () => {
   // --- Removed old fetchNews function using Supabase ---
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold mb-6">Latest News</h1>
+    // Use consistent max-width and padding
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-8 md:mb-12">Latest News</h1>
 
       {/* --- News List Display --- */}
-      {/* --- Spinner (Example using Tailwind) --- */}
+      {/* Spinner (keep as is) */}
       {isLoading && (
         <div className="flex justify-center items-center h-40">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       )}
+      {/* Error message (keep as is) */}
       {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
       {!isLoading && !errorMessage && (
-        <div className="space-y-6">
+        // Use a slightly different max-width for the list itself if desired, or keep page max-width
+        <div className="max-w-3xl mx-auto space-y-8">
           {newsItems.length === 0 ? (
-            <p className="text-center text-gray-500">No news items found.</p>
+            <p className="text-center text-slate-500">No news items found.</p>
           ) : (
             newsItems.map((item) => (
-              <div key={item.id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                {/* Prefer manual category, fallback to AI, then display nothing if neither */}
-                {(item.manual_category_override || item.ai_category) && (
-                    <p className="text-xs text-indigo-600 font-semibold uppercase mb-1">
-                        {item.manual_category_override || item.ai_category}
-                    </p>
-                )}
-                 <p className="text-sm text-gray-500 mb-1">
-                    {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                    {item.source && <span className="ml-2"> | Source: {item.source}</span>}
-                 </p>
-                <h2 className="text-xl font-semibold mb-2">{item.title || 'No Title'}</h2>
-                <p className="text-gray-700 mb-3">{item.ai_summary || 'No summary available.'}</p>
+              // Apply card styling consistent with HomePage
+              <div key={item.id} className="bg-white p-8 rounded-xl shadow-md border border-slate-100 flex flex-col">
+                {/* Category/Date Area */}
+                 <div className="flex items-center justify-between mb-3">
+                    {(item.manual_category_override || item.ai_category) ? (
+                        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">
+                            {item.manual_category_override || item.ai_category}
+                        </p>
+                     ) : <div/> /* Empty div to keep space-between working */}
+                     <p className="text-sm text-slate-500">
+                        {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                     </p>
+                 </div>
+
+                {/* Title */} 
+                <h2 className="text-xl font-semibold mb-3 text-slate-900">{item.title || 'No Title'}</h2>
+                
+                {/* Source (Optional) */} 
+                {item.source && 
+                    <p className="text-xs text-slate-500 mb-3">Source: {item.source}</p>}
+
+                {/* Summary */} 
+                <p className="text-slate-600 text-base mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'No summary available.'}</p>
+                
+                {/* Read More Link */} 
                 <a 
                   href={item.url} 
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-blue-600 hover:text-blue-700 font-medium text-sm no-underline mt-auto self-start"
                   target="_blank" 
                   rel="noopener noreferrer"
                 >
-                  Read More
+                  Read Full Article →
                 </a>
               </div>
             ))

@@ -20,32 +20,39 @@ const WhitepaperSection: React.FC<WhitepaperSectionProps> = ({
   return (
     <div 
       className={clsx(
-        "group bg-white rounded-xl border p-4 transition-colors cursor-pointer",
-        isActive ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-200"
+        "group rounded-lg p-3 transition-colors duration-150 cursor-pointer",
+        isActive 
+          ? "bg-blue-50 border border-blue-200"
+          : "border border-transparent hover:bg-slate-100"
       )}
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {isActive ? (
-            <CheckCircle2 size={20} className="text-blue-600" />
+            <CheckCircle2 size={18} className="text-blue-600 flex-shrink-0" />
           ) : (
-            <CircleDot size={20} className={clsx(isActive ? "text-blue-600" : "text-gray-400 group-hover:text-blue-500")} />
+            <CircleDot size={18} className="text-slate-400 group-hover:text-blue-600 flex-shrink-0" />
           )}
-          <h3 className={clsx("font-medium", isActive ? "text-blue-700" : "text-gray-900")}>{title}</h3>
+          <h3 className={clsx(
+              "text-sm",
+              isActive ? "font-semibold text-blue-700" : "font-medium text-slate-700 group-hover:text-slate-900"
+             )}>
+              {title}
+            </h3>
           {isUpdated && (
             <span className={clsx(
-              "text-xs px-2 py-0.5 rounded-full",
-              isActive ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
+              "ml-2 text-xs px-1.5 py-0.5 rounded-full font-medium",
+              isActive ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
             )}>
-              Updated
+              Upd
             </span>
           )}
         </div>
         {date && !isActive && (
-          <div className="flex items-center gap-2 text-gray-400 text-sm">
+          <div className="flex items-center gap-1 text-slate-400 text-sm flex-shrink-0 ml-2">
             <span>{date}</span>
-            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
           </div>
         )}
       </div>

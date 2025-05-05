@@ -15,10 +15,28 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Refine Prose styles */
+  .prose {
+    @apply text-slate-700; /* Softer base prose text */
+  }
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose strong {
+     @apply text-slate-900; /* Darker headings/strong text */
+  }
+  .prose a {
+    @apply text-blue-600 hover:text-blue-700;
+     /* Remove default underline, add hover underline if desired */
+    text-decoration-line: none;
+  }
+   .prose a:hover {
+     /* text-decoration-line: underline; */
+   }
+    /* Add other prose overrides if needed (e.g., code blocks, blockquotes) */
 }
 
 /* Add scroll margin for fixed header */
 /* Consider moving prose specific styles elsewhere if index.css grows */
+/* Update scroll margin for new header height */
 .prose [id] {
-  scroll-margin-top: 64px; /* Adjust if header height changes */
+  scroll-margin-top: 80px; /* Updated for h-20 header */ 
 }
