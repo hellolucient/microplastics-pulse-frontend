@@ -13,9 +13,9 @@ const Footer: React.FC = () => {
           </div>
 
           <nav className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 mb-4 md:mb-0 md:ml-10">
-            <Link to="/" className="text-sm text-slate-700 hover:text-blue-600 transition-colors duration-150 no-underline">Home</Link>
-            <Link to="/whitepaper" className="text-sm text-slate-700 hover:text-blue-600 transition-colors duration-150 no-underline">Whitepaper</Link>
-            <Link to="/latest-news" className="text-sm text-slate-700 hover:text-blue-600 transition-colors duration-150 no-underline">Latest News</Link>
+            <Link to="/" className="text-sm text-slate-700 hover:text-slate-900 transition-colors duration-150 no-underline">Home</Link>
+            <Link to="/whitepaper" className="text-sm text-slate-700 hover:text-slate-900 transition-colors duration-150 no-underline">Whitepaper</Link>
+            <Link to="/latest-news" className="text-sm text-slate-700 hover:text-slate-900 transition-colors duration-150 no-underline">Latest News</Link>
           </nav>
 
           <div className="text-center md:text-right">

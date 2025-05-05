@@ -12,9 +12,9 @@ const Header: React.FC = () => {
         </div>
 
         <nav className="hidden md:flex items-center gap-8">
-          <Link to="/" className="text-base font-medium text-slate-700 hover:text-blue-600 transition-colors duration-150 no-underline">Home</Link>
-          <Link to="/whitepaper" className="text-base font-medium text-slate-700 hover:text-blue-600 transition-colors duration-150 no-underline">Whitepaper</Link>
-          <Link to="/latest-news" className="text-base font-medium text-slate-700 hover:text-blue-600 transition-colors duration-150 no-underline">Latest News</Link>
+          <Link to="/" className="text-base font-medium text-slate-700 hover:text-slate-900 transition-colors duration-150 no-underline">Home</Link>
+          <Link to="/whitepaper" className="text-base font-medium text-slate-700 hover:text-slate-900 transition-colors duration-150 no-underline">Whitepaper</Link>
+          <Link to="/latest-news" className="text-base font-medium text-slate-700 hover:text-slate-900 transition-colors duration-150 no-underline">Latest News</Link>
         </nav>
       </div>
     </header>

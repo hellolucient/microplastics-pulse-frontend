@@ -24,11 +24,14 @@
      @apply text-slate-900; /* Darker headings/strong text */
   }
   .prose a {
-    @apply text-blue-600 hover:text-blue-700;
-     /* Remove default underline, add hover underline if desired */
+    /* Use standard text color, maybe subtle underline on hover */
+    @apply text-slate-800;
     text-decoration-line: none;
+    /* Add a subtle bottom border instead of underline */
+    @apply border-b border-slate-300 hover:border-slate-500 transition-colors duration-150;
   }
    .prose a:hover {
+     @apply text-slate-900;
      /* text-decoration-line: underline; */
    }
     /* Add other prose overrides if needed (e.g., code blocks, blockquotes) */

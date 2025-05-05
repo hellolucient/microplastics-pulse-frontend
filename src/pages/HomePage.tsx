@@ -130,7 +130,7 @@ const HomePage: React.FC = () => {
           </Link>
           <Link 
             to="/latest-news" 
-            className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-slate-300 bg-white text-slate-800 font-semibold text-base shadow-sm hover:bg-slate-100 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150 no-underline"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium text-base shadow-sm hover:bg-slate-100 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150 no-underline"
           >
             Latest News
           </Link>
@@ -154,17 +154,15 @@ const HomePage: React.FC = () => {
                   <p className="text-center md:col-span-3 text-slate-600">No recent news found.</p>
               ) : (
                   latestNews.map((item) => (
-                      <div key={item.id} className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg border border-slate-200 flex flex-col transition-all duration-200 hover:scale-[1.02]">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-5 flex-shrink-0">
-                              <Newspaper className="text-blue-600" size={22} />
-                          </div>
+                      <div key={item.id} className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg border border-slate-200 flex flex-col transition-shadow duration-200 group">
+                          <Newspaper className="text-slate-400 group-hover:text-blue-600 mb-4 flex-shrink-0" size={24} /> 
                           <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.title || 'No Title'}</h3> 
                           <p className="text-slate-700 text-sm mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p> 
                            <a 
                               href={item.url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-700 font-medium text-sm no-underline mt-auto self-start"
+                              className="text-slate-700 hover:text-slate-900 hover:underline font-medium text-sm no-underline mt-auto self-start transition-colors duration-150"
                            >
                                Read Full Article →
                            </a>
@@ -173,10 +171,10 @@ const HomePage: React.FC = () => {
               )}
               </div>
           )}
-          {/* Link to see all news */}
+          {/* View All News link - standard text color */}
           {!newsLoading && !newsError && latestNews.length > 0 && (
                <div className="text-center mt-12 md:mt-16">
-                   <Link to="/latest-news" className="text-blue-600 hover:text-blue-700 font-semibold text-base no-underline transition-colors duration-150">
+                   <Link to="/latest-news" className="font-semibold text-base no-underline text-slate-700 hover:text-slate-900 transition-colors duration-150">
                        View All News →
                    </Link>
                </div>
@@ -184,30 +182,30 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Whitepaper Sections (Homepage version - Links) */}
+      {/* Whitepaper Sections */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 md:p-12">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4 text-slate-900">The Whitepaper</h2> 
-          <p className="text-lg text-slate-700 text-center mb-12">
-            Explore our comprehensive analysis of microplastics, their impact on human health, and prevention strategies.
-          </p>
-          <div className="space-y-3">
-            {chapterTitles.map((title, index) => {
-              const anchorId = slugify(title); 
-              return (
-                <Link 
-                  to={`/whitepaper#${anchorId}`} 
-                  key={index} 
-                  className="block p-4 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition-all duration-150 no-underline group"
-                >
-                  <div className="flex items-center justify-between">
-                      <span className="font-medium text-slate-800 group-hover:text-blue-700">{title}</span>
-                      <ChevronRight size={20} className="text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-transform duration-150" />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4 text-slate-900">The Whitepaper</h2> 
+            <p className="text-lg text-slate-700 text-center mb-12">
+              Explore our comprehensive analysis of microplastics, their impact on human health, and prevention strategies.
+            </p>
+            <div className="space-y-3">
+              {chapterTitles.map((title, index) => {
+                const anchorId = slugify(title); 
+                return (
+                  <Link 
+                    to={`/whitepaper#${anchorId}`} 
+                    key={index} 
+                    className="block p-4 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 transition-all duration-150 no-underline group"
+                  >
+                    <div className="flex items-center justify-between">
+                        <span className="font-medium text-slate-800 group-hover:text-slate-900">{title}</span>
+                        <ChevronRight size={20} className="text-slate-400 group-hover:text-slate-500 group-hover:translate-x-1 transition-transform duration-150" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
         </div>
       </section>
     </div>

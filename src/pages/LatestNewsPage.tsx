@@ -111,10 +111,10 @@ const LatestNewsPage: React.FC = () => {
                 {/* Summary */} 
                 <p className="text-slate-600 text-base mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'No summary available.'}</p>
                 
-                {/* Read More Link */} 
+                {/* Read More Link - standard text */}
                 <a 
                   href={item.url} 
-                  className="text-blue-600 hover:text-blue-700 font-medium text-sm no-underline mt-auto self-start"
+                  className="text-slate-700 hover:text-slate-900 hover:underline font-medium text-sm no-underline mt-auto self-start transition-colors duration-150"
                   target="_blank" 
                   rel="noopener noreferrer"
                 >
