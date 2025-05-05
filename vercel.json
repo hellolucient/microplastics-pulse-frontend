@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/((?!api/|_next/|static/|favicon.ico|logo).*) LATESTNEWS_PROMPT", "destination": "/index.html" }
+    { "source": "/((?!api/|_next/|static/|favicon.ico|logo).*)", "destination": "/index.html" }
   ]
 } 
