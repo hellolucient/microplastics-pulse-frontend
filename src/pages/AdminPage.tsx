@@ -1,7 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import useAuth to access user info and signOut
+import axios from 'axios'; // Import axios for API calls
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001'; // Fallback for safety
+
+// Interface for progress tracking
+interface FetchProgress {
+    [queryIndex: number]: {
+        status: 'pending' | 'processing' | 'success' | 'error';
+        message: string;
+        addedCount?: number;
+    };
+}
+
+// Interface for search queries response
+interface SearchQueriesResponse {
+    queries: string[];
+}
+
+// Interface for trigger fetch response
+interface TriggerFetchResponse {
+    message: string;
+    query: string;
+    addedCount: number;
+    nextIndex: number | null;
+}
+
+// Interface for trigger fetch error response
+interface TriggerFetchErrorResponse {
+    error: string;
+    details?: string;
+    query?: string;
+}
 
 const AdminPage: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -12,6 +42,30 @@ const AdminPage: React.FC = () => {
   // --- State for Manual Fetch Button ---
   const [isFetching, setIsFetching] = useState(false);
   const [fetchMessage, setFetchMessage] = useState('');
+
+  // --- State for Dynamic Manual Fetch ---
+  const [searchQueries, setSearchQueries] = useState<string[]>([]);
+  const [fetchProgress, setFetchProgress] = useState<FetchProgress>({});
+  const [currentQueryIndex, setCurrentQueryIndex] = useState<number | null>(null);
+  const [totalAdded, setTotalAdded] = useState(0);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Fetch search queries on mount
+  useEffect(() => {
+    const fetchQueries = async () => {
+        try {
+            // Explicitly type the expected response data
+            const response = await axios.get<SearchQueriesResponse>(`${BACKEND_URL}/api/search-queries`);
+            if (response.data && Array.isArray(response.data.queries)) {
+                setSearchQueries(response.data.queries);
+            }
+        } catch (error) {
+            console.error("Failed to fetch search queries:", error);
+            setFetchError("Could not load search queries list from backend.");
+        }
+    };
+    fetchQueries();
+  }, []);
 
   const handleLogout = async () => {
     await signOut();
@@ -31,6 +85,7 @@ const AdminPage: React.FC = () => {
     }
 
     try {
+        // Using fetch here, so keeping its error handling style
         const response = await fetch(`${BACKEND_URL}/api/add-news`, {
             method: 'POST',
             headers: {
@@ -62,35 +117,90 @@ const AdminPage: React.FC = () => {
   };
   // --- End Form Submit Handler ---
 
-  // --- Manual Fetch Button Handler ---
-  const handleFetchClick = async () => {
-    setIsFetching(true);
-    setFetchMessage('Triggering backend fetch process...');
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/trigger-fetch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || `HTTP error! status: ${response.status}`);
+  // --- Dynamic Manual Fetch Logic ---
+  const processFetchQueue = async (index: number) => {
+      if (index >= searchQueries.length || !isFetching) { 
+          setIsFetching(false);
+          setCurrentQueryIndex(null);
+          console.log("Fetch queue finished.");
+          return;
       }
-      setFetchMessage(result.message || 'Fetch completed successfully.');
-      // Note: No list refresh needed here as we are not displaying the list on this page
-    } catch (error) {
-      console.error('Error triggering fetch:', error);
-      if (error instanceof Error) {
-        setFetchMessage(`Error: ${error.message}`);
-      } else {
-        setFetchMessage('An unknown error occurred during fetch trigger.');
+
+      setCurrentQueryIndex(index);
+      setFetchProgress(prev => ({
+          ...prev,
+          [index]: { status: 'processing', message: 'Processing...' }
+      }));
+
+      try {
+          // Explicitly type the expected success response data
+          const response = await axios.post<TriggerFetchResponse>(`${BACKEND_URL}/api/trigger-fetch`, { queryIndex: index });
+          const { addedCount, nextIndex, message } = response.data; 
+
+          setTotalAdded(prev => prev + (addedCount || 0));
+          setFetchProgress(prev => ({
+              ...prev,
+              [index]: { status: 'success', message: message || `Completed. Added: ${addedCount}`, addedCount: addedCount }
+          }));
+
+          if (nextIndex !== null) {
+              await processFetchQueue(nextIndex); // Process next item
+          } else {
+              setIsFetching(false);
+              setCurrentQueryIndex(null);
+          }
+
+      } catch (error: unknown) {
+          console.error(`Error processing query index ${index}:`, error);
+          let errorMessage = 'An unknown error occurred';
+
+          // Simplified error message extraction
+          if (error && typeof error === 'object') {
+              let extracted = false;
+              if ('response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data) {
+                  const data = error.response.data as any; // Use any for simplicity here
+                  if (data.error) {
+                      errorMessage = String(data.error);
+                      extracted = true;
+                  } else if (data.details) {
+                      errorMessage = String(data.details);
+                      extracted = true;
+                  }
+              }
+              // Fallback to error message if specific fields weren't found or no response data
+              if (!extracted && 'message' in error) {
+                  errorMessage = String(error.message);
+              }
+          }
+
+          setFetchProgress(prev => ({
+              ...prev,
+              [index]: { status: 'error', message: `Error: ${errorMessage}` }
+          }));
+          setFetchError(`Failed on query ${index + 1}. ${errorMessage}`);
+          setIsFetching(false); // Stop the queue on error
+          setCurrentQueryIndex(null);
       }
-    } finally {
-      setIsFetching(false);
-    }
   };
-  // --- End Manual Fetch Button Handler ---
+
+  const handleTriggerFetchClick = () => {
+    if (isFetching || searchQueries.length === 0) return;
+
+    setIsFetching(true);
+    setFetchError(null);
+    setFetchProgress({}); // Reset progress
+    setTotalAdded(0);
+    setCurrentQueryIndex(0);
+
+    const initialProgress: FetchProgress = {};
+    searchQueries.forEach((_, index) => {
+        initialProgress[index] = { status: 'pending', message: 'Waiting...' };
+    });
+    setFetchProgress(initialProgress);
+
+    processFetchQueue(0); // Start the queue
+  };
+  // --- End Dynamic Manual Fetch Logic ---
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -141,27 +251,58 @@ const AdminPage: React.FC = () => {
         <p className="mt-3 text-xs text-gray-500">Submitting a URL will trigger backend processing (AI summary/category) and save it to the database if new.</p>
       </div>
 
+      {/* Dynamic Manual Fetch Section */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 className="text-xl font-semibold mb-4">Other Admin Actions</h2>
+        <h2 className="text-xl font-semibold mb-4">Manual News Fetch</h2>
         
-        {/* Manual Fetch Button */}
         <div className="mb-4">
             <button 
-              onClick={handleFetchClick} 
-              disabled={isFetching} 
+              onClick={handleTriggerFetchClick} // Updated handler
+              disabled={isFetching || searchQueries.length === 0} 
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isFetching ? 'Fetching...' : 'Trigger Manual News Fetch'}
+              {isFetching ? `Fetching ${currentQueryIndex !== null ? `${currentQueryIndex + 1}/${searchQueries.length}` : '...'}` : 'Trigger Manual News Fetch'}
             </button>
-            {fetchMessage && (
-              <p className={`mt-2 text-sm ${fetchMessage.startsWith('Error:') ? 'text-red-600' : 'text-blue-600'}`}>\n                {fetchMessage}\n              </p>
+            {searchQueries.length === 0 && !fetchError && <p className="mt-2 text-sm text-gray-500">Loading search queries...</p>}
+            {fetchError && <p className="mt-2 text-sm text-red-600">Error: {fetchError}</p>}
+            {!isFetching && Object.keys(fetchProgress).length > 0 && ( // Show total only when done
+                <p className="mt-2 text-sm font-semibold text-green-700">
+                    Fetch complete. Total new articles added: {totalAdded}
+                </p>
             )}
-            <p className="mt-2 text-xs text-gray-500">Manually trigger the backend to search all sources and add new articles.</p>
+            <p className="mt-2 text-xs text-gray-500">Manually trigger the backend to search all sources and add new articles step-by-step.</p>
         </div>
 
+        {/* Progress Display */}
+        {(isFetching || Object.keys(fetchProgress).length > 0) && (
+            <div className="mt-4 border-t pt-4">
+                <h3 className="text-lg font-semibold mb-2">Fetch Progress:</h3>
+                 {isFetching && currentQueryIndex !== null && (
+                     <p className="mb-3 text-sm font-medium text-indigo-600">
+                         Processing query {currentQueryIndex + 1} of {searchQueries.length}... Total added so far: {totalAdded}
+                     </p>
+                 )}
+                <ul className="space-y-2 max-h-60 overflow-y-auto text-sm border rounded p-3 bg-gray-50">
+                    {searchQueries.map((query, index) => (
+                        <li key={index} className="flex justify-between items-center">
+                            <span className="truncate mr-2" title={query}>{index + 1}. {query}</span>
+                            <span className={`font-medium px-2 py-0.5 rounded text-xs ${
+                                fetchProgress[index]?.status === 'success' ? 'bg-green-100 text-green-800' :
+                                fetchProgress[index]?.status === 'error' ? 'bg-red-100 text-red-800' :
+                                fetchProgress[index]?.status === 'processing' ? 'bg-blue-100 text-blue-800 animate-pulse' :
+                                'bg-gray-100 text-gray-600'
+                            }`}>
+                                {fetchProgress[index]?.message || 'Pending'}
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        )}
+
         {/* Placeholder for future actions */}
-        <p className="text-gray-600">
-          Category override management, etc., could go here...
+        <p className="text-gray-600 mt-6">
+          Other admin actions (like category override) could go here...
         </p>
       </div>
 
