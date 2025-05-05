@@ -305,6 +305,18 @@ const AdminPage: React.FC = () => {
             </div>
         )}
 
+        {/* Cron Job Info */}
+        <div className="mt-6 pt-4 border-t">
+            <h3 className="text-lg font-semibold mb-2">Automated Fetch Schedule</h3>
+            <p className="text-sm text-gray-700">
+                The backend is scheduled to automatically fetch new articles approximately every 8 hours.
+                (UTC Times: 00:00, 08:00, 16:00)
+            </p>
+             <p className="mt-1 text-xs text-gray-500">
+                Check the Vercel project settings for exact cron job status and history.
+            </p>
+        </div>
+
         {/* Placeholder for future actions */}
         <p className="text-gray-600 mt-6">
           Other admin actions (like category override) could go here...
