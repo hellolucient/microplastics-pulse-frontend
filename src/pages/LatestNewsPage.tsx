@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+// import { supabase } from '../supabaseClient'; // <-- Remove Supabase client import
+import axios from 'axios'; // <-- Add axios import
 
-// Remove backend URL import if no longer needed here
-// const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001'; // <-- Ensure backend URL is available
 
 // Define the structure of a news item based on your Supabase table
 interface NewsItem {
@@ -20,72 +20,68 @@ interface NewsItem {
 const LatestNewsPage: React.FC = () => {
   // --- Component State ---
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // --- Remove Temporary Fetch Button State ---
-  // const [isFetching, setIsFetching] = useState(false);
-  // const [fetchMessage, setFetchMessage] = useState('');
-  // --- End Remove ---
+  const [isLoading, setIsLoading] = useState(true); // Keep isLoading state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Keep error state
 
   // --- Data Fetching Effect ---
   useEffect(() => {
-    fetchNews();
-  }, []);
+    const fetchNewsFromApi = async () => {
+      setIsLoading(true);
+      setErrorMessage(null);
+      setNewsItems([]); // Clear previous items while loading
 
-  const fetchNews = async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      // Check if supabase client exists before using it
-      if (!supabase) {
-        throw new Error("Supabase client not initialized.");
+      try {
+        const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
+        // Assuming the API returns the array directly in response.data
+        setNewsItems(response.data);
+      } catch (error) {
+        console.error('Error fetching news from API:', error);
+        let message = 'Failed to fetch news due to an unknown error.';
+        // Simplified error message extraction
+        if (error && typeof error === 'object') {
+            let extracted = false;
+            if ('response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data) {
+                const data = error.response.data as any; // Use any for simplicity here
+                if (data.error) {
+                    message = `Failed to fetch news: ${String(data.error)}`;
+                    extracted = true;
+                } else if (data.details) {
+                    message = `Failed to fetch news: ${String(data.details)}`;
+                    extracted = true;
+                }
+            }
+            // Fallback to error message if specific fields weren't found or no response data
+            if (!extracted && 'message' in error) {
+                message = `Failed to fetch news: ${String(error.message)}`;
+            }
+        }
+        setErrorMessage(message);
+      } finally {
+        setIsLoading(false);
       }
-      const { data, error } = await supabase
-        .from('latest_news')
-        .select('*')
-        // Order by published date (if available) descending, then creation date descending
-        .order('published_date', { ascending: false, nullsFirst: false }) // Show newest first
-        .order('created_at', { ascending: false });
+    };
 
-      if (error) {
-        throw error;
-      }
+    fetchNewsFromApi();
+  }, []); // Empty dependency array means run once on mount
 
-      if (data) {
-        setNewsItems(data);
-      }
-    } catch (error: unknown) {
-      console.error('Error fetching news from Supabase:', error);
-      if (error instanceof Error) {
-        setErrorMessage(`Failed to fetch news: ${error.message}`);
-      } else {
-        setErrorMessage('Failed to fetch news due to an unknown error.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // --- Remove Temporary Fetch Button Handler ---
-  // const handleFetchClick = async () => { ... };
-  // --- End Remove ---
+  // --- Removed old fetchNews function using Supabase ---
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       <h1 className="text-3xl font-bold mb-6">Latest News</h1>
 
-      {/* --- Remove Temporary Fetch Button Section --- */}
-      {/* <div className="mb-6 p-4 border rounded-lg bg-gray-50"> ... </div> */}
-      {/* --- End Remove --- */}
-
       {/* --- News List Display --- */}
-      {isLoading && <p>Loading news...</p>} 
-      {errorMessage && <p className="text-red-600">{errorMessage}</p>}
+      {/* --- Spinner (Example using Tailwind) --- */}
+      {isLoading && (
+        <div className="flex justify-center items-center h-40">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+      {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
       {!isLoading && !errorMessage && (
         <div className="space-y-6">
           {newsItems.length === 0 ? (
-            <p>No news items found.</p>
+            <p className="text-center text-gray-500">No news items found.</p>
           ) : (
             newsItems.map((item) => (
               <div key={item.id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">

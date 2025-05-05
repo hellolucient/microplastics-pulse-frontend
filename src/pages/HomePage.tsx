@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CircleDot, Newspaper } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import WhitepaperSection from '../components/WhitepaperSection'; // Path relative to src/pages/
-import { createClient } from '@supabase/supabase-js'; // Import Supabase
+import axios from 'axios'; // <-- Add axios
 
 // Define chapter titles for the homepage links
 const chapterTitles = [
@@ -59,15 +59,9 @@ interface NewsItem {
 }
 // --- End NewsItem type ---
 
-// --- Initialize Supabase client --- 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('HomePage: Supabase URL or Anon Key is missing.');
-}
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-// --- End Supabase client ---
+// --- Add Backend URL --- 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
+// --- End Backend URL ---
 
 const HomePage: React.FC = () => {
   // --- State for Latest News --- 
@@ -76,35 +70,43 @@ const HomePage: React.FC = () => {
   const [newsError, setNewsError] = useState<string | null>(null);
   // --- End State ---
 
-  // --- Effect to fetch latest news --- 
+  // --- Effect to fetch latest news from API --- 
   useEffect(() => {
-    const fetchLatestNews = async () => {
+    const fetchLatestNewsFromApi = async () => {
       setNewsLoading(true);
       setNewsError(null);
+      setLatestNews([]); // Clear previous items
       try {
-        const { data, error } = await supabase
-          .from('latest_news')
-          .select('*')
-          .order('published_date', { ascending: false, nullsFirst: false })
-          .order('created_at', { ascending: false })
-          .limit(3); // Limit to 3 results
-
-        if (error) throw error;
-        if (data) setLatestNews(data);
-
+        const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
+        // Take only the first 3 items returned by the API
+        setLatestNews(response.data.slice(0, 3)); 
       } catch (error: unknown) {
         console.error('Error fetching latest news for homepage:', error);
-        if (error instanceof Error) {
-             setNewsError(`Failed to load news: ${error.message}`);
-        } else {
-            setNewsError('An unknown error occurred loading news.');
+        let message = 'An unknown error occurred loading news.';
+        // Use simplified error handling
+        if (error && typeof error === 'object') {
+            let extracted = false;
+            if ('response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data) {
+                const data = error.response.data as any;
+                if (data.error) {
+                    message = `Failed to load news: ${String(data.error)}`;
+                    extracted = true;
+                } else if (data.details) {
+                    message = `Failed to load news: ${String(data.details)}`;
+                    extracted = true;
+                }
+            }
+            if (!extracted && 'message' in error) {
+                message = `Failed to load news: ${String(error.message)}`;
+            }
         }
+        setNewsError(message);
       } finally {
         setNewsLoading(false);
       }
     };
 
-    fetchLatestNews();
+    fetchLatestNewsFromApi();
   }, []);
   // --- End Effect ---
 
@@ -131,12 +133,17 @@ const HomePage: React.FC = () => {
 
       {/* Latest News Feature Cards */}
       <section className="max-w-6xl mx-auto px-4 py-16">
-        {newsLoading && <p className="text-center">Loading latest news...</p>}
+        {/* --- Add Loading Spinner / Error Handling --- */}
+        {newsLoading && (
+          <div className="flex justify-center items-center h-40">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        )}
         {newsError && <p className="text-center text-red-600">{newsError}</p>}
         {!newsLoading && !newsError && (
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {latestNews.length === 0 ? (
-                <p className="text-center md:col-span-3">No recent news found.</p>
+                <p className="text-center md:col-span-3 text-gray-500">No recent news found.</p>
             ) : (
                 latestNews.map((item) => (
                     <div key={item.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
@@ -158,8 +165,8 @@ const HomePage: React.FC = () => {
             )}
             </div>
         )}
-        {/* Optional: Link to see all news */} 
-        {!newsLoading && (
+        {/* Optional: Link to see all news */}
+        {!newsLoading && !newsError && latestNews.length > 0 && (
              <div className="text-center mt-8">
                  <Link to="/latest-news" className="text-indigo-600 hover:text-indigo-800 font-medium">
                      View All News →
