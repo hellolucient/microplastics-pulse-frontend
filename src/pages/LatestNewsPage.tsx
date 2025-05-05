@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../supabaseClient';
 
 // Define the structure of a news item based on your Supabase table
 interface NewsItem {
@@ -13,17 +13,6 @@ interface NewsItem {
   ai_category: string | null;
   manual_category_override: string | null;
 }
-
-// Initialize Supabase client (using frontend environment variables)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase URL or Anon Key is missing. Make sure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your .env file.');
-  // Optionally render an error message or prevent component rendering
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const LatestNewsPage: React.FC = () => {
   // --- Component State ---
@@ -45,6 +34,10 @@ const LatestNewsPage: React.FC = () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
+      // Check if supabase client exists before using it
+      if (!supabase) {
+        throw new Error("Supabase client not initialized.");
+      }
       const { data, error } = await supabase
         .from('latest_news')
         .select('*')
