@@ -9,7 +9,9 @@ const AdminPage: React.FC = () => {
   const [submitUrl, setSubmitUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-  // --- End State ---
+  // --- State for Manual Fetch Button ---
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchMessage, setFetchMessage] = useState('');
 
   const handleLogout = async () => {
     await signOut();
@@ -59,6 +61,36 @@ const AdminPage: React.FC = () => {
     }
   };
   // --- End Form Submit Handler ---
+
+  // --- Manual Fetch Button Handler ---
+  const handleFetchClick = async () => {
+    setIsFetching(true);
+    setFetchMessage('Triggering backend fetch process...');
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/trigger-fetch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP error! status: ${response.status}`);
+      }
+      setFetchMessage(result.message || 'Fetch completed successfully.');
+      // Note: No list refresh needed here as we are not displaying the list on this page
+    } catch (error) {
+      console.error('Error triggering fetch:', error);
+      if (error instanceof Error) {
+        setFetchMessage(`Error: ${error.message}`);
+      } else {
+        setFetchMessage('An unknown error occurred during fetch trigger.');
+      }
+    } finally {
+      setIsFetching(false);
+    }
+  };
+  // --- End Manual Fetch Button Handler ---
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -111,10 +143,26 @@ const AdminPage: React.FC = () => {
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
         <h2 className="text-xl font-semibold mb-4">Other Admin Actions</h2>
+        
+        {/* Manual Fetch Button */}
+        <div className="mb-4">
+            <button 
+              onClick={handleFetchClick} 
+              disabled={isFetching} 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isFetching ? 'Fetching...' : 'Trigger Manual News Fetch'}
+            </button>
+            {fetchMessage && (
+              <p className={`mt-2 text-sm ${fetchMessage.startsWith('Error:') ? 'text-red-600' : 'text-blue-600'}`}>\n                {fetchMessage}\n              </p>
+            )}
+            <p className="mt-2 text-xs text-gray-500">Manually trigger the backend to search all sources and add new articles.</p>
+        </div>
+
+        {/* Placeholder for future actions */}
         <p className="text-gray-600">
-          Manual fetch trigger button, category override management, etc., could go here...
+          Category override management, etc., could go here...
         </p>
-         {/* TODO: Add manual fetch trigger button */}
       </div>
 
     </div>

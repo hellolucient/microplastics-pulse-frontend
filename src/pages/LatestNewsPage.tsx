@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001'; // Fallback for safety
+// Remove backend URL import if no longer needed here
+// const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
 
 // Define the structure of a news item based on your Supabase table
 interface NewsItem {
@@ -22,15 +23,15 @@ const LatestNewsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // --- Temporary Fetch Button State ---
-  const [isFetching, setIsFetching] = useState(false);
-  const [fetchMessage, setFetchMessage] = useState('');
-  // --- End Temporary Fetch Button State ---
+  // --- Remove Temporary Fetch Button State ---
+  // const [isFetching, setIsFetching] = useState(false);
+  // const [fetchMessage, setFetchMessage] = useState('');
+  // --- End Remove ---
 
   // --- Data Fetching Effect ---
   useEffect(() => {
     fetchNews();
-  }, []); // Empty dependency array means run once on mount
+  }, []);
 
   const fetchNews = async () => {
     setIsLoading(true);
@@ -66,59 +67,17 @@ const LatestNewsPage: React.FC = () => {
     }
   };
 
-  // --- Temporary Fetch Button Handler ---
-  const handleFetchClick = async () => {
-    setIsFetching(true);
-    setFetchMessage('Fetching latest news...');
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/trigger-fetch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || `HTTP error! status: ${response.status}`);
-      }
-      setFetchMessage(result.message || 'Fetch completed successfully.');
-      // --- Trigger a refresh of the news list after fetch --- 
-      fetchNews(); 
-      // --- End Trigger refresh ---
-    } catch (error) {
-      console.error('Error triggering fetch:', error);
-      if (error instanceof Error) {
-        setFetchMessage(`Error: ${error.message}`);
-      } else {
-        setFetchMessage('An unknown error occurred during fetch.');
-      }
-    } finally {
-      setIsFetching(false);
-    }
-  };
-  // --- End Temporary Fetch Button Handler ---
+  // --- Remove Temporary Fetch Button Handler ---
+  // const handleFetchClick = async () => { ... };
+  // --- End Remove ---
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       <h1 className="text-3xl font-bold mb-6">Latest News</h1>
 
-      {/* --- Temporary Fetch Button --- */}
-      <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-        <button 
-          onClick={handleFetchClick} 
-          disabled={isFetching} 
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isFetching ? 'Fetching...' : 'Manually Fetch Latest News (Admin Test)'}
-        </button>
-        {fetchMessage && (
-          <p className={`mt-3 text-sm ${fetchMessage.startsWith('Error:') ? 'text-red-600' : 'text-green-600'}`}>
-            {fetchMessage}
-          </p>
-        )}
-         <p className="mt-2 text-xs text-gray-500">This button calls the backend to search Google, process with AI, and save new items to the database.</p>
-      </div>
-      {/* --- End Temporary Fetch Button --- */}
+      {/* --- Remove Temporary Fetch Button Section --- */}
+      {/* <div className="mb-6 p-4 border rounded-lg bg-gray-50"> ... </div> */}
+      {/* --- End Remove --- */}
 
       {/* --- News List Display --- */}
       {isLoading && <p>Loading news...</p>} 
