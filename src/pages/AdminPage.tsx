@@ -309,8 +309,8 @@ const AdminPage: React.FC = () => {
         <div className="mt-6 pt-4 border-t">
             <h3 className="text-lg font-semibold mb-2">Automated Fetch Schedule</h3>
             <p className="text-sm text-gray-700">
-                The backend is scheduled to automatically fetch new articles approximately every 8 hours.
-                (UTC Times: 00:00, 08:00, 16:00)
+                The backend is scheduled to automatically fetch new articles approximately once per day.
+                (UTC Time: 08:00)
             </p>
              <p className="mt-1 text-xs text-gray-500">
                 Check the Vercel project settings for exact cron job status and history.
