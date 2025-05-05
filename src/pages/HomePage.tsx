@@ -111,58 +111,65 @@ const HomePage: React.FC = () => {
   // --- End Effect ---
 
   return (
-    <div className="bg-slate-50">
-      {/* Hero Section */}
-      <section className="py-24 md:py-32 text-center bg-gradient-radial from-slate-100 via-white to-white">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-          MicroPlasticPulse
-        </h1>
-        <p className="text-lg text-slate-700 mb-10 max-w-2xl mx-auto">
-          A living whitepaper on the growing threat of microplastics to human health and wellbeing
-        </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link 
-            to="/whitepaper" 
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-slate-900 text-white font-semibold text-base shadow-sm hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors duration-150 no-underline"
-          >
-            <CircleDot size={20} />
-            Read Whitepaper
-          </Link>
-          <Link 
-            to="/latest-news" 
-            className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium text-base shadow-sm hover:bg-slate-100 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors duration-150 no-underline"
-          >
-            Latest News
-          </Link>
-        </div>
+    <div className="bg-brand-light">
+      {/* Hero Section - Incorporate mascot theme */}
+      {/* This is conceptual - replace bg image/styling as needed */} 
+      <section className="relative overflow-hidden bg-white py-24 md:py-40 text-center">
+        {/* Optional: Subtle dot pattern background */}
+         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px]"></div>
+         {/* Content Container */}
+         <div className="relative z-10 max-w-3xl mx-auto px-4">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-brand-darker mb-5"> 
+              MicroPlasticPulse
+            </h1>
+            <p className="text-xl text-brand-dark mb-10">
+              Understanding the invisible threat. A living whitepaper on microplastics and human health.
+            </p>
+            {/* Buttons use brand colors */}
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link 
+                to="/whitepaper" 
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
+              >
+                <CircleDot size={20} />
+                Explore the Whitepaper
+              </Link>
+              <Link 
+                to="/latest-news" 
+                className="inline-flex items-center justify-center px-8 py-3 rounded-full border border-slate-300 bg-white text-brand-dark font-semibold text-lg shadow-sm hover:bg-gray-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
+              >
+                Latest News
+              </Link>
+            </div>
+         </div>
       </section>
 
-      {/* Latest News Feature Cards */}
-      <section className="bg-slate-100 py-16 md:py-24">
+      {/* Latest News Feature Cards - Use brand colors */}
+      <section className="bg-brand-light py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-center mb-12 md:mb-16 text-slate-900">Latest Updates</h2>
-          {/* Loading Spinner / Error Handling */}
+          <h2 className="text-3xl font-bold tracking-tight text-center mb-12 md:mb-16 text-brand-darker">Latest Updates</h2>
           {newsLoading && (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
+             <div className="flex justify-center items-center h-40">
+               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+             </div>
           )}
           {newsError && <p className="text-center text-red-600">{newsError}</p>}
           {!newsLoading && !newsError && (
              <div className="grid grid-cols-1 md:grid-cols-3 gap-8"> 
               {latestNews.length === 0 ? (
-                  <p className="text-center md:col-span-3 text-slate-600">No recent news found.</p>
+                  <p className="text-center md:col-span-3 text-brand-dark">No recent news found.</p>
               ) : (
                   latestNews.map((item) => (
-                      <div key={item.id} className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg border border-slate-200 flex flex-col transition-shadow duration-200 group">
-                          <Newspaper className="text-slate-500 mb-4 flex-shrink-0" size={24} /> 
-                          <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.title || 'No Title'}</h3> 
-                          <p className="text-slate-700 text-sm mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p> 
+                      // Add subtle border, use brand colors
+                      <div key={item.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg border border-gray-200 flex flex-col transition-shadow duration-200 group">
+                          <Newspaper className="text-brand-blue mb-4 flex-shrink-0" size={24} /> 
+                          <h3 className="text-lg font-semibold text-brand-darker mb-3">{item.title || 'No Title'}</h3> 
+                          <p className="text-brand-dark text-sm mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p> 
                            <a 
                               href={item.url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-slate-700 hover:text-slate-900 hover:underline font-medium text-sm no-underline mt-auto self-start transition-colors duration-150"
+                              className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150"
                            >
                                Read Full Article →
                            </a>
@@ -171,10 +178,9 @@ const HomePage: React.FC = () => {
               )}
               </div>
           )}
-          {/* View All News link - monochrome */}
           {!newsLoading && !newsError && latestNews.length > 0 && (
                <div className="text-center mt-12 md:mt-16">
-                   <Link to="/latest-news" className="font-semibold text-base no-underline text-slate-700 hover:text-slate-900 transition-colors duration-150">
+                   <Link to="/latest-news" className="font-semibold text-base no-underline text-brand-blue hover:text-sky-700 transition-colors duration-150">
                        View All News →
                    </Link>
                </div>
@@ -184,9 +190,9 @@ const HomePage: React.FC = () => {
 
       {/* Whitepaper Sections */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 md:p-12">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4 text-slate-900">The Whitepaper</h2> 
-            <p className="text-lg text-slate-700 text-center mb-12">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 md:p-12">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4 text-brand-darker">The Whitepaper</h2> 
+            <p className="text-lg text-brand-dark text-center mb-12">
               Explore our comprehensive analysis of microplastics, their impact on human health, and prevention strategies.
             </p>
             <div className="space-y-3">
@@ -196,11 +202,12 @@ const HomePage: React.FC = () => {
                   <Link 
                     to={`/whitepaper#${anchorId}`} 
                     key={index} 
-                    className="block p-4 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 transition-all duration-150 no-underline group"
+                    // Hover uses brand blue subtle
+                    className="block p-4 rounded-lg bg-gray-50 hover:bg-sky-50 border border-gray-200 hover:border-sky-300 transition-all duration-150 no-underline group"
                   >
                     <div className="flex items-center justify-between">
-                        <span className="font-medium text-slate-800 group-hover:text-slate-900">{title}</span>
-                        <ChevronRight size={20} className="text-slate-400 group-hover:text-slate-500 group-hover:translate-x-1 transition-transform duration-150" />
+                        <span className="font-medium text-brand-dark group-hover:text-brand-blue">{title}</span>
+                        <ChevronRight size={20} className="text-gray-400 group-hover:text-brand-blue transition-transform duration-150 group-hover:translate-x-1" />
                     </div>
                   </Link>
                 );

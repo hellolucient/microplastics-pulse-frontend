@@ -67,55 +67,43 @@ const LatestNewsPage: React.FC = () => {
   // --- Removed old fetchNews function using Supabase ---
 
   return (
-    // Use consistent max-width and padding
+    // Use new brand colors
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-8 md:mb-12">Latest News</h1>
+      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-8 md:mb-12 text-brand-darker">Latest News</h1>
 
       {/* --- News List Display --- */}
-      {/* Spinner (keep as is) */}
       {isLoading && (
         <div className="flex justify-center items-center h-40">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
         </div>
       )}
-      {/* Error message (keep as is) */}
       {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
       {!isLoading && !errorMessage && (
-        // Use a slightly different max-width for the list itself if desired, or keep page max-width
         <div className="max-w-3xl mx-auto space-y-8">
           {newsItems.length === 0 ? (
-            <p className="text-center text-slate-500">No news items found.</p>
+            <p className="text-center text-brand-dark">No news items found.</p>
           ) : (
             newsItems.map((item) => (
-              // Apply card styling consistent with HomePage
-              <div key={item.id} className="bg-white p-8 rounded-xl shadow-md border border-slate-100 flex flex-col">
-                {/* Category/Date Area */}
+              // Use new brand colors
+              <div key={item.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg border border-gray-200 flex flex-col transition-shadow duration-200 group">
                  <div className="flex items-center justify-between mb-3">
                     {(item.manual_category_override || item.ai_category) ? (
-                        // Use subtle gray tag
-                        <p className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full font-medium uppercase tracking-wide">
+                        // Use subtle gray tag with brand-dark text
+                        <p className="text-xs text-brand-dark bg-gray-100 px-2 py-0.5 rounded-full font-medium uppercase tracking-wide">
                             {item.manual_category_override || item.ai_category}
                         </p>
-                     ) : <div/> /* Empty div to keep space-between working */}
-                     <p className="text-sm text-slate-500">
+                     ) : <div/>}
+                     <p className="text-sm text-gray-500">
                         {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                      </p>
                  </div>
-
-                {/* Title */} 
-                <h2 className="text-xl font-semibold mb-3 text-slate-900">{item.title || 'No Title'}</h2>
-                
-                {/* Source (Optional) */} 
+                <h2 className="text-xl font-semibold mb-3 text-brand-darker">{item.title || 'No Title'}</h2>
                 {item.source && 
-                    <p className="text-xs text-slate-500 mb-3">Source: {item.source}</p>}
-
-                {/* Summary */} 
-                <p className="text-slate-600 text-base mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'No summary available.'}</p>
-                
-                {/* Read More Link - standard text */}
+                    <p className="text-xs text-gray-500 mb-3">Source: {item.source}</p>}
+                <p className="text-brand-dark text-base mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'No summary available.'}</p>
                 <a 
                   href={item.url} 
-                  className="text-slate-700 hover:text-slate-900 hover:underline font-medium text-sm no-underline mt-auto self-start transition-colors duration-150"
+                  className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150"
                   target="_blank" 
                   rel="noopener noreferrer"
                 >

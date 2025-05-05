@@ -9,30 +9,28 @@
   body {
     /* Apply Inter as the default font */
     font-family: 'InterVariable', system-ui, sans-serif;
-    /* Set a slightly softer default text color */
-    @apply text-slate-800;
+    /* Set new base background and text color */
+    @apply bg-brand-light text-brand-dark;
     /* Improve default text rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Refine Prose styles */
+  /* Refine Prose styles using new palette */
   .prose {
-    @apply text-slate-700; /* Softer base prose text */
+    @apply text-brand-dark;
   }
   .prose h1, .prose h2, .prose h3, .prose h4, .prose strong {
-     @apply text-slate-900; /* Darker headings/strong text */
+     @apply text-brand-darker;
   }
   .prose a {
-    /* Use standard text color, maybe subtle underline on hover */
-    @apply text-slate-800;
+    /* Use brand-blue for links */
+    @apply text-brand-blue border-b border-sky-200 hover:border-brand-blue;
     text-decoration-line: none;
-    /* Add a subtle bottom border instead of underline */
-    @apply border-b border-slate-300 hover:border-slate-500 transition-colors duration-150;
+    @apply transition-colors duration-150;
   }
    .prose a:hover {
-     @apply text-slate-900;
-     /* text-decoration-line: underline; */
+     @apply text-sky-700; /* Slightly darker blue on hover */
    }
     /* Add other prose overrides if needed (e.g., code blocks, blockquotes) */
 }
