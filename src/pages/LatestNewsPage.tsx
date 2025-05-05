@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001'; // Fallback for safety
+
 // Define the structure of a news item based on your Supabase table
 interface NewsItem {
   id: string;
@@ -69,8 +71,7 @@ const LatestNewsPage: React.FC = () => {
     setIsFetching(true);
     setFetchMessage('Fetching latest news...');
     try {
-      // Assuming backend runs on localhost:3001
-      const response = await fetch('http://localhost:3001/api/trigger-fetch', {
+      const response = await fetch(`${BACKEND_URL}/api/trigger-fetch`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

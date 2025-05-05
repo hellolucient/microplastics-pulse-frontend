@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import useAuth to access user info and signOut
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001'; // Fallback for safety
+
 const AdminPage: React.FC = () => {
   const { user, signOut } = useAuth();
   // --- State for Manual Submission Form ---
@@ -27,8 +29,7 @@ const AdminPage: React.FC = () => {
     }
 
     try {
-        // Assuming backend runs on localhost:3001
-        const response = await fetch('http://localhost:3001/api/add-news', {
+        const response = await fetch(`${BACKEND_URL}/api/add-news`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
