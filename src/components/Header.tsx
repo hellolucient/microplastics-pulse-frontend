@@ -32,6 +32,7 @@ const Header: React.FC = () => {
           <Link to="/" onClick={scrollToTop} className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Home</Link>
           <Link to="/whitepaper" className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Whitepaper</Link>
           <Link to="/latest-news" className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Latest News</Link>
+          <Link to="/shop" className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Shop</Link>
         </nav>
       </div>
     </header>

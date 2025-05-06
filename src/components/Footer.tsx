@@ -21,6 +21,7 @@ const Footer: React.FC = () => {
             <Link to="/" onClick={scrollToTop} className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Home</Link>
             <Link to="/whitepaper" className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Whitepaper</Link>
             <Link to="/latest-news" className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Latest News</Link>
+            <Link to="/shop" className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Shop</Link>
           </nav>
 
           <div className="text-center md:text-right">
