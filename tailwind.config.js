@@ -17,15 +17,6 @@ export default {
         'brand-dark': '#1f2937', // gray-800
         'brand-darker': '#111827', // gray-900
       },
-      typography: {
-        lg: {
-          css: {
-            h1: {
-              scrollMarginTop: '6rem',
-            },
-          },
-        },
-      },
     },
   },
   plugins: [

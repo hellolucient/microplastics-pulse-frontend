@@ -152,8 +152,8 @@ const WhitepaperPage: React.FC = () => {
         </aside>
 
         {/* Main Content Area */} 
-        {/* Added padding to the main content area */}
-        <div className="flex-1 overflow-y-auto py-8 md:pl-12">
+        {/* Add scroll-padding-top to account for fixed header */}
+        <div className="flex-1 overflow-y-auto py-8 md:pl-12 scroll-pt-[6rem]">
            <MainContent activeChapterContent={activeChapterContent} />
         </div>
       </div>
