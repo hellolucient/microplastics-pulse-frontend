@@ -436,7 +436,7 @@ Wang, M., Wu, Y., Li, G., Xiong, Y., Zhang, Y., & Zhang, M. (2024). The hidden t
 
 Woodruff, T.J. (2024). Microplastics in the Air May Be Leading to Lung and Colon Cancers. UCSF News release, Dec 18, 2024. (Press release summarizing the rapid review by Chartres et al. 2024, emphasizing suspected links between airborne microplastics and serious illnesses like lung cancer, colon cancer, and infertility, and urging policy action.)
  
-# Chapter 4: Environmental Context: Exposure Pathways and Contamination Sources
+# Chapter 4: Environmental Context - Exposure Pathways and Contamination Sources
 
 Microplastics have permeated every corner of the environment – from remote mountaintops to the human bloodstream . These tiny plastic particles (≤5 mm) are now routinely detected in air, water, and food, resulting in chronic human exposure through multiple pathways.
 Researchers have even identified microplastics throughout the human body, including in placental tissue and the reproductive system . While the long-term health implications are still being elucidated, early evidence points to serious risks: microplastic accumulation has been linked with inflammation, cardiovascular disease, cancers, respiratory disorders, and neurological effects . Given their ubiquity and potential for harm, it is critical to understand how microplastics enter the human body. This chapter examines key environmental contamination sources and exposure pathways – ingestion via the food chain, inhalation of airborne particles, and everyday consumer product use – and discusses their relevance to human wellness and chronic disease risk.
@@ -692,7 +692,7 @@ review.” Environmental Sciences Europe 35 (2023): Article 13 . (Comprehensive 
 
 Woodruff, Tracey J., et al. Press Release: “Microplastics in the air may be leading to lung and colon cancers.” University of California – San Francisco (UCSF), 18 Dec 2024 . (Media summary of UCSF systematic review on airborne microplastics and health, published in ES&T.)
  
-# Chapter 5: Wellness Industry Blindspot – Prevention, Reduction, and Wellness Programming
+# Chapter 5: Wellness Industry Blindspot - Prevention, Reduction, and Wellness Programming
 
 
 
