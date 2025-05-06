@@ -52,6 +52,7 @@ const WhitepaperPage: React.FC = () => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Define the chapter files in order - Updated with hyphenated names
   const chapterFiles = [
@@ -67,60 +68,84 @@ const WhitepaperPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    console.log('[WhitepaperPage Load] Starting fetch for chapters:', chapterFiles);
+    // --- REFACTORED ASYNC FUNCTION ---
+    const fetchAndParseChapters = async () => {
+      setLoading(true); // Ensure loading is set at the start
+      setError(null);
+      console.log('[WhitepaperPage Load] Starting fetch for chapters:', chapterFiles);
 
-    try {
-      const fetchPromises = chapterFiles.map(file =>
-        // Append a cache buster to prevent CDN caching issues
-        fetch(`/whitepaper-chapters/${file}?v=${Date.now()}`)
-          .then(async res => {
-            if (!res.ok) {
-               console.warn(`Failed to fetch ${file}: ${res.status} ${res.statusText}`);
-            }
-          })
-      );
+      try {
+        const fetchPromises = chapterFiles.map(file =>
+          fetch(`/whitepaper-chapters/${file}?v=${Date.now()}`)
+            .then(async res => {
+              if (!res.ok) {
+                 console.warn(`Failed to fetch ${file}: ${res.status} ${res.statusText}`);
+                 return ''; // Return empty string on fetch error
+              }
+              return res.text(); // CORRECT: Return the fetched text
+            })
+            .catch(fetchError => {
+                console.error(`Network error fetching ${file}:`, fetchError);
+                return ''; // Return empty string on network error
+            })
+        );
 
-      const parsedChapters = parseMarkdownChapters(whitepaperContent);
-      setChapters(parsedChapters);
-      
-      const hash = window.location.hash.substring(1);
-      console.log('[WhitepaperPage Load] Initial hash (Full Slug):', hash);
-      
-      // Validate the incoming hash against the full slug IDs
-      const isValidHash = hash && parsedChapters.some(ch => ch.id === hash); 
-      console.log('[WhitepaperPage Load] Is hash valid (comparing full slugs)?', isValidHash);
-      
-      let initialChapterId = null;
-      if (isValidHash) {
-        // If hash is valid, use it
-        initialChapterId = hash;
-      } else if (parsedChapters.length > 0) {
-        // If hash is invalid or empty, default to the first chapter's full slug ID
-        initialChapterId = parsedChapters[0].id; 
-        // Only update the URL hash if we defaulted because the initial hash was *empty*
-        if (!hash) { 
-          window.history.replaceState(null, '', `#${initialChapterId}`);
+        // CORRECT: Wait for all fetches to complete
+        const chapterContents = await Promise.all(fetchPromises);
+        
+        // CORRECT: Combine the actual fetched contents
+        const combinedMarkdown = chapterContents.filter(content => content).join('\n\n---\n\n'); 
+        
+        // --- DEBUG: Log the raw combined content ---
+        console.log('[WhitepaperPage Load] Raw Combined Markdown Fetched:\n', combinedMarkdown);
+        // --- END DEBUG ---
+
+        if (!combinedMarkdown) {
+            throw new Error('No chapter content could be loaded.');
         }
+
+        // CORRECT: Parse the combined content from the fetches
+        const parsedChapters = parseMarkdownChapters(combinedMarkdown);
+        setChapters(parsedChapters);
+        console.log('[WhitepaperPage Load] Chapters parsed:', parsedChapters.length);
+
+        // --- Start: Existing hash handling logic (needs parsedChapters) ---
+        const hash = window.location.hash.substring(1);
+        console.log('[WhitepaperPage Load] Initial hash (Full Slug):', hash);
+        
+        const isValidHash = hash && parsedChapters.some(ch => ch.id === hash); 
+        console.log('[WhitepaperPage Load] Is hash valid (comparing full slugs)?', isValidHash);
+        
+        let initialChapterId = null;
+        if (isValidHash) {
+          initialChapterId = hash;
+        } else if (parsedChapters.length > 0) {
+          initialChapterId = parsedChapters[0].id; 
+          if (!hash) { 
+            window.history.replaceState(null, '', `#${initialChapterId}`);
+          }
+        }
+        setActiveChapterId(initialChapterId);
+        console.log('[WhitepaperPage Load] Setting activeChapterId to (Full Slug):', initialChapterId);
+        // --- End: Existing hash handling logic ---
+
+      } catch (err) {
+          console.error("Error fetching or parsing whitepaper chapters:", err);
+          if (err instanceof Error) {
+            setError(`Failed to load whitepaper content: ${err.message}`);
+          } else {
+            setError('An unknown error occurred while loading the whitepaper.');
+          }
+      } finally {
+        setLoading(false);
+        console.log('[WhitepaperPage Load] Fetch/parse complete. Loading set to false.');
       }
-      // Set the active ID based on the logic above
-      setActiveChapterId(initialChapterId);
-      console.log('[WhitepaperPage Load] Setting activeChapterId to (Full Slug):', initialChapterId);
+    };
+    // --- END REFACTORED ASYNC FUNCTION ---
 
-      const combinedMarkdown = parsedChapters.map(ch => ch.content).join('\n\n---\n\n'); 
-      
-      // --- DEBUG: Log the raw combined content ---
-      console.log('[WhitepaperPage Load] Raw Combined Markdown Fetched:\n', combinedMarkdown);
-      // --- END DEBUG ---
+    fetchAndParseChapters(); // Call the async function
 
-      if (!combinedMarkdown) {
-          throw new Error('No chapter content could be loaded.');
-      }
-
-    } catch (error) {
-      console.error('Error loading chapters:', error);
-      setError('An error occurred while loading the chapters.');
-    }
-  }, []); // Run only once on mount
+  }, []); // Keep empty dependency array to run once on mount
 
   const handleChapterClick = (id: string) => {
     console.log('[handleChapterClick] Clicked ID (Full Slug):', id);
