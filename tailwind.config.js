@@ -1,4 +1,5 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
+import typography from '@tailwindcss/typography';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -15,8 +16,19 @@ export default {
         'brand-light': '#f3f4f6', // gray-100
         'brand-dark': '#1f2937', // gray-800
         'brand-darker': '#111827', // gray-900
-      }
+      },
+      typography: {
+        lg: {
+          css: {
+            h1: {
+              scrollMarginTop: '6rem',
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    typography,
+  ],
 };
