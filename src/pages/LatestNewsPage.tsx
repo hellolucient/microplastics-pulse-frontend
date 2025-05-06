@@ -89,8 +89,8 @@ const LatestNewsPage: React.FC = () => {
                  {/* Container for Category and Date - Stack vertically by default, row on medium+ */}
                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
                     {(item.manual_category_override || item.ai_category) ? (
-                        // Restore original padding
-                        <p className="text-xs text-brand-dark bg-gray-100 px-2 py-0.5 rounded-full font-medium uppercase tracking-wide mb-1 md:mb-0">
+                        // Use subtle gray tag. Remove px on mobile, add back on md+
+                        <p className="text-xs text-brand-dark bg-gray-100 py-0.5 md:px-2 rounded-full font-medium uppercase tracking-wide mb-1 md:mb-0 self-start">
                             {item.manual_category_override || item.ai_category}
                         </p>
                      ) : <div className="hidden md:block"/> /* Use hidden div to maintain alignment on md+ when no category */} 
@@ -99,20 +99,18 @@ const LatestNewsPage: React.FC = () => {
                         {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                      </p>
                  </div>
-                 {/* Make Title Clickable - Add pl-2 default, remove on md+ */}
+                 {/* Make Title Clickable */}
                  <a 
                     href={item.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-xl font-semibold mb-3 text-brand-darker hover:text-brand-blue transition-colors duration-150 no-underline pl-2 md:pl-0"
+                    className="text-xl font-semibold mb-3 text-brand-darker hover:text-brand-blue transition-colors duration-150 no-underline"
                  >
                     {item.title || 'No Title'}
                  </a>
                 {item.source && 
-                     /* Add pl-2 default, remove on md+ */
-                    <p className="text-xs text-gray-500 mb-3 pl-2 md:pl-0">Source: {item.source}</p>}
-                 /* Add pl-2 default, remove on md+ */
-                <p className="text-brand-dark text-base mb-5 line-clamp-4 flex-grow pl-2 md:pl-0">{item.ai_summary || 'No summary available.'}</p>
+                    <p className="text-xs text-gray-500 mb-3">Source: {item.source}</p>}
+                <p className="text-brand-dark text-base mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'No summary available.'}</p>
                 <a 
                   href={item.url} 
                   className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150"
