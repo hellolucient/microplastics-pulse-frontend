@@ -86,14 +86,16 @@ const LatestNewsPage: React.FC = () => {
             newsItems.map((item) => (
               // Use new brand colors
               <div key={item.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg border border-gray-200 flex flex-col transition-shadow duration-200 group">
-                 <div className="flex items-center justify-between mb-3">
+                 {/* Container for Category and Date - Stack vertically by default, row on medium+ */}
+                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
                     {(item.manual_category_override || item.ai_category) ? (
                         // Use subtle gray tag with brand-dark text
-                        <p className="text-xs text-brand-dark bg-gray-100 px-2 py-0.5 rounded-full font-medium uppercase tracking-wide">
+                        <p className="text-xs text-brand-dark bg-gray-100 px-2 py-0.5 rounded-full font-medium uppercase tracking-wide mb-1 md:mb-0">
                             {item.manual_category_override || item.ai_category}
                         </p>
-                     ) : <div/>}
-                     <p className="text-sm text-gray-500">
+                     ) : <div className="hidden md:block"/> /* Use hidden div to maintain alignment on md+ when no category */} 
+                     {/* Date - smaller text, slightly less prominent */}
+                     <p className="text-xs text-gray-500 mt-1 md:mt-0">
                         {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                      </p>
                  </div>
