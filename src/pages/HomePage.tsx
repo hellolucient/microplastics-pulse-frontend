@@ -188,6 +188,14 @@ const HomePage: React.FC = () => {
                       // Add subtle border, use brand colors
                       <div key={item.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg border border-gray-200 flex flex-col transition-shadow duration-200 group">
                           <Newspaper className="text-brand-blue mb-4 flex-shrink-0" size={24} /> 
+                          {/* Add Date Display */}
+                          <div className="flex items-center justify-between mb-2">
+                              {/* Placeholder for category if needed later */}
+                              <div></div> 
+                              <p className="text-xs text-gray-500">
+                                  {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              </p>
+                          </div>
                           {/* Make Title Clickable */}
                           <a 
                             href={item.url} 
