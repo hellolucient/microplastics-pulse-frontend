@@ -97,7 +97,15 @@ const LatestNewsPage: React.FC = () => {
                         {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                      </p>
                  </div>
-                <h2 className="text-xl font-semibold mb-3 text-brand-darker">{item.title || 'No Title'}</h2>
+                 {/* Make Title Clickable */}
+                 <a 
+                    href={item.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xl font-semibold mb-3 text-brand-darker hover:text-brand-blue transition-colors duration-150 no-underline"
+                 >
+                    {item.title || 'No Title'}
+                 </a>
                 {item.source && 
                     <p className="text-xs text-gray-500 mb-3">Source: {item.source}</p>}
                 <p className="text-brand-dark text-base mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'No summary available.'}</p>

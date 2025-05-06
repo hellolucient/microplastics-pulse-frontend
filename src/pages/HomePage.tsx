@@ -188,8 +188,17 @@ const HomePage: React.FC = () => {
                       // Add subtle border, use brand colors
                       <div key={item.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg border border-gray-200 flex flex-col transition-shadow duration-200 group">
                           <Newspaper className="text-brand-blue mb-4 flex-shrink-0" size={24} /> 
-                          <h3 className="text-lg font-semibold text-brand-darker mb-3">{item.title || 'No Title'}</h3> 
+                          {/* Make Title Clickable */}
+                          <a 
+                            href={item.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-lg font-semibold text-brand-darker mb-3 hover:text-brand-blue transition-colors duration-150 no-underline"
+                          >
+                            {item.title || 'No Title'}
+                          </a>
                           <p className="text-brand-dark text-sm mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p> 
+                           {/* Existing Read Full Article Link */}
                            <a 
                               href={item.url} 
                               target="_blank" 
