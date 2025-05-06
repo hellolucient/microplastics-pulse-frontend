@@ -130,7 +130,12 @@ const WhitepaperPage: React.FC = () => {
     }
   }, [activeChapterId]); // Run whenever activeChapterId (the full slug) changes
 
-  const activeChapterContent = chapters.find((ch: Chapter) => ch.id === activeChapterId)?.content || null;
+  // Find the active chapter object
+  const activeChapter = chapters.find((ch: Chapter) => ch.id === activeChapterId);
+  // Get content, default to null if no chapter found (shouldn't happen with default logic)
+  const activeChapterContent = activeChapter?.content || null;
+  // Get title, default to null
+  const activeChapterTitle = activeChapter?.title || null;
 
   return (
     // Apply consistent max-width and padding to the overall container
@@ -152,10 +157,13 @@ const WhitepaperPage: React.FC = () => {
           </nav>
         </aside>
 
-        {/* Main Content Area */} 
-        {/* Add scroll-padding-top to account for fixed header */}
-        <div className="flex-1 overflow-y-auto py-8 md:pl-12 scroll-pt-[6rem]">
-           <MainContent activeChapterContent={activeChapterContent} />
+        {/* Main Content Area - Remove unused ref */}
+        <div className="flex-1 overflow-y-auto py-8 md:pl-12">
+           {/* Pass both content and title */}
+           <MainContent 
+              activeChapterContent={activeChapterContent} 
+              activeChapterTitle={activeChapterTitle} 
+           />
         </div>
       </div>
     </div>

@@ -11,11 +11,25 @@ import rehypeSlug from 'rehype-slug';
 // Define props for MainContent
 interface MainContentProps {
   activeChapterContent: string | null;
+  activeChapterTitle: string | null;
 }
 
-const MainContent: React.FC<MainContentProps> = ({ activeChapterContent }) => {
+const MainContent: React.FC<MainContentProps> = ({ activeChapterContent, activeChapterTitle }) => {
   const lastUpdated = formatDate(new Date());
-  // Removed markdown state and useEffect
+
+  // Function to generate dynamic description
+  const getTimelineDescription = () => {
+    let baseText = "This timeline represents key research publications and findings related to microplastics and human health.";
+    if (activeChapterTitle && activeChapterTitle !== 'Foreword') {
+        // Extract the core topic from the chapter title if possible (simple extraction)
+        const coreTopic = activeChapterTitle.split(':')[1]?.split('–')[0]?.trim() || activeChapterTitle;
+        baseText = `This timeline represents key research publications and findings related to microplastics and ${coreTopic}.`;
+    } 
+    // Could add a specific message for Foreword if desired
+    // else if (activeChapterTitle === 'Foreword') { ... }
+    
+    return `${baseText} It is continuously updated as new research emerges.`;
+  };
 
   return (
     <main className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8 scroll-smooth">
@@ -78,13 +92,12 @@ const MainContent: React.FC<MainContentProps> = ({ activeChapterContent }) => {
               </div>
             )}
             
-            <div id="research" className="my-12">
+            <div id="research" className="my-12 pt-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold mb-6">Latest News Timeline</h2>
               <p className="text-gray-700 mb-6">
-                This timeline represents key research publications and findings related to microplastics and human health. 
-                It is continuously updated as new research emerges.
+                {getTimelineDescription()}
               </p>
-              <ResearchTimeline />
+              <ResearchTimeline filterCategory={activeChapterTitle} />
             </div>
 
           </div>
