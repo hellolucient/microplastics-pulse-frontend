@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CircleDot, Newspaper, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import WhitepaperSection from '../components/WhitepaperSection'; // Path relative to src/pages/
+// import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
 import axios from 'axios'; // <-- Add axios
 import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
 
