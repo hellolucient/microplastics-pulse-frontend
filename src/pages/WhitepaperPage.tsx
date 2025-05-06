@@ -67,42 +67,59 @@ const WhitepaperPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    const parsedChapters = parseMarkdownChapters(whitepaperContent);
-    setChapters(parsedChapters);
-    
-    const hash = window.location.hash.substring(1);
-    console.log('[WhitepaperPage Load] Initial hash (Full Slug):', hash);
-    
-    // Validate the incoming hash against the full slug IDs
-    const isValidHash = hash && parsedChapters.some(ch => ch.id === hash); 
-    console.log('[WhitepaperPage Load] Is hash valid (comparing full slugs)?', isValidHash);
-    
-    let initialChapterId = null;
-    if (isValidHash) {
-      // If hash is valid, use it
-      initialChapterId = hash;
-    } else if (parsedChapters.length > 0) {
-      // If hash is invalid or empty, default to the first chapter's full slug ID
-      initialChapterId = parsedChapters[0].id; 
-      // Only update the URL hash if we defaulted because the initial hash was *empty*
-      if (!hash) { 
-        window.history.replaceState(null, '', `#${initialChapterId}`);
+    console.log('[WhitepaperPage Load] Starting fetch for chapters:', chapterFiles);
+
+    try {
+      const fetchPromises = chapterFiles.map(file =>
+        // Append a cache buster to prevent CDN caching issues
+        fetch(`/whitepaper-chapters/${file}?v=${Date.now()}`)
+          .then(async res => {
+            if (!res.ok) {
+               console.warn(`Failed to fetch ${file}: ${res.status} ${res.statusText}`);
+            }
+          })
+      );
+
+      const parsedChapters = parseMarkdownChapters(whitepaperContent);
+      setChapters(parsedChapters);
+      
+      const hash = window.location.hash.substring(1);
+      console.log('[WhitepaperPage Load] Initial hash (Full Slug):', hash);
+      
+      // Validate the incoming hash against the full slug IDs
+      const isValidHash = hash && parsedChapters.some(ch => ch.id === hash); 
+      console.log('[WhitepaperPage Load] Is hash valid (comparing full slugs)?', isValidHash);
+      
+      let initialChapterId = null;
+      if (isValidHash) {
+        // If hash is valid, use it
+        initialChapterId = hash;
+      } else if (parsedChapters.length > 0) {
+        // If hash is invalid or empty, default to the first chapter's full slug ID
+        initialChapterId = parsedChapters[0].id; 
+        // Only update the URL hash if we defaulted because the initial hash was *empty*
+        if (!hash) { 
+          window.history.replaceState(null, '', `#${initialChapterId}`);
+        }
       }
+      // Set the active ID based on the logic above
+      setActiveChapterId(initialChapterId);
+      console.log('[WhitepaperPage Load] Setting activeChapterId to (Full Slug):', initialChapterId);
+
+      const combinedMarkdown = parsedChapters.map(ch => ch.content).join('\n\n---\n\n'); 
+      
+      // --- DEBUG: Log the raw combined content ---
+      console.log('[WhitepaperPage Load] Raw Combined Markdown Fetched:\n', combinedMarkdown);
+      // --- END DEBUG ---
+
+      if (!combinedMarkdown) {
+          throw new Error('No chapter content could be loaded.');
+      }
+
+    } catch (error) {
+      console.error('Error loading chapters:', error);
+      setError('An error occurred while loading the chapters.');
     }
-    // Set the active ID based on the logic above
-    setActiveChapterId(initialChapterId);
-    console.log('[WhitepaperPage Load] Setting activeChapterId to (Full Slug):', initialChapterId);
-
-    const combinedMarkdown = parsedChapters.map(ch => ch.content).join('\n\n---\n\n'); 
-    
-    // --- DEBUG: Log the raw combined content ---
-    console.log('[WhitepaperPage Load] Raw Combined Markdown Fetched:\n', combinedMarkdown);
-    // --- END DEBUG ---
-
-    if (!combinedMarkdown) {
-        throw new Error('No chapter content could be loaded.');
-    }
-
   }, []); // Run only once on mount
 
   const handleChapterClick = (id: string) => {
