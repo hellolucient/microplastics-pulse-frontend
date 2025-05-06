@@ -93,6 +93,16 @@ const WhitepaperPage: React.FC = () => {
     setActiveChapterId(initialChapterId);
     console.log('[WhitepaperPage Load] Setting activeChapterId to (Full Slug):', initialChapterId);
 
+    const combinedMarkdown = parsedChapters.map(ch => ch.content).join('\n\n---\n\n'); 
+    
+    // --- DEBUG: Log the raw combined content ---
+    console.log('[WhitepaperPage Load] Raw Combined Markdown Fetched:\n', combinedMarkdown);
+    // --- END DEBUG ---
+
+    if (!combinedMarkdown) {
+        throw new Error('No chapter content could be loaded.');
+    }
+
   }, []); // Run only once on mount
 
   const handleChapterClick = (id: string) => {
