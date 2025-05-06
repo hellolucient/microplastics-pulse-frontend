@@ -16,6 +16,7 @@ const titleName = "MicroPlasticPulse";
 
 // Define chapter titles for the homepage links
 const chapterTitles = [
+  "Foreword",
   "Chapter 1: Microplastics and Human Health – Introduction",
   "Chapter 2: Pathways into Human Biology",
   "Chapter 3: Human Health Impacts of Microplastics",
