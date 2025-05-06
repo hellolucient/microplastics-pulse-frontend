@@ -125,7 +125,7 @@ const WhitepaperPage: React.FC = () => {
         } else {
            console.warn(`[Scroll Effect] Could not find element (${activeChapterId}).`);
         }
-      }, 300); // Increased delay from 100ms to 300ms
+      }, 100); // Reverted delay back to 100ms
     }
   }, [activeChapterId]); // Run whenever activeChapterId (the full slug) changes
 

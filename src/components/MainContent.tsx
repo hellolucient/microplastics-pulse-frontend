@@ -67,7 +67,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeChapterContent }) => {
             </div>
             
             {activeChapterContent ? (
-              <div className="prose prose-lg max-w-none">
+              <div className="prose prose-lg max-w-none [&>h1]:scroll-mt-[6rem]">
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]}>
                   {activeChapterContent}
                 </ReactMarkdown>
