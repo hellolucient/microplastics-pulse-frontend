@@ -89,8 +89,8 @@ const LatestNewsPage: React.FC = () => {
                  {/* Container for Category and Date - Stack vertically by default, row on medium+ */}
                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
                     {(item.manual_category_override || item.ai_category) ? (
-                        // Use subtle gray tag. Remove px on mobile, add back on md+
-                        <p className="text-xs text-brand-dark bg-gray-100 py-0.5 md:px-2 rounded-full font-medium uppercase tracking-wide mb-1 md:mb-0 self-start">
+                        // Restore original padding and add self-start
+                        <p className="text-xs text-brand-dark bg-gray-100 px-2 py-0.5 rounded-full font-medium uppercase tracking-wide mb-1 md:mb-0 self-start">
                             {item.manual_category_override || item.ai_category}
                         </p>
                      ) : <div className="hidden md:block"/> /* Use hidden div to maintain alignment on md+ when no category */} 
