@@ -51,6 +51,20 @@ const parseMarkdownChapters = (markdown: string): Chapter[] => {
 const WhitepaperPage: React.FC = () => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Define the chapter files in order - Updated with hyphenated names
+  const chapterFiles = [
+    'Foreword.md',
+    'Chapter-1.md',
+    'Chapter-2.md',
+    'Chapter-3.md',
+    'Chapter-4.md',
+    'Chapter-5.md',
+    'Chapter-6.md',
+    'Chapter-7.md',
+    // Add any future chapter files here
+  ];
 
   useEffect(() => {
     const parsedChapters = parseMarkdownChapters(whitepaperContent);
