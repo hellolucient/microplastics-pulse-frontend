@@ -121,7 +121,8 @@ const WhitepaperPage: React.FC = () => {
         console.log(`[Scroll Effect] Trying to scroll to element with ID (Full Slug): ${activeChapterId}`, element);
         if (element) {
           // Restore simple scrollIntoView - CSS handles the offset
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+          // Change behavior to 'auto' for testing
+          element.scrollIntoView({ behavior: 'auto', block: 'start' }); 
         } else {
            console.warn(`[Scroll Effect] Could not find element (${activeChapterId}).`);
         }
