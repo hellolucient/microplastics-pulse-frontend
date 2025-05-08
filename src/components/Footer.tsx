@@ -13,20 +13,18 @@ const Footer: React.FC = () => {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex justify-center md:justify-start mb-4 md:mb-0">
             <Link to="/" onClick={scrollToTop} className="font-semibold text-brand-darker hover:text-brand-blue transition-colors no-underline">
-              MicroPlasticPulse
+              MicroplasticsWatch
             </Link>
           </div>
 
           <nav className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 mb-4 md:mb-0 md:ml-10">
             <Link to="/" onClick={scrollToTop} className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Home</Link>
-            <Link to="/whitepaper" className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Whitepaper</Link>
             <Link to="/latest-news" className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Latest News</Link>
-            <Link to="/shop" className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Shop</Link>
           </nav>
 
           <div className="text-center md:text-right">
             <p className="text-sm text-gray-600">
-              &copy; {new Date().getFullYear()} MicroPlastic Pulse
+              &copy; {new Date().getFullYear()} MicroplasticsWatch
             </p>
           </div>
         </div>

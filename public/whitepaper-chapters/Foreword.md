@@ -1,4 +1,3 @@
-PASTA
 We are all aware of the global effects of plastic pollution on our landscapes and on the world's oceans.
 
 And by now most of us have seen media reports on microplastics in the human body.

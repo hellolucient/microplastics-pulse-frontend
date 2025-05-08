@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CircleDot, Newspaper, ChevronRight } from 'lucide-react';
+import { Newspaper, FileText, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 // import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
 import axios from 'axios'; // <-- Add axios
@@ -133,23 +133,14 @@ const HomePage: React.FC = () => {
                 {/* Text Content Area (Takes up more space on large screens) */}
                 <div className="lg:col-span-7 text-center lg:text-left">
                     {/* Apply colors to each letter of the title */}
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-5"> 
-                      {titleName.split('').map((letter, index) => (
-                        <span key={index} className={titleColors[index % titleColors.length]}>{letter}</span>
-                      ))}
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-5 text-brand-darker"> 
+                      MicroplasticsWatch
                     </h1>
                     <p className="text-xl text-brand-dark mb-10 max-w-2xl mx-auto lg:mx-0">
-                      Understanding the invisible threat. A living whitepaper on microplastics and human health.
+                      Welcome to MicroplasticsWatch, your dedicated source for the latest research, news, and insights into the world of microplastics. Our mission is to provide timely updates and comprehensive information to help you stay informed about this critical environmental and health issue.
                     </p>
                     {/* Buttons */} 
                     <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-                      <Link 
-                        to="/whitepaper" 
-                        className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
-                      >
-                        <CircleDot size={20} />
-                        Explore the Whitepaper
-                      </Link>
                       <Link 
                         to="/latest-news" 
                         className="inline-flex items-center justify-center px-8 py-3 rounded-full border border-slate-300 bg-white text-brand-dark font-semibold text-lg shadow-sm hover:bg-gray-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
@@ -231,31 +222,25 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Whitepaper Sections */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 md:p-12">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-4 text-brand-darker">The Whitepaper</h2> 
-            <p className="text-lg text-brand-dark text-center mb-12">
-              Explore our comprehensive analysis of microplastics, their impact on human health, and prevention strategies.
-            </p>
-            <div className="space-y-3">
-              {chapterTitles.map((title, index) => {
-                const anchorId = slugify(title); 
-                return (
-                  <Link 
-                    to={`/whitepaper#${anchorId}`} 
-                    key={index} 
-                    // Hover uses brand blue subtle
-                    className="block p-4 rounded-lg bg-gray-50 hover:bg-sky-50 border border-gray-200 hover:border-sky-300 transition-all duration-150 no-underline group"
-                  >
-                    <div className="flex items-center justify-between">
-                        <span className="font-medium text-brand-dark group-hover:text-brand-blue">{title}</span>
-                        <ChevronRight size={20} className="text-gray-400 group-hover:text-brand-blue transition-transform duration-150 group-hover:translate-x-1" />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+      {/* New Whitepaper PDF Download Section */}
+      <section className="bg-white py-16 md:py-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6 text-brand-darker">
+            Download Our Comprehensive Whitepaper
+          </h2>
+          <p className="text-lg text-brand-dark mb-8 max-w-xl mx-auto">
+            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions.
+          </p>
+          <div className="flex justify-center">
+            <a
+              href="/Microplastics - the Elephant in the Wellness Room.pdf"
+              download
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
+            >
+              <FileText size={24} />
+              Download PDF
+            </a>
+          </div>
         </div>
       </section>
     </div>
