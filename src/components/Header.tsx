@@ -12,7 +12,7 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         <div className="flex items-center">
           <Link to="/" onClick={scrollToTop} className="flex items-center">
-            <img src="/whitepaper-images/MicroPlasticsWatch-logo.png" alt="MicroplasticsWatch Logo" className="h-20 w-auto" />
+            <img src="/MicroPlasticsWatch-logo.png" alt="MicroplasticsWatch Logo" className="h-20 w-auto" />
           </Link>
         </div>
 
