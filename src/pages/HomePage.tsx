@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Newspaper, FileText, ChevronRight } from 'lucide-react';
+import { Newspaper, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 // import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
 import axios from 'axios'; // <-- Add axios
@@ -123,16 +123,14 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="bg-brand-light">
-      {/* Hero Section - Modified Layout */}
-      <section className="relative overflow-hidden bg-white py-20 md:py-28">
-         {/* Background Pattern */}
+      {/* Hero Section - Logo instead of H1 text */}
+      <section className="relative overflow-hidden bg-white pt-10 pb-10 md:pt-14 md:pb-14">
          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px]"></div>
-         {/* Content Container - Use Flex/Grid for side-by-side layout */} 
          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
                 {/* Text Content Area (Takes up more space on large screens) */}
                 <div className="lg:col-span-7 text-center lg:text-left">
-                    {/* Apply colors to each letter of the title */}
+                    {/* Re-add H1 text, remove img */}
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-5 text-brand-darker"> 
                       MicroplasticsWatch
                     </h1>
@@ -159,6 +157,28 @@ const HomePage: React.FC = () => {
                 </div>
             </div>
          </div>
+      </section>
+
+      {/* Whitepaper PDF Download Section - MOVED HERE */}
+      <section className="bg-white pt-8 pb-16 md:pt-12 md:pb-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6 text-brand-darker">
+            Download Our Comprehensive Whitepaper
+          </h2>
+          <p className="text-lg text-brand-dark mb-8 max-w-xl mx-auto">
+            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions.
+          </p>
+          <div className="flex justify-center">
+            <a
+              href="/Microplastics - the Elephant in the Wellness Room.pdf"
+              download
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
+            >
+              <FileText size={24} />
+              Download PDF
+            </a>
+          </div>
+        </div>
       </section>
 
       {/* Latest News Feature Cards - Use brand colors */}
@@ -219,28 +239,6 @@ const HomePage: React.FC = () => {
                    </Link>
                </div>
           )}
-        </div>
-      </section>
-
-      {/* New Whitepaper PDF Download Section */}
-      <section className="bg-white py-16 md:py-24">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6 text-brand-darker">
-            Download Our Comprehensive Whitepaper
-          </h2>
-          <p className="text-lg text-brand-dark mb-8 max-w-xl mx-auto">
-            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions.
-          </p>
-          <div className="flex justify-center">
-            <a
-              href="/Microplastics - the Elephant in the Wellness Room.pdf"
-              download
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
-            >
-              <FileText size={24} />
-              Download PDF
-            </a>
-          </div>
         </div>
       </section>
     </div>
