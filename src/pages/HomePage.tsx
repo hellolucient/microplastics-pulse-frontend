@@ -5,58 +5,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios'; // <-- Add axios
 import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
 
-// Define colors for title letters
-const titleColors = [
-  'text-red-500', 'text-orange-500', 'text-amber-500', 'text-yellow-400', 'text-lime-500',
-  'text-green-500', 'text-emerald-500', 'text-teal-500', 'text-cyan-500', 'text-sky-500',
-  'text-blue-600', 'text-indigo-500', 'text-violet-500', 'text-purple-500', 'text-fuchsia-500',
-  'text-pink-500', 'text-rose-500'
-];
-const titleName = "MicroPlasticPulse";
-
-// Define chapter titles for the homepage links
-const chapterTitles = [
-  "Foreword",
-  "Chapter 1: Microplastics and Human Health – Introduction",
-  "Chapter 2: Pathways into Human Biology",
-  "Chapter 3: Human Health Impacts of Microplastics",
-  "Chapter 4: Environmental Context: Exposure Pathways and Contamination Sources",
-  "Chapter 5: Wellness Industry Blindspot – Prevention, Reduction, and Wellness Programming",
-  "Chapter 6: Framework for Action",
-  "Chapter 7: Conclusion and Future Directions",
-  // "Chapter 8: Bibliography" // Removed Bibliography for now
-];
-
-// Simple function to create slugs (IDs) - General purpose
-// Needs to match the slugify function in WhitepaperPage.tsx
-const slugify = (text: string): string => {
-  // // Match "Chapter ", followed by digits, followed by ":" at the start
-  // const match = text.trim().match(/^Chapter\\s+(\\d+):/i); 
-  // if (match && match[1]) {
-  //   return match[1]; // Return just the number, e.g., "6"
-  // }
-  
-  // // Fallback for titles that DON'T match "Chapter N:" (like Bibliography)
-  // // Use the standard slugification logic here
-  // return text
-  //   .toLowerCase()
-  //   .replace(/\s+/g, '-')
-  //   .replace(/[^\w\-]+/g, '') // Keep word chars and hyphens
-  //   .replace(/\-\-+/g, '-')   // Collapse multiple hyphens
-  //   .replace(/^-+/, '')       // Trim leading hyphen
-  //   .replace(/-+$/, '');      // Trim trailing hyphen
-
-  // Revert to the general purpose slugify logic
-   return text
-    .toLowerCase()
-    .replace(/\s+/g, '-')       // Replace spaces with hyphens
-    .replace(/[^\w\-]+/g, '') // Keep word chars and hyphens
-    .replace(/\-\-+/g, '-')      // Collapse multiple hyphens
-    .replace(/^-+/, '')          // Trim leading hyphen
-    .replace(/-+$/, '');         // Trim trailing hyphen
-};
-
-// --- Define NewsItem type (duplicate from LatestNewsPage for now, consider sharing later) ---
+// Updated NewsItem interface
 interface NewsItem {
   id: string;
   created_at: string;
@@ -65,10 +14,8 @@ interface NewsItem {
   source: string | null;
   published_date: string | null; 
   ai_summary: string | null;
-  ai_category: string | null;
-  manual_category_override: string | null;
+  // ai_category and manual_category_override REMOVED
 }
-// --- End NewsItem type ---
 
 // --- Add Backend URL --- 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';

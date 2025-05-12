@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Clock, FileText, Users, Link as LinkIcon } from 'lucide-react';
 
-// Define NewsItem structure (consistent with other pages)
+// Updated NewsItem interface
 interface NewsItem {
   id: string;
   created_at: string;
@@ -11,18 +11,19 @@ interface NewsItem {
   source: string | null;
   published_date: string | null;
   ai_summary: string | null;
-  ai_category: string | null;
-  manual_category_override: string | null;
+  // ai_category and manual_category_override REMOVED
 }
 
-// Define props for ResearchTimeline
+// Updated ResearchTimelineProps (filterCategory removed)
 interface ResearchTimelineProps {
-  filterCategory: string | null; // e.g., "Chapter 1: Microplastics and Human Health – Introduction"
+  // filterCategory prop REMOVED. If needed for other purposes, it can be re-added.
+  // For now, this component will display all news or a subset not based on category.
 }
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
 
-const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ filterCategory }) => {
+// Updated component signature (filterCategory removed)
+const ResearchTimeline: React.FC<ResearchTimelineProps> = () => { 
   const [allNewsItems, setAllNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -33,7 +34,7 @@ const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ filterCategory }) =
       setErrorMessage(null);
       try {
         const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
-        setAllNewsItems(response.data || []); // Ensure it's always an array
+        setAllNewsItems(response.data || []);
       } catch (error) {
         console.error('Error fetching news for timeline:', error);
         setErrorMessage('Failed to load relevant news items.');
@@ -44,19 +45,12 @@ const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ filterCategory }) =
     fetchNews();
   }, []);
 
-  // Filter news items based on the passed category
+  // Updated filteredNewsItems logic - now it just returns all items (or a slice if desired)
   const filteredNewsItems = useMemo(() => {
-    if (!filterCategory || filterCategory === 'Foreword') {
-        // Show nothing or maybe most recent N items if Foreword or no category?
-        // For now, let's show nothing for Foreword/null category.
-        // Alternatively, could return allNewsItems.slice(0, 5) for recent general news.
-        return []; 
-    }
-    return allNewsItems.filter(item => {
-      const category = item.manual_category_override || item.ai_category;
-      return category === filterCategory;
-    });
-  }, [allNewsItems, filterCategory]);
+    // No longer filtering by category. Returns all fetched news items.
+    // If you want to limit the number, you can use .slice(), e.g., allNewsItems.slice(0, 10)
+    return allNewsItems;
+  }, [allNewsItems]); // filterCategory REMOVED from dependencies
 
   return (
     <div className="relative">
@@ -66,7 +60,7 @@ const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ filterCategory }) =
       {isLoading && (
         <div className="flex justify-center items-center py-10">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-blue"></div>
-          <p className="ml-3 text-brand-dark">Loading relevant news...</p>
+          <p className="ml-3 text-brand-dark">Loading news timeline...</p>
         </div>
       )}
       
@@ -75,11 +69,9 @@ const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ filterCategory }) =
       {!isLoading && !errorMessage && (
         <div className="space-y-8">
           {filteredNewsItems.length === 0 ? (
+            // Updated message for no news
             <p className="text-center text-brand-dark py-10">
-              {filterCategory && filterCategory !== 'Foreword' 
-                ? `No specific news items found for category: "${filterCategory}"`
-                : (filterCategory === 'Foreword' ? 'No specific news timeline for Foreword.' : 'Select a chapter to see relevant news.')
-              }
+              No news items available at the moment.
             </p>
           ) : (
             filteredNewsItems.map((item) => (
