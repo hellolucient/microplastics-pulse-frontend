@@ -20,12 +20,15 @@ interface NewsItem {
 
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x250?text=News+Image";
 
+const STORIES_PER_PAGE = 10;
+
 const LatestNewsPage: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  // selectedCategory state REMOVED
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageWindowStart, setPageWindowStart] = useState(1); // New state for pagination window
 
   useEffect(() => {
     const fetchNewsFromApi = async () => {
@@ -35,6 +38,7 @@ const LatestNewsPage: React.FC = () => {
       try {
         const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
         setNewsItems(response.data || []);
+        console.log("Fetched news items count:", (response.data || []).length);
       } catch (error) {
         console.error('Error fetching news from API:', error);
         let message = 'Failed to fetch news due to an unknown error.';
@@ -65,12 +69,11 @@ const LatestNewsPage: React.FC = () => {
   // Updated filteredNewsItems logic
   const filteredNewsItems = useMemo(() => {
     let itemsToFilter = newsItems;
-    // Category filtering block REMOVED
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     if (lowerCaseSearchTerm) {
       itemsToFilter = itemsToFilter.filter(item => {
         const title = item.title?.toLowerCase() || '';
-        const summary = item.ai_summary?.toLowerCase() || ''; // Keep summary in search
+        const summary = item.ai_summary?.toLowerCase() || '';
         const source = item.source?.toLowerCase() || '';
         return title.includes(lowerCaseSearchTerm) || 
                summary.includes(lowerCaseSearchTerm) ||
@@ -78,28 +81,66 @@ const LatestNewsPage: React.FC = () => {
       });
     }
     return itemsToFilter;
-  }, [newsItems, searchTerm]); // selectedCategory REMOVED from dependencies
+  }, [newsItems, searchTerm]);
+
+  // Pagination logic
+  const totalStories = filteredNewsItems.length;
+  const totalPages = totalStories <= 1
+    ? 1
+    : Math.ceil((totalStories - 1) / STORIES_PER_PAGE) + 1;
+
+  // Get stories for current page
+  let featuredStory: NewsItem | null = null;
+  let secondaryStories: NewsItem[] = [];
+  if (currentPage === 1) {
+    featuredStory = filteredNewsItems[0] || null;
+    secondaryStories = filteredNewsItems.slice(1, 1 + STORIES_PER_PAGE);
+  } else {
+    const startIdx = 1 + (currentPage - 2) * STORIES_PER_PAGE;
+    secondaryStories = filteredNewsItems.slice(startIdx, startIdx + STORIES_PER_PAGE);
+  }
+
+  // Pagination controls
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
+  const maxPagesToShow = 10; // Number of page links to show
+
+  const handlePreviousBlock = () => {
+    const newWindowStart = Math.max(1, pageWindowStart - maxPagesToShow);
+    setPageWindowStart(newWindowStart);
+    setCurrentPage(newWindowStart);
+  };
+
+  const handleNextBlock = () => {
+    const newWindowStart = pageWindowStart + maxPagesToShow;
+    if (newWindowStart <= totalPages) {
+      setPageWindowStart(newWindowStart);
+      setCurrentPage(newWindowStart);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-8 md:mb-12 text-brand-darker">Latest News</h1>
-
-      {/* Filter Controls - Category filter UI REMOVED, search input centered */}
-      <div className="max-w-xl mx-auto mb-8"> {/* Simplified container, max-w-xl for centering search */}
-        <div>
-          <label htmlFor="news-search" className="sr-only">Search News</label>
-          <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                  type="search"
-                  id="news-search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search news by title, summary, or source..."
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-brand-blue focus:border-brand-blue sm:text-sm"
-              />
+      <div className="sticky top-20 z-20 bg-brand-light px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-darker pb-2">Latest News</h1>
+          <div className="max-w-xl mx-auto">
+            <label htmlFor="news-search" className="sr-only">Search News</label>
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                    type="search"
+                    id="news-search"
+                    value={searchTerm}
+                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setPageWindowStart(1); }}
+                    placeholder="Search news by title, summary, or source..."
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-brand-blue focus:border-brand-blue sm:text-sm"
+                />
+            </div>
           </div>
         </div>
       </div>
@@ -110,32 +151,34 @@ const LatestNewsPage: React.FC = () => {
         </div>
       )}
       {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
-      {!isLoading && !errorMessage && filteredNewsItems.length > 0 && (
+      {!isLoading && !errorMessage && totalStories > 0 && (
         <>
-          {/* Featured Story */}
-          <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12">
-            <div className="md:w-2/5 flex-shrink-0">
-              <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-64 md:h-full object-cover" />
-            </div>
-            <div className="p-8 flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">
-                  {filteredNewsItems[0].published_date ? new Date(filteredNewsItems[0].published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(filteredNewsItems[0].created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                </span>
-                {filteredNewsItems[0].source && <span className="text-xs text-gray-500">Source: {filteredNewsItems[0].source}</span>}
+          {/* Featured Story (only on first page) */}
+          {currentPage === 1 && featuredStory && (
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12">
+              <div className="md:w-2/5 flex-shrink-0">
+                <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-64 md:h-full object-cover" />
               </div>
-              <a href={filteredNewsItems[0].url} target="_blank" rel="noopener noreferrer" className="text-2xl md:text-3xl font-bold text-brand-darker mb-4 hover:text-brand-blue transition-colors duration-150 no-underline">
-                {filteredNewsItems[0].title || 'No Title'}
-              </a>
-              <p className="text-brand-dark text-base mb-6 flex-grow">{filteredNewsItems[0].ai_summary || 'Summary unavailable.'}</p>
-              <a href={filteredNewsItems[0].url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline mt-auto self-start transition-colors duration-150">
-                Read Full Article →
-              </a>
+              <div className="p-8 flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-500">
+                    {featuredStory.published_date ? new Date(featuredStory.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(featuredStory.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </span>
+                  {featuredStory.source && <span className="text-xs text-gray-500">Source: {featuredStory.source}</span>}
+                </div>
+                <a href={featuredStory.url} target="_blank" rel="noopener noreferrer" className="text-2xl md:text-3xl font-bold text-brand-darker mb-4 hover:text-brand-blue transition-colors duration-150 no-underline">
+                  {featuredStory.title || 'No Title'}
+                </a>
+                <p className="text-brand-dark text-base mb-6 flex-grow">{featuredStory.ai_summary || 'Summary unavailable.'}</p>
+                <a href={featuredStory.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline mt-auto self-start transition-colors duration-150">
+                  Read Full Article →
+                </a>
+              </div>
             </div>
-          </div>
+          )}
           {/* Secondary Stories */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {filteredNewsItems.slice(1, 5).map((item) => (
+            {secondaryStories.map((item) => (
               <div key={item.id} className="bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row overflow-hidden">
                 <div className="flex-shrink-0 w-full md:w-[140px] h-[140px] md:h-[140px] relative">
                   <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-full object-cover" />
@@ -158,9 +201,45 @@ const LatestNewsPage: React.FC = () => {
               </div>
             ))}
           </div>
+          {/* Pagination Controls */}
+          <div className="flex flex-wrap justify-center items-center mt-12 space-x-1 md:space-x-2">
+            <button
+              onClick={() => handlePreviousBlock()}
+              disabled={pageWindowStart === 1}
+              className={`px-3 py-1 rounded-md border text-sm font-medium ${pageWindowStart === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
+            >
+              Previous
+            </button>
+            {
+              (() => {
+                const pageNumbers = [];
+                const endPageForWindow = Math.min(totalPages, pageWindowStart + maxPagesToShow - 1);
+
+                for (let i = pageWindowStart; i <= endPageForWindow; i++) {
+                  pageNumbers.push(
+                    <button
+                      key={i}
+                      onClick={() => goToPage(i)}
+                      className={`px-3 py-1 rounded-md border text-sm font-medium ${currentPage === i ? 'bg-brand-blue text-white border-brand-blue' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
+                    >
+                      {i}
+                    </button>
+                  );
+                }
+                return pageNumbers;
+              })()
+            }
+            <button
+              onClick={() => handleNextBlock()}
+              disabled={pageWindowStart + maxPagesToShow > totalPages}
+              className={`px-3 py-1 rounded-md border text-sm font-medium ${pageWindowStart + maxPagesToShow > totalPages ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
+            >
+              Next
+            </button>
+          </div>
         </>
       )}
-      {!isLoading && !errorMessage && filteredNewsItems.length === 0 && (
+      {!isLoading && !errorMessage && totalStories === 0 && (
         <p className="text-center text-brand-dark">
           {searchTerm 
             ? `No news items found matching "${searchTerm}".` 
