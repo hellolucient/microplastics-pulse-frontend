@@ -1,26 +1,100 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Search } from 'lucide-react'; // Removed ListFilter icon
+import placeholderRedX from '../assets/placeholder-red-x.png'; // Import the placeholder
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
 
-// Updated NewsItem interface
+// Define NewsItem type locally
 interface NewsItem {
-  id: string;
-  created_at: string;
+  id: string | number; // Assuming id can be string or number from DB
   url: string;
-  title: string | null;
-  source: string | null;
+  title: string;
+  created_at: string; 
   published_date: string | null;
   ai_summary: string | null;
-  // ai_category and manual_category_override REMOVED
+  ai_image_url?: string | null; // Added for AI generated image URL
+  source?: string | null;
 }
 
 // chapterTitles constant REMOVED
 
-const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x250?text=News+Image";
+// const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x250?text=News+Image"; // REMOVED - Unused
 
 const STORIES_PER_PAGE = 10;
+
+// Function to generate a placeholder URL with specific text (if you still want to use via.placeholder.com for some cases)
+// const getPlaceholderImageUrl = (text: string, width: number = 400, height: number = 250) => {
+//   return `https://via.placeholder.com/${width}x${height}?text=${encodeURIComponent(text)}`;
+// };
+
+interface NewsItemCardProps {
+  item: NewsItem;
+  isFeatured: boolean;
+}
+
+const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
+  const imageUrl = item.ai_image_url || placeholderRedX;
+  const displayDate = item.published_date ? new Date(item.published_date) : new Date(item.created_at);
+  const formattedDate = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  if (isFeatured) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12">
+        <div className="md:w-2/5 flex-shrink-0">
+          <img 
+            src={imageUrl}
+            alt={item.title || 'News image'}
+            className="w-full h-64 md:h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }} // Fallback for broken AI URL
+          />
+        </div>
+        <div className="p-8 flex-1 flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-gray-500">{formattedDate}</span>
+            {item.source && <span className="text-xs text-gray-500">Source: {item.source}</span>}
+          </div>
+          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-2xl md:text-3xl font-bold text-brand-darker mb-4 hover:text-brand-blue transition-colors duration-150 no-underline">
+            {item.title || 'No Title'}
+          </a>
+          <p className="text-brand-dark text-base mb-6 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p>
+          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline mt-auto self-start transition-colors duration-150">
+            Read Full Article →
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Secondary story card (non-featured)
+  return (
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-shrink-0 w-full md:w-[140px] h-auto relative">
+        <img 
+          src={imageUrl} 
+          alt={item.title || 'News image'}
+          className="w-full h-[140px] md:w-[140px] md:h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }} // Fallback for broken AI URL
+        />
+      </div>
+      <div className="flex-1 flex flex-col p-4 md:p-6 min-w-0"> {/* Adjusted padding for potentially smaller card space */}
+        <div className="flex flex-wrap items-center justify-between mb-1">
+          <span className="text-xs text-gray-500">{formattedDate}</span>
+          {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
+        </div>
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-md md:text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline leading-tight">
+          {item.title || 'No Title'}
+        </a>
+        <p className="text-brand-dark text-sm mb-3 md:mb-4 flex-grow break-words line-clamp-3 md:line-clamp-none">{/* Allow more lines or control with line-clamp */}
+          {item.ai_summary || 'Summary unavailable.'}
+        </p>
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150">
+          Read Full Article →
+        </a>
+      </div>
+    </div>
+  );
+};
 
 const LatestNewsPage: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
@@ -153,54 +227,18 @@ const LatestNewsPage: React.FC = () => {
       {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
       {!isLoading && !errorMessage && totalStories > 0 && (
         <>
-          {/* Featured Story (only on first page) */}
+          {/* Featured Story - only on page 1 and if search is not active or shows the first item */}
           {currentPage === 1 && featuredStory && (
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12">
-              <div className="md:w-2/5 flex-shrink-0">
-                <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-64 md:h-full object-cover" />
-              </div>
-              <div className="p-8 flex-1 flex flex-col">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500">
-                    {featuredStory.published_date ? new Date(featuredStory.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(featuredStory.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                  </span>
-                  {featuredStory.source && <span className="text-xs text-gray-500">Source: {featuredStory.source}</span>}
-                </div>
-                <a href={featuredStory.url} target="_blank" rel="noopener noreferrer" className="text-2xl md:text-3xl font-bold text-brand-darker mb-4 hover:text-brand-blue transition-colors duration-150 no-underline">
-                  {featuredStory.title || 'No Title'}
-                </a>
-                <p className="text-brand-dark text-base mb-6 flex-grow">{featuredStory.ai_summary || 'Summary unavailable.'}</p>
-                <a href={featuredStory.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline mt-auto self-start transition-colors duration-150">
-                  Read Full Article →
-                </a>
-              </div>
-            </div>
+            <NewsItemCard item={featuredStory} isFeatured={true} />
           )}
-          {/* Secondary Stories */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {secondaryStories.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row overflow-hidden">
-                <div className="flex-shrink-0 w-full md:w-[140px] h-[140px] md:h-[140px] relative">
-                  <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 flex flex-col p-6 min-w-0">
-                  <div className="flex flex-wrap items-center justify-between mb-1">
-                    <span className="text-xs text-gray-500">
-                      {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </span>
-                    {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
-                  </div>
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline">
-                    {item.title || 'No Title'}
-                  </a>
-                  <p className="text-brand-dark text-sm mb-4 flex-grow break-words">{item.ai_summary || 'Summary unavailable.'}</p>
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150">
-                    Read Full Article →
-                  </a>
-                </div>
-              </div>
+
+          {/* Grid for secondary stories */}
+          <div className={`grid grid-cols-1 ${secondaryStories.length > 0 ? 'md:grid-cols-2' : ''} gap-6 ${currentPage === 1 && featuredStory ? 'mt-8' : 'mt-0'}`}>
+            {secondaryStories.map(item => (
+              <NewsItemCard key={item.id || item.url} item={item} isFeatured={false} />
             ))}
           </div>
+
           {/* Pagination Controls */}
           <div className="flex flex-wrap justify-center items-center mt-12 space-x-1 md:space-x-2">
             <button

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 // import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
 import axios from 'axios'; // <-- Add axios
 import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
+import placeholderRedX from '../assets/placeholder-red-x.png'; // Import the placeholder
 
 // Updated NewsItem interface
 interface NewsItem {
@@ -14,6 +15,7 @@ interface NewsItem {
   source: string | null;
   published_date: string | null; 
   ai_summary: string | null;
+  ai_image_url?: string | null; // Added for AI generated image URL
   // ai_category and manual_category_override REMOVED
 }
 
@@ -23,6 +25,75 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:30
 
 // Helper for placeholder image
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x250?text=News+Image";
+
+// --- NewsItemCard Component (Copied and adapted from LatestNewsPage.tsx) ---
+interface NewsItemCardProps {
+  item: NewsItem;
+  isFeatured: boolean;
+}
+
+const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
+  const imageUrl = item.ai_image_url || placeholderRedX;
+  const displayDate = item.published_date ? new Date(item.published_date) : new Date(item.created_at);
+  const formattedDate = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  if (isFeatured) {
+    // Featured card styling for HomePage (matches existing structure)
+    return (
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12">
+        <div className="md:w-2/5 flex-shrink-0">
+          <img 
+            src={imageUrl}
+            alt={item.title || 'News image'}
+            className="w-full h-64 md:h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
+          />
+        </div>
+        <div className="p-8 flex-1 flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-gray-500">{formattedDate}</span>
+            {item.source && <span className="text-xs text-gray-500">Source: {item.source}</span>}
+          </div>
+          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-2xl md:text-3xl font-bold text-brand-darker mb-4 hover:text-brand-blue transition-colors duration-150 no-underline">
+            {item.title || 'No Title'}
+          </a>
+          <p className="text-brand-dark text-base mb-6 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p>
+          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline mt-auto self-start transition-colors duration-150">
+            Read Full Article →
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Secondary story card styling for HomePage (matches existing structure)
+  return (
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-shrink-0 w-full md:w-[140px] h-[140px] md:h-auto relative">
+        <img 
+          src={imageUrl} 
+          alt={item.title || 'News image'}
+          className="w-full h-full object-cover" // Adjusted from LatestNewsPage for consistency
+          onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
+        />
+      </div>
+      <div className="flex-1 flex flex-col p-6 min-w-0">
+        <div className="flex flex-wrap items-center justify-between mb-1">
+          <span className="text-xs text-gray-500">{formattedDate}</span>
+          {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
+        </div>
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline">
+          {item.title || 'No Title'}
+        </a>
+        <p className="text-brand-dark text-sm mb-4 flex-grow break-words">{item.ai_summary || 'Summary unavailable.'}</p>
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150">
+          Read Full Article →
+        </a>
+      </div>
+    </div>
+  );
+};
+// --- End NewsItemCard Component ---
 
 const HomePage: React.FC = () => {
   // --- State for Latest News --- 
@@ -144,51 +215,16 @@ const HomePage: React.FC = () => {
           {!newsLoading && !newsError && latestNews.length > 0 && (
             <>
               {/* Featured Story */}
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12">
-                <div className="md:w-2/5 flex-shrink-0">
-                  <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-64 md:h-full object-cover" />
-                </div>
-                <div className="p-8 flex-1 flex flex-col">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">
-                      {latestNews[0].published_date ? new Date(latestNews[0].published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(latestNews[0].created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </span>
-                    {latestNews[0].source && <span className="text-xs text-gray-500">Source: {latestNews[0].source}</span>}
-                  </div>
-                  <a href={latestNews[0].url} target="_blank" rel="noopener noreferrer" className="text-2xl md:text-3xl font-bold text-brand-darker mb-4 hover:text-brand-blue transition-colors duration-150 no-underline">
-                    {latestNews[0].title || 'No Title'}
-                  </a>
-                  <p className="text-brand-dark text-base mb-6 flex-grow">{latestNews[0].ai_summary || 'Summary unavailable.'}</p>
-                  <a href={latestNews[0].url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline mt-auto self-start transition-colors duration-150">
-                    Read Full Article →
-                  </a>
-                </div>
-              </div>
+              <NewsItemCard item={latestNews[0]} isFeatured={true} />
+              
               {/* Secondary Stories */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {latestNews.slice(1, 3).map((item) => (
-                  <div key={item.id} className="bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row overflow-hidden">
-                    <div className="flex-shrink-0 w-full md:w-[140px] h-[140px] md:h-[140px] relative">
-                      <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 flex flex-col p-6 min-w-0">
-                      <div className="flex flex-wrap items-center justify-between mb-1">
-                        <span className="text-xs text-gray-500">
-                          {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </span>
-                        {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
-                      </div>
-                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline">
-                        {item.title || 'No Title'}
-                      </a>
-                      <p className="text-brand-dark text-sm mb-4 flex-grow break-words">{item.ai_summary || 'Summary unavailable.'}</p>
-                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150">
-                        Read Full Article →
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {latestNews.length > 1 && ( // Check if there are secondary stories
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {latestNews.slice(1, 3).map((item) => (
+                    <NewsItemCard key={item.id} item={item} isFeatured={false} />
+                  ))}
+                </div>
+              )}
             </>
           )}
           {!newsLoading && !newsError && latestNews.length === 0 && (
