@@ -18,6 +18,8 @@ interface NewsItem {
 
 // chapterTitles constant REMOVED
 
+const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x250?text=News+Image";
+
 const LatestNewsPage: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,7 +102,6 @@ const LatestNewsPage: React.FC = () => {
               />
           </div>
         </div>
-        {/* Category Select UI block REMOVED */}
       </div>
 
       {isLoading && (
@@ -109,46 +110,62 @@ const LatestNewsPage: React.FC = () => {
         </div>
       )}
       {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
-      {!isLoading && !errorMessage && (
-        <div className="max-w-3xl mx-auto space-y-8">
-          {filteredNewsItems.length === 0 ? (
-            <p className="text-center text-brand-dark">
-              {/* Updated message condition */}
-              {searchTerm 
-                ? `No news items found matching "${searchTerm}".` 
-                : 'No news items found.'}
-            </p>
-          ) : (
-            filteredNewsItems.map((item) => (
-              <div key={item.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg border border-gray-200 flex flex-col transition-shadow duration-200 group">
-                 <div className="flex flex-col md:flex-row md:items-center md:justify-end mb-3"> {/* Changed justify-between to justify-end as category is gone */}
-                    {/* Category display p tag REMOVED */}
-                    {/* Date display - ensure it's properly aligned if category was used for spacing */}
-                     <p className="text-xs text-gray-500 mt-1 md:mt-0 text-left md:text-right"> {/* Ensure date aligns well */}
-                        {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                     </p>
-                 </div>
-                 <button
-                    type="button"
-                    onClick={() => { /* Placeholder */ }}
-                    className="text-xl font-semibold mb-3 text-brand-darker hover:text-brand-blue transition-colors duration-150 no-underline text-left p-0 bg-transparent border-none cursor-pointer"
-                 >
-                    {item.title || 'No Title'}
-                 </button>
-                {item.source && 
-                    <p className="text-xs text-gray-500 mb-3">Source: {item.source}</p>}
-                <p className="text-brand-dark text-base mb-5 line-clamp-4 flex-grow">{item.ai_summary || 'No summary available.'}</p>
-                <button 
-                  type="button"
-                  onClick={() => { /* Placeholder */ }}
-                  className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150 bg-transparent border-none p-0 cursor-pointer"
-                >
-                  Read Full Article →
-                </button>
+      {!isLoading && !errorMessage && filteredNewsItems.length > 0 && (
+        <>
+          {/* Featured Story */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12">
+            <div className="md:w-2/5 flex-shrink-0">
+              <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-64 md:h-full object-cover" />
+            </div>
+            <div className="p-8 flex-1 flex flex-col">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">
+                  {filteredNewsItems[0].published_date ? new Date(filteredNewsItems[0].published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(filteredNewsItems[0].created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </span>
+                {filteredNewsItems[0].source && <span className="text-xs text-gray-500">Source: {filteredNewsItems[0].source}</span>}
               </div>
-            ))
-          )}
-        </div>
+              <a href={filteredNewsItems[0].url} target="_blank" rel="noopener noreferrer" className="text-2xl md:text-3xl font-bold text-brand-darker mb-4 hover:text-brand-blue transition-colors duration-150 no-underline">
+                {filteredNewsItems[0].title || 'No Title'}
+              </a>
+              <p className="text-brand-dark text-base mb-6 flex-grow">{filteredNewsItems[0].ai_summary || 'Summary unavailable.'}</p>
+              <a href={filteredNewsItems[0].url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline mt-auto self-start transition-colors duration-150">
+                Read Full Article →
+              </a>
+            </div>
+          </div>
+          {/* Secondary Stories */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {filteredNewsItems.slice(1, 5).map((item) => (
+              <div key={item.id} className="bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row overflow-hidden">
+                <div className="flex-shrink-0 w-full md:w-[140px] h-[140px] md:h-[140px] relative">
+                  <img src={PLACEHOLDER_IMAGE} alt="News" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 flex flex-col p-6 min-w-0">
+                  <div className="flex flex-wrap items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500">
+                      {item.published_date ? new Date(item.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </span>
+                    {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
+                  </div>
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline">
+                    {item.title || 'No Title'}
+                  </a>
+                  <p className="text-brand-dark text-sm mb-4 flex-grow break-words">{item.ai_summary || 'Summary unavailable.'}</p>
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150">
+                    Read Full Article →
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {!isLoading && !errorMessage && filteredNewsItems.length === 0 && (
+        <p className="text-center text-brand-dark">
+          {searchTerm 
+            ? `No news items found matching "${searchTerm}".` 
+            : 'No news items found.'}
+        </p>
       )}
     </div>
   );
