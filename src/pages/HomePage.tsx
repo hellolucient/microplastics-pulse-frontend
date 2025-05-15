@@ -68,28 +68,24 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
 
   // Secondary story card styling for HomePage (matches existing structure)
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row overflow-hidden">
-      <div className="flex-shrink-0 w-full md:w-[140px] h-[140px] md:h-auto relative">
-        <img 
-          src={imageUrl} 
-          alt={item.title || 'News image'}
-          className="w-full h-full object-cover" // Adjusted from LatestNewsPage for consistency
-          onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
-        />
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden p-4 md:p-6 flow-root">
+      <img
+        src={imageUrl}
+        alt={item.title || 'News image'}
+        className="float-left w-32 h-32 md:w-36 md:h-36 object-cover mr-4 mb-2 rounded"
+        onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
+      />
+      <div className="flex flex-wrap items-center justify-between mb-1">
+        <span className="text-xs text-gray-500">{formattedDate}</span>
+        {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
       </div>
-      <div className="flex-1 flex flex-col p-6 min-w-0">
-        <div className="flex flex-wrap items-center justify-between mb-1">
-          <span className="text-xs text-gray-500">{formattedDate}</span>
-          {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
-        </div>
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline">
-          {item.title || 'No Title'}
-        </a>
-        <p className="text-brand-dark text-sm mb-4 flex-grow break-words">{item.ai_summary || 'Summary unavailable.'}</p>
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150">
-          Read Full Article →
-        </a>
-      </div>
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline leading-tight block">
+        {item.title || 'No Title'}
+      </a>
+      <p className="text-brand-dark text-sm mb-4 break-words">{item.ai_summary || 'Summary unavailable.'}</p>
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline block clear-left mt-2 transition-colors duration-150">
+        Read Full Article →
+      </a>
     </div>
   );
 };
@@ -158,7 +154,7 @@ const HomePage: React.FC = () => {
                     <p className="text-xl text-brand-dark mb-10 max-w-2xl mx-auto lg:mx-0">
                       Welcome to MicroplasticsWatch, your dedicated source for the latest research, news, and insights into the world of microplastics. Our mission is to provide timely updates and comprehensive information to help you stay informed about this critical environmental and health issue.
                     </p>
-                    {/* Buttons */} 
+                    {/* Buttons */}
                     <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
                       <Link 
                         to="/latest-news" 
