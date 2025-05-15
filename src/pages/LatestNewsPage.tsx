@@ -68,18 +68,16 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
 
   // Secondary story card (non-featured)
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row overflow-hidden">
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 md:p-6 overflow-hidden flow-root">
       {/* Image: Floated left, square, with margin */}
-      <div className="flex-shrink-0 p-4 md:p-0 md:pr-4">
-        <img 
-          src={imageUrl} 
-          alt={item.title || 'News image'}
-          className="float-left w-36 h-36 object-cover mr-4 mb-2 md:mr-0 md:mb-0 rounded"
-          onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }} // Fallback for broken AI URL
-        />
-      </div>
-      {/* Text content: Will wrap around the image. Added overflow-hidden to contain the float. */}
-      <div className="flex-1 flex flex-col p-4 md:p-6 min-w-0 overflow-hidden"> 
+      <img 
+        src={imageUrl} 
+        alt={item.title || 'News image'}
+        className="float-left w-36 h-36 object-cover mr-4 mb-2 rounded"
+        onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
+      />
+      {/* Text content: Will wrap around the image. */}
+      <div className="overflow-hidden">
         <div className="flex flex-wrap items-center justify-between mb-1">
           <span className="text-xs text-gray-500">{formattedDate}</span>
           {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
