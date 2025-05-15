@@ -68,30 +68,26 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
 
   // Secondary story card (non-featured)
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 md:p-6 overflow-hidden flow-root">
-      {/* Image: Floated left, square, with margin */}
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 md:p-6 flow-root">
       <img 
         src={imageUrl} 
         alt={item.title || 'News image'}
         className="float-left w-36 h-36 object-cover mr-4 mb-2 rounded"
         onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
       />
-      {/* Text content: Will wrap around the image. */}
-      <div className="overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between mb-1">
-          <span className="text-xs text-gray-500">{formattedDate}</span>
-          {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
-        </div>
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-md md:text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline leading-tight">
-          {item.title || 'No Title'}
-        </a>
-        <p className="text-brand-dark text-sm mb-3 md:mb-4 flex-grow break-words line-clamp-3 md:line-clamp-none">{/* Allow more lines or control with line-clamp */}
-          {item.ai_summary || 'Summary unavailable.'}
-        </p>
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline mt-auto self-start transition-colors duration-150">
-          Read Full Article →
-        </a>
+      <div className="flex flex-wrap items-center justify-between mb-1">
+        <span className="text-xs text-gray-500">{formattedDate}</span>
+        {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
       </div>
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-md md:text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline leading-tight block">
+        {item.title || 'No Title'}
+      </a>
+      <p className="text-brand-dark text-sm mb-3 md:mb-4 break-words">
+        {item.ai_summary || 'Summary unavailable.'}
+      </p>
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline block clear-left mt-2">
+        Read Full Article →
+      </a>
     </div>
   );
 };
