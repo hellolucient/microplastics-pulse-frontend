@@ -5,7 +5,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:30
 
 const AdminPage = () => {
   const [url, setUrl] = useState('');
-  const [batchSize, setBatchSize] = useState(5);
+  const [batchSize, setBatchSize] = useState(2);
   const [continueToken, setContinueToken] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -113,7 +113,7 @@ const AdminPage = () => {
               max="50"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
-            <p className="text-xs text-gray-500 mt-1">Recommended: 5-10 stories per batch to avoid API rate limits</p>
+            <p className="text-xs text-gray-500 mt-1">Recommended: 2-3 stories per batch to avoid API rate limits</p>
           </div>
           <div>
             <label htmlFor="continueToken" className="block text-sm font-medium text-gray-700 mb-1">
