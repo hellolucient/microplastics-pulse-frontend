@@ -48,6 +48,13 @@ interface BatchUpdateResponse {
   done: boolean;
 }
 
+// Interface for Regenerate Image response
+interface RegenerateImageResponse {
+  message: string;
+  article_id: number | string;
+  new_ai_image_url: string;
+}
+
 const AdminPage: React.FC = () => {
   const { user, signOut } = useAuth();
   // --- State for Manual Submission Form ---
@@ -72,6 +79,11 @@ const AdminPage: React.FC = () => {
   const [batchResults, setBatchResults] = useState<BatchUpdateResult[]>([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [batchMessage, setBatchMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+
+  // --- State for Regenerate Image by ID ---
+  const [articleIdToRegenerate, setArticleIdToRegenerate] = useState('');
+  const [isRegeneratingImage, setIsRegeneratingImage] = useState(false);
+  const [regenerateImageMessage, setRegenerateImageMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   // Fetch search queries on mount
   useEffect(() => {
@@ -267,6 +279,46 @@ const AdminPage: React.FC = () => {
     }
   };
   // --- End Batch Update Handler ---
+
+  // --- Handler for Regenerate Image by ID ---
+  const handleRegenerateImageById = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsRegeneratingImage(true);
+    setRegenerateImageMessage(null);
+
+    if (!articleIdToRegenerate.trim()) {
+      setRegenerateImageMessage({ type: 'error', text: 'Please enter an Article ID.' });
+      setIsRegeneratingImage(false);
+      return;
+    }
+
+    const id = parseInt(articleIdToRegenerate, 10);
+    if (isNaN(id)) {
+      setRegenerateImageMessage({ type: 'error', text: 'Article ID must be a valid number.' });
+      setIsRegeneratingImage(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post<RegenerateImageResponse>(`${BACKEND_URL}/api/regenerate-image`, {
+        article_id: id
+      });
+      
+      setRegenerateImageMessage({ type: 'success', text: response.data.message });
+      setArticleIdToRegenerate(''); // Clear input on success
+      // Optionally, you could trigger a refresh of any displayed data if needed
+
+    } catch (err: any) {
+      console.error('Error regenerating image by ID:', err);
+      setRegenerateImageMessage({ 
+        type: 'error', 
+        text: `Error: ${err.response?.data?.error || err.message}` 
+      });
+    } finally {
+      setIsRegeneratingImage(false);
+    }
+  };
+  // --- End Handler for Regenerate Image by ID ---
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -487,6 +539,40 @@ const AdminPage: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Regenerate Image by ID Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Regenerate Image by ID</h2>
+        <form onSubmit={handleRegenerateImageById}>
+          <label htmlFor="articleIdRegen" className="block text-sm font-medium text-gray-700 mb-1">
+            Enter Article ID to Regenerate Image:
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text" 
+              id="articleIdRegen"
+              value={articleIdToRegenerate}
+              onChange={(e) => setArticleIdToRegenerate(e.target.value)}
+              placeholder="e.g., 123"
+              className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              disabled={isRegeneratingImage}
+            />
+            <button
+              type="submit"
+              disabled={isRegeneratingImage}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRegeneratingImage ? 'Regenerating...' : 'Regenerate Image'}
+            </button>
+          </div>
+          {regenerateImageMessage && (
+            <p className={`mt-3 text-sm ${regenerateImageMessage.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+              {regenerateImageMessage.text}
+            </p>
+          )}
+        </form>
+        <p className="mt-3 text-xs text-gray-500">This will attempt to generate a new image for the specified article ID and update it in the database. The summary will not be affected.</p>
       </div>
 
     </div>
