@@ -72,8 +72,6 @@ const AdminPage: React.FC = () => {
   const [batchResults, setBatchResults] = useState<BatchUpdateResult[]>([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [batchMessage, setBatchMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-  const [isAutoProcessing, setIsAutoProcessing] = useState(false);
-  const [autoProcessTimerId, setAutoProcessTimerId] = useState<NodeJS.Timeout | null>(null);
 
   // Fetch search queries on mount
   useEffect(() => {
@@ -232,14 +230,16 @@ const AdminPage: React.FC = () => {
   // --- End Dynamic Manual Fetch Logic ---
 
   // --- Batch Update Handler ---
-  const processSingleBatch = async (currentBatchSize: number, currentContinueToken?: string) => {
+  const handleBatchUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsBatchProcessing(true);
     setBatchMessage(null);
+    setBatchResults([]);
     
     try {
       const response = await axios.post<BatchUpdateResponse>(`${BACKEND_URL}/api/batch-update-stories`, {
-        batch_size: currentBatchSize,
-        continue_token: currentContinueToken || undefined
+        batch_size: parseInt(batchSize.toString()),
+        continue_token: continueToken || undefined
       });
       
       const data = response.data;
@@ -248,69 +248,23 @@ const AdminPage: React.FC = () => {
         type: 'success', 
         text: data.message + (data.done ? ' - All processing complete!' : '')
       });
-      setBatchResults(prevResults => [...prevResults, ...data.results]);
+      setBatchResults(data.results || []);
       
       if (data.continue_token) {
         setContinueToken(data.continue_token);
-      }
-      
-      if (!data.done && isAutoProcessing) {
-        setBatchMessage(prev => ({
-            ...prev!,
-            text: prev!.text + ' Next batch in 1 minute...'
-        }));
-        const timerId = setTimeout(() => {
-          processSingleBatch(currentBatchSize, data.continue_token ?? undefined);
-        }, 60000);
-        setAutoProcessTimerId(timerId);
       } else if (data.done) {
-        setIsAutoProcessing(false);
-        if (autoProcessTimerId) clearTimeout(autoProcessTimerId);
-        setAutoProcessTimerId(null);
+        setContinueToken('');
       }
       
     } catch (err: any) {
       console.error('Error running batch update:', err);
       setBatchMessage({ 
         type: 'error', 
-        text: `Error: ${err.response?.data?.error || err.message}. Auto-processing stopped.` 
+        text: `Error: ${err.response?.data?.error || err.message}.` 
       });
-      setIsAutoProcessing(false);
-      if (autoProcessTimerId) clearTimeout(autoProcessTimerId);
-      setAutoProcessTimerId(null);
     } finally {
-      if (!isAutoProcessing || (isAutoProcessing && batchMessage?.type === 'error') || (isAutoProcessing && batchMessage?.text?.includes('All processing complete'))) {
-         setIsBatchProcessing(false);
-      }
+      setIsBatchProcessing(false);
     }
-  };
-
-  const handleManualBatchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setBatchResults([]);
-    setContinueToken('');
-    setIsAutoProcessing(false);
-    if (autoProcessTimerId) clearTimeout(autoProcessTimerId);
-    setAutoProcessTimerId(null);
-    processSingleBatch(parseInt(batchSize.toString()), continueToken || undefined);
-  };
-
-  const handleStartAutoProcessing = () => {
-    setBatchResults([]);
-    setContinueToken('');
-    setIsAutoProcessing(true);
-    setBatchMessage({ type: 'success', text: 'Auto-processing started...' });
-    processSingleBatch(parseInt(batchSize.toString()));
-  };
-
-  const handleStopAutoProcessing = () => {
-    setIsAutoProcessing(false);
-    if (autoProcessTimerId) {
-      clearTimeout(autoProcessTimerId);
-      setAutoProcessTimerId(null);
-    }
-    setIsBatchProcessing(false);
-    setBatchMessage({ type: 'success', text: 'Auto-processing stopped by user.' });
   };
   // --- End Batch Update Handler ---
 
@@ -440,7 +394,7 @@ const AdminPage: React.FC = () => {
           Use the 'Continue Token' if a previous batch was interrupted for manual processing.
         </p>
         
-        <form onSubmit={handleManualBatchSubmit}>
+        <form onSubmit={handleBatchUpdate}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label htmlFor="batchSize" className="block text-sm font-medium text-gray-700 mb-1">
@@ -454,7 +408,7 @@ const AdminPage: React.FC = () => {
                 min="1"
                 max="20"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={isBatchProcessing || isAutoProcessing}
+                disabled={isBatchProcessing}
               />
               <p className="text-xs text-gray-500 mt-1">Recommended: 2-3 stories per batch to avoid API rate limits</p>
             </div>
@@ -470,7 +424,7 @@ const AdminPage: React.FC = () => {
                 onChange={(e) => setContinueToken(e.target.value)}
                 placeholder="Leave empty to start from oldest stories"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={isBatchProcessing || isAutoProcessing}
+                disabled={isBatchProcessing}
               />
               <p className="text-xs text-gray-500 mt-1">Continue from where you left off</p>
             </div>
@@ -479,29 +433,11 @@ const AdminPage: React.FC = () => {
           <div className="flex space-x-2">
             <button
               type="submit"
-              disabled={isBatchProcessing || isAutoProcessing}
+              disabled={isBatchProcessing}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isBatchProcessing && !isAutoProcessing ? 'Processing...' : 'Process Batch Manually'}
+              {isBatchProcessing ? 'Processing...' : 'Process Batch'}
             </button>
-            {!isAutoProcessing ? (
-              <button
-                type="button"
-                onClick={handleStartAutoProcessing}
-                disabled={isBatchProcessing}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Start Auto-Processing
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleStopAutoProcessing}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              >
-                Stop Auto-Processing
-              </button>
-            )}
           </div>
         </form>
         
