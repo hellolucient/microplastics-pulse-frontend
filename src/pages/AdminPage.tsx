@@ -286,22 +286,26 @@ const AdminPage: React.FC = () => {
     setIsRegeneratingImage(true);
     setRegenerateImageMessage(null);
 
-    if (!articleIdToRegenerate.trim()) {
+    const idToRegenerate = articleIdToRegenerate.trim();
+
+    if (!idToRegenerate) {
       setRegenerateImageMessage({ type: 'error', text: 'Please enter an Article ID.' });
       setIsRegeneratingImage(false);
       return;
     }
 
-    const id = parseInt(articleIdToRegenerate, 10);
-    if (isNaN(id)) {
-      setRegenerateImageMessage({ type: 'error', text: 'Article ID must be a valid number.' });
+    // Basic UUID format check on the frontend (optional, but good for quick feedback)
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!uuidRegex.test(idToRegenerate)) {
+      setRegenerateImageMessage({ type: 'error', text: 'Article ID must be a valid UUID format (e.g., xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).' });
       setIsRegeneratingImage(false);
       return;
     }
 
     try {
+      // Explicitly type the expected success response data
       const response = await axios.post<RegenerateImageResponse>(`${BACKEND_URL}/api/regenerate-image`, {
-        article_id: id
+        article_id: idToRegenerate // Send the UUID string
       });
       
       setRegenerateImageMessage({ type: 'success', text: response.data.message });
@@ -554,7 +558,7 @@ const AdminPage: React.FC = () => {
               id="articleIdRegen"
               value={articleIdToRegenerate}
               onChange={(e) => setArticleIdToRegenerate(e.target.value)}
-              placeholder="e.g., 123"
+              placeholder="e.g., f7f73745-7447-45de-9a28-7aa1f50778b5"
               className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               disabled={isRegeneratingImage}
             />
