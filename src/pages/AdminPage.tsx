@@ -423,7 +423,7 @@ const AdminPage: React.FC = () => {
         )}
 
         {/* Cron Job Info */}
-        <div className="mt-6 pt-4 border-t">
+        {/* <div className="mt-6 pt-4 border-t">
             <h3 className="text-lg font-semibold mb-2">Automated Fetch Schedule</h3>
             <p className="text-sm text-gray-700">
                 The backend is scheduled to automatically fetch new articles approximately once per day.
@@ -432,7 +432,7 @@ const AdminPage: React.FC = () => {
              <p className="mt-1 text-xs text-gray-500">
                 Check the Vercel project settings for exact cron job status and history.
             </p>
-        </div>
+        </div> */}
 
         {/* Placeholder for future actions */}
         <p className="text-gray-600 mt-6">
