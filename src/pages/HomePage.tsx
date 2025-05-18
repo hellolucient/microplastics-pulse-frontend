@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Newspaper, FileText } from 'lucide-react';
+import { Newspaper, FileText, DownloadCloud, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 // import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
 import axios from 'axios'; // <-- Add axios
@@ -98,6 +98,14 @@ const HomePage: React.FC = () => {
   const [newsError, setNewsError] = useState<string | null>(null);
   // --- End State ---
 
+  // --- State for Whitepaper Download ---
+  const [whitepaperEmail, setWhitepaperEmail] = useState('');
+  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [showDownloadLink, setShowDownloadLink] = useState(false);
+  const whitepaperUrl = "/Microplastics - the Elephant in the Wellness Room.pdf";
+  // --- End Whitepaper State ---
+
   // --- Effect to fetch latest news from API --- 
   useEffect(() => {
     const fetchLatestNewsFromApi = async () => {
@@ -137,6 +145,40 @@ const HomePage: React.FC = () => {
     fetchLatestNewsFromApi();
   }, []);
   // --- End Effect ---
+
+  // --- Whitepaper Email Submission Handler ---
+  const handleWhitepaperSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmissionError(null);
+
+    if (!whitepaperEmail || !/\S+@\S+\.\S+/.test(whitepaperEmail)) {
+      setSubmissionError('Please enter a valid email address.');
+      return;
+    }
+
+    setIsSubmittingEmail(true);
+    try {
+      const response = await axios.post<{ message?: string; error?: string }>(`${BACKEND_URL}/api/whitepaper-signup`, { email: whitepaperEmail });
+      if (response.status === 200 || response.status === 201) {
+        setShowDownloadLink(true);
+        setWhitepaperEmail(''); // Clear email field
+      } else {
+        setSubmissionError(response.data.message || response.data.error || 'An unexpected error occurred.');
+      }
+    } catch (error: any) {
+      console.error('Error submitting email for whitepaper:', error);
+      if (error.response && error.response.data && (error.response.data.error || error.response.data.message) ) {
+        setSubmissionError(error.response.data.error || error.response.data.message);
+      } else if (error.message) {
+        setSubmissionError(error.message);
+      } else {
+        setSubmissionError('Failed to submit email. Please try again.');
+      }
+    } finally {
+      setIsSubmittingEmail(false);
+    }
+  };
+  // --- End Whitepaper Email Submission Handler ---
 
   return (
     <div className="bg-brand-light">
@@ -183,18 +225,56 @@ const HomePage: React.FC = () => {
             Download Our Comprehensive Whitepaper
           </h2>
           <p className="text-lg text-brand-dark mb-8 max-w-xl mx-auto">
-            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions.
+            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions. Enter your email below to receive the download link.
           </p>
-          <div className="flex justify-center">
-            <a
-              href="/Microplastics - the Elephant in the Wellness Room.pdf"
-              download
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
-            >
-              <FileText size={24} />
-              Download PDF
-            </a>
-          </div>
+          
+          {!showDownloadLink ? (
+            <form onSubmit={handleWhitepaperSubmit} className="max-w-lg mx-auto">
+              <div className="flex flex-col sm:flex-row gap-3 items-start">
+                <input
+                  type="email"
+                  value={whitepaperEmail}
+                  onChange={(e) => setWhitepaperEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  required
+                  className="flex-grow w-full px-4 py-3 rounded-full border border-slate-300 focus:ring-brand-blue focus:border-brand-blue shadow-sm transition-colors duration-150"
+                  disabled={isSubmittingEmail}
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmittingEmail}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-brand-blue text-white font-semibold text-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 disabled:opacity-70"
+                >
+                  {isSubmittingEmail ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={20} />
+                      Get Download Link
+                    </>
+                  )}
+                </button>
+              </div>
+              {submissionError && (
+                <p className="mt-3 text-sm text-red-600">{submissionError}</p>
+              )}
+            </form>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-4">
+               <p className="text-green-700 font-semibold text-lg">Thank you! You can now download the whitepaper.</p>
+              <a
+                href={whitepaperUrl}
+                download
+                className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-green-600 text-white font-semibold text-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150 no-underline"
+              >
+                <DownloadCloud size={24} />
+                Download PDF
+              </a>
+            </div>
+          )}
         </div>
       </section>
 
