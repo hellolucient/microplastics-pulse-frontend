@@ -224,8 +224,11 @@ const HomePage: React.FC = () => {
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6 text-brand-darker">
             Download Our Comprehensive Whitepaper
           </h2>
-          <p className="text-lg text-brand-dark mb-8 max-w-xl mx-auto">
-            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions. Enter your email and press Enter to get the download link.
+          <p className="text-lg text-brand-dark mb-4 max-w-xl mx-auto">
+            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions.
+          </p>
+          <p className="text-md text-green-700 font-semibold mt-1 mb-6 max-w-xl mx-auto">
+            Enter your email to get the download link.
           </p>
           
           {!showDownloadLink ? (
