@@ -225,7 +225,7 @@ const HomePage: React.FC = () => {
             Download Our Comprehensive Whitepaper
           </h2>
           <p className="text-lg text-brand-dark mb-8 max-w-xl mx-auto">
-            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions. Enter your email below to receive the download link.
+            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions. Enter your email and press Enter to get the download link.
           </p>
           
           {!showDownloadLink ? (
@@ -235,31 +235,20 @@ const HomePage: React.FC = () => {
                   type="email"
                   value={whitepaperEmail}
                   onChange={(e) => setWhitepaperEmail(e.target.value)}
-                  placeholder="Enter your email address"
+                  placeholder="Enter your email address & press Enter"
                   required
-                  className="flex-grow w-full px-4 py-3 rounded-full border border-slate-300 focus:ring-brand-blue focus:border-brand-blue shadow-sm transition-colors duration-150"
+                  className="flex-grow w-full px-4 py-3 rounded-full border-2 border-green-600 focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm transition-colors duration-150"
                   disabled={isSubmittingEmail}
                 />
-                <button
-                  type="submit"
-                  disabled={isSubmittingEmail}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-green-600 text-white font-semibold text-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150 disabled:opacity-70"
-                >
-                  {isSubmittingEmail ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <Send size={20} />
-                      Get Download Link
-                    </>
-                  )}
-                </button>
               </div>
               {submissionError && (
                 <p className="mt-3 text-sm text-red-600">{submissionError}</p>
+              )}
+              {isSubmittingEmail && (
+                <p className="mt-3 text-sm text-gray-600 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-600 mr-2"></div>
+                  Submitting...
+                </p>
               )}
             </form>
           ) : (
