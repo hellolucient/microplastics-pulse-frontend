@@ -224,12 +224,17 @@ const HomePage: React.FC = () => {
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6 text-brand-darker">
             Download Our Comprehensive Whitepaper
           </h2>
-          <div className="flex justify-center my-4">
-            <FileText size={48} className="text-green-600" />
+          
+          <div className="max-w-xl mx-auto">
+            <div className="float-left mr-4 mb-2 pt-1">
+              <FileText size={64} className="text-green-600" />
+            </div>
+            <p className="text-lg text-brand-dark mb-4 text-left">
+              Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions.
+            </p>
           </div>
-          <p className="text-lg text-brand-dark mb-4 max-w-xl mx-auto">
-            Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions.
-          </p>
+          <div style={{clear: 'both'}}></div> {/* Clear the float */} 
+
           <p className="text-md text-green-700 font-semibold mt-1 mb-6 max-w-xl mx-auto">
             Enter your email to get the download link.
           </p>
