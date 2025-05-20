@@ -55,6 +55,11 @@ interface RegenerateImageResponse {
   new_ai_image_url: string;
 }
 
+// Interface for email check success response
+interface EmailCheckSuccessResponse {
+  message: string;
+}
+
 const AdminPage: React.FC = () => {
   const { user, signOut } = useAuth();
   // --- State for Manual Submission Form ---
@@ -84,6 +89,10 @@ const AdminPage: React.FC = () => {
   const [articleIdToRegenerate, setArticleIdToRegenerate] = useState('');
   const [isRegeneratingImage, setIsRegeneratingImage] = useState(false);
   const [regenerateImageMessage, setRegenerateImageMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+
+  // --- State for Checking Submitted Emails ---
+  const [isCheckingEmails, setIsCheckingEmails] = useState(false);
+  const [emailCheckMessage, setEmailCheckMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   // Fetch search queries on mount
   useEffect(() => {
@@ -280,7 +289,7 @@ const AdminPage: React.FC = () => {
   };
   // --- End Batch Update Handler ---
 
-  // --- Handler for Regenerate Image by ID ---
+  // --- Regenerate Image by ID Handler ---
   const handleRegenerateImageById = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsRegeneratingImage(true);
@@ -322,7 +331,49 @@ const AdminPage: React.FC = () => {
       setIsRegeneratingImage(false);
     }
   };
-  // --- End Handler for Regenerate Image by ID ---
+  // --- End Regenerate Image by ID Handler ---
+
+  // --- Handler for Checking Submitted Emails ---
+  const handleCheckSubmittedEmails = async () => {
+    setIsCheckingEmails(true);
+    setEmailCheckMessage(null);
+
+    const secret = import.meta.env.VITE_CRON_TRIGGER_SECRET;
+    if (!secret) {
+      setEmailCheckMessage({ type: 'error', text: 'CRON Trigger Secret not configured in frontend environment.'});
+      setIsCheckingEmails(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/cron/check-emails`, {
+        headers: {
+          'X-Custom-Cron-Secret': secret
+        }
+      });
+      setEmailCheckMessage({ type: 'success', text: response.data.message || 'Email check triggered successfully.' });
+    } catch (error: any) {
+      console.error('Error triggering email check:', error);
+      let message = 'An unknown error occurred.';
+      if (error.response && error.response.data) {
+        const responseData = error.response.data as any;
+        if (responseData.message) {
+          message = responseData.message;
+        } else if (responseData.error) {
+          message = responseData.error;
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
+      if (error.response && error.response.status) {
+        message = `Error ${error.response.status}: ${message}`;
+      }
+      setEmailCheckMessage({ type: 'error', text: `Failed to trigger email check: ${message}` });
+    } finally {
+      setIsCheckingEmails(false);
+    }
+  };
+  // --- End Handler for Checking Submitted Emails ---
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -577,6 +628,26 @@ const AdminPage: React.FC = () => {
           )}
         </form>
         <p className="mt-3 text-xs text-gray-500">This will attempt to generate a new image for the specified article ID and update it in the database. The summary will not be affected.</p>
+      </div>
+
+      {/* --- Check Submitted Emails Section --- */}
+      <div className="mb-8 p-6 bg-gray-800 rounded-lg shadow-xl">
+        <h2 className="text-2xl font-semibold mb-4 text-sky-400">Check Submitted Emails</h2>
+        <p className="mb-4 text-gray-400">
+          Manually trigger the backend process to check for new emails sent to the submission address (e.g., submit@microplasticswatch.com) and process them.
+        </p>
+        <button
+          onClick={handleCheckSubmittedEmails}
+          disabled={isCheckingEmails}
+          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 transition duration-150 ease-in-out"
+        >
+          {isCheckingEmails ? 'Checking Emails...' : 'Trigger Email Check'}
+        </button>
+        {emailCheckMessage && (
+          <p className={`mt-4 text-sm ${emailCheckMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+            {emailCheckMessage.text}
+          </p>
+        )}
       </div>
 
     </div>
