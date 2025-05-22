@@ -26,13 +26,6 @@ interface TriggerFetchResponse {
     nextIndex: number | null;
 }
 
-// Interface for trigger fetch error response
-interface TriggerFetchErrorResponse {
-    error: string;
-    details?: string;
-    query?: string;
-}
-
 // Interface for batch update response
 interface BatchUpdateResult {
   id: number | string;
@@ -68,7 +61,6 @@ const AdminPage: React.FC = () => {
   const [submitMessage, setSubmitMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
   // --- State for Manual Fetch Button ---
   const [isFetching, setIsFetching] = useState(false);
-  const [fetchMessage, setFetchMessage] = useState('');
 
   // --- State for Dynamic Manual Fetch ---
   const [searchQueries, setSearchQueries] = useState<string[]>([]);
@@ -352,6 +344,7 @@ const AdminPage: React.FC = () => {
         }
       });
       setEmailCheckMessage({ type: 'success', text: response.data.message || 'Email check triggered successfully.' });
+      // refreshStories(); // Ensuring this call is commented out as refreshStories is not defined
     } catch (error: any) {
       console.error('Error triggering email check:', error);
       let message = 'An unknown error occurred.';
