@@ -375,29 +375,6 @@ export default function NewsGlobe() {
           <DownloadWhitepaperForm />
         </div>
       )}
-      {!focusedNewsItem && !targetYRotation && !searchResults && (
-        <div className="p-4 min-h-0" style={{ 
-          position: 'absolute', 
-          bottom: 'calc(2% + 70px)',
-          left: '50%', 
-          transform: 'translateX(-50%)',
-          width: '90%',
-          maxWidth: '1200px',
-          zIndex: 5 
-        }}>
-          <h2 className="text-xl font-semibold mb-2 text-center text-white">News Previews (2D) - Batch {currentPage + 1}</h2>
-          {newsLoading && <p className="text-center text-gray-300">Loading news...</p>}
-          {newsError && <p className="text-center text-red-400">Error: {newsError}</p>}
-          {!newsLoading && !newsError && (
-            <div className="flex flex-wrap justify-center gap-4 overflow-y-auto" style={{ maxHeight: '150px' }}>
-              {currentNewsBatch.slice(0, 5).map(item => ( 
-                <NewsCard key={`2d-${item.id}-page-${currentPage}`} item={item} />
-              ))}
-              {currentNewsBatch.length === 0 && !newsLoading && <p className="text-center text-gray-300">No news items in current batch.</p>}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 } 

@@ -1,0 +1,38 @@
+.swiper-button-prev,
+.swiper-button-next {
+  background-color: rgba(51, 65, 85, 0.5) !important; /* slate-700 @ 50% opacity */
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  color: white !important; /* Arrow color */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background-color 0.2s ease-in-out !important;
+  top: 50% !important; /* Keep vertical centering */
+  transform: translateY(-50%) !important; /* Adjust for explicit height */
+}
+
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+  background-color: rgba(51, 65, 85, 0.75) !important; /* slate-700 @ 75% opacity */
+}
+
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  font-size: 20px !important; /* Adjust for arrow icon size/thickness */
+}
+
+.swiper-button-prev {
+  left: 20px !important; /* Adjust position from edge */
+}
+
+.swiper-button-next {
+  right: 20px !important; /* Adjust position from edge */
+}
+
+/* Add any other global styles below if needed */
+
+/* body {
+  border: 5px solid red !important;
+} */ 
