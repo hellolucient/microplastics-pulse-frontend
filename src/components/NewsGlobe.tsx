@@ -7,6 +7,8 @@ import { Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import DownloadWhitepaperForm from './DownloadWhitepaperForm';
 import NewsCard from './NewsCard';
+import SearchBar from './SearchBar';
+import SearchResultsCarousel from './SearchResultsCarousel';
 
 // Assume BACKEND_URL is available, e.g., from import.meta.env.VITE_BACKEND_API_URL
 const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
@@ -119,11 +121,40 @@ export default function NewsGlobe() {
   const [allNewsData, setAllNewsData] = useState<NewsItem[]>([]);
   const [currentNewsBatch, setCurrentNewsBatch] = useState<NewsItem[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [searchResults, setSearchResults] = useState<NewsItem[] | null>(null);
   const [newsLoading, setNewsLoading] = useState(true);
   const [newsError, setNewsError] = useState<string | null>(null);
   const [focusedNewsItem, setFocusedNewsItem] = useState<NewsItem | null>(null);
   const [targetYRotation, setTargetYRotation] = useState<number | null>(null);
   const globeGroupRef = useRef<THREE.Group>(null!); 
+
+  const handleSearch = (query: string) => {
+    console.log("Search submitted:", query);
+    if (query.trim() === '' || allNewsData.length === 0) {
+      setSearchResults(null); // Clear results if query is empty or no data
+      return;
+    }
+    const filtered = allNewsData.filter(item => 
+      item.title?.toLowerCase().includes(query.toLowerCase()) || 
+      item.ai_summary?.toLowerCase().includes(query.toLowerCase())
+    );
+    console.log(`Search for "${query}" found ${filtered.length} items.`);
+    setSearchResults(filtered.length > 0 ? filtered : []); // Set to empty array if no results to show 'no results' in carousel if designed for it
+    setFocusedNewsItem(null); // Ensure main modal is closed if it was open
+  };
+
+  const handleCloseSearchResults = () => {
+    setSearchResults(null);
+    // Optionally, you might want to clear the SearchBar input here if you had a ref to it
+  };
+
+  // This function will be passed to the carousel for when a card is selected
+  const handleCarouselCardSelect = (item: NewsItem) => {
+    console.log("[handleCarouselCardSelect] item:", item?.title);
+    setFocusedNewsItem(item); // This will open the main article modal
+    // We might want to hide the carousel when a card is selected for the main modal
+    // setSearchResults(null); // Option 1: Hide carousel when main modal opens
+  };
 
   // 1. Fetch all news data once
   useEffect(() => {
@@ -160,20 +191,19 @@ export default function NewsGlobe() {
     fetchAllNews();
   }, []);
 
-  // 2. Update currentNewsBatch when allNewsData or currentPage changes
+  // 2. Update currentNewsBatch for the globe (no longer directly affected by search query)
   useEffect(() => {
     if (allNewsData.length > 0) {
       const startIndex = currentPage * NUM_CARDS_PER_PAGE;
       const endIndex = startIndex + NUM_CARDS_PER_PAGE;
       setCurrentNewsBatch(allNewsData.slice(startIndex, endIndex));
-      // console.log(`Displaying page ${currentPage + 1}, items ${startIndex} to ${Math.min(endIndex, allNewsData.length) -1 }`);
+      console.log(`Globe: Displaying page ${currentPage + 1} of all news. Items: ${startIndex} to ${Math.min(endIndex, allNewsData.length) -1 }`);
     }
   }, [allNewsData, currentPage]);
 
-  // 3. Set up interval to rotate pages
+  // 3. Set up interval to rotate pages (pauses if search results or modal is up)
   useEffect(() => {
-    // Pause rotation if a card is focused (modal is up)
-    if (allNewsData.length === 0 || focusedNewsItem !== null) return; 
+    if (allNewsData.length === 0 || focusedNewsItem !== null || searchResults !== null) return; 
 
     const totalPages = Math.ceil(allNewsData.length / NUM_CARDS_PER_PAGE);
     if (totalPages <= 1) return; 
@@ -182,10 +212,9 @@ export default function NewsGlobe() {
       setCurrentPage(prevPage => (prevPage + 1) % totalPages);
     }, PAGE_ROTATION_INTERVAL_MS);
 
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
-  }, [allNewsData.length, focusedNewsItem]);
+    return () => clearInterval(intervalId);
+  }, [allNewsData.length, focusedNewsItem, searchResults]);
 
-  // TEMP: Log news data, loading state, and errors to console for verification
   useEffect(() => {
     if (newsLoading) {
       // console.log('NewsGlobe: News loading...');
@@ -197,116 +226,104 @@ export default function NewsGlobe() {
   }, [allNewsData, currentNewsBatch, currentPage, newsLoading, newsError]);
 
   const handleCardDoubleClick = (item: NewsItem) => {
-    console.log("[handleCardDoubleClick] item:", item?.title);
-    setTargetYRotation(null); // Explicitly ensure globe is in auto-spin mode
-    setFocusedNewsItem(item); // Set focused item immediately
+    console.log("[handleCardDoubleClick] item (from globe double click):", item?.title);
+    setTargetYRotation(null); 
+    setFocusedNewsItem(item); 
     console.log("[handleCardDoubleClick] focusedNewsItem set to:", item?.title, "targetYRotation ensured to be null.");
   };
 
   const handleCloseModal = () => {
     console.log("[handleCloseModal] Closing modal. Current focusedNewsItem:", focusedNewsItem?.title);
     setFocusedNewsItem(null);
-    setTargetYRotation(null); // Ensure globe continues auto-spinning
+    setTargetYRotation(null); 
     console.log("[handleCloseModal] focusedNewsItem and targetYRotation reset.");
   };
 
-  const isGlobeInteractive = targetYRotation === null && focusedNewsItem === null; // Orbit controls enabled only when not targeting/snapping
+  const isGlobeInteractive = targetYRotation === null && focusedNewsItem === null && searchResults === null;
 
-  // Log focusedNewsItem on every render to see its state
-  console.log("[NewsGlobe Render] focusedNewsItem:", focusedNewsItem?.title, "targetYRotation:", targetYRotation);
+  console.log("[NewsGlobe Render] focusedNewsItem:", focusedNewsItem?.title, "targetYRotation:", targetYRotation, "searchResults:", searchResults ? `${searchResults.length} items` : null);
 
-  // The main div's onClick is removed for now to avoid conflict with modal backdrop click
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      {/* Test Buttons Portal */}
-      {createPortal(
-        <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 100000, background:'lightgray', padding:'5px' }}>
-          <button 
-            onClick={() => { 
-              console.log("Force Show Modal button clicked"); 
-              setFocusedNewsItem(dummyFocusedItem); 
-              setTargetYRotation(null); // Ensure spinning for test modal
-            }}
-            style={{marginRight: '5px'}}
-          >
-            Force Show Test Modal
-          </button>
-          <button onClick={() => { 
-            console.log("Force Hide Modal button clicked"); 
-            handleCloseModal();
-          }}>
-            Force Hide Test Modal
-          </button>
-          {/* Button to test snapping globe (sets targetYRotation) */}
-          <button onClick={() => { 
-            console.log("Force Snap Globe button clicked"); 
-            setTargetYRotation(Math.PI / 2); // Example: Snap to 90 degrees
-            setFocusedNewsItem(null); // Ensure no modal
-          }} style={{marginLeft: '5px'}}>
-            Force Snap Globe (Test)
-          </button>
-        </div>,
-        document.body
+      
+      {/* Conditionally render SearchBar portal */} 
+      {searchResults === null && (
+        createPortal(
+          <>
+            {/* Test buttons were here, now removed */}
+            <SearchBar onSearch={handleSearch} />
+          </>,
+          document.body
+        )
       )}
 
-      {/* Canvas container - NOW ALWAYS RENDERS */}
       <div style={{ 
           height: '100vh',
           position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
-          zIndex: focusedNewsItem ? 1 : 'auto', // Ensure canvas is behind modal but visible
-          pointerEvents: focusedNewsItem ? 'none' : 'auto' // Modal handles its own events
+          zIndex: focusedNewsItem || searchResults ? 1 : 0, // Keep canvas behind if modal or carousel is up
+          pointerEvents: focusedNewsItem || searchResults ? 'none' : 'auto' 
       }} > 
         <Canvas camera={{ position: [0, 0, 0.1], fov: 75 }}> 
-          {/* <CanvasZIndexManager isModalFocused={!!focusedNewsItem} /> // Potentially remove or ensure no conflict */}
-          <ambientLight intensity={1.5} />
-          <pointLight position={[10, 10, 10]} intensity={Math.PI} />
-          <OrbitControls 
-            enabled={isGlobeInteractive}
-            enableZoom={true} 
-            enablePan={false} 
-            minDistance={0.1} 
-            maxDistance={GLOBE_RADIUS - 1} 
-          /> 
-          {!newsLoading && currentNewsBatch.length > 0 && (
-            <SpinningGlobeGroup 
-              targetYRotation={targetYRotation} // This will be null if focusedNewsItem is set by button
-              globeRef={globeGroupRef}
-            >
-              {currentNewsBatch.map((item) => {
-                // Ensure item is valid before trying to find its index or using its properties
-                if (!item || !item.id) {
-                  console.error("Invalid item in currentNewsBatch:", item);
-                  return null; // Skip rendering this card
-                }
-                const itemIndex = currentNewsBatch.findIndex(i => i.id === item.id);
-                if (itemIndex === -1) {
-                    console.error("Item not found in currentNewsBatch for positioning:", item.title);
-                    return null; // Skip rendering if somehow not found (should not happen)
-                }
-                const phi = Math.acos(-1 + (2 * itemIndex + 1) / NUM_CARDS_PER_PAGE );
-                const theta = Math.sqrt(NUM_CARDS_PER_PAGE * Math.PI) * phi;
-                const x = GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta);
-                const y = GLOBE_RADIUS * Math.cos(phi);
-                const z = GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta);
-                const cardPosition: [number, number, number] = [x, y, z];
-                return (
-                  <GlobeCard 
-                    key={`${item.id}-page-${currentPage}`} 
-                    item={item} 
-                    position={cardPosition} 
-                    onDoubleClick={handleCardDoubleClick}
-                  />
-                );
-              })}
-            </SpinningGlobeGroup> 
-          )}
-        </Canvas>
-      </div>
+            <ambientLight intensity={1.5} />
+            <pointLight position={[10, 10, 10]} intensity={Math.PI} />
+            <OrbitControls 
+              enabled={isGlobeInteractive}
+              enableZoom={true} 
+              enablePan={false} 
+              minDistance={0.1} 
+              maxDistance={GLOBE_RADIUS - 1} 
+            /> 
+            {!newsLoading && currentNewsBatch.length > 0 && (
+              <SpinningGlobeGroup 
+                targetYRotation={targetYRotation} 
+                globeRef={globeGroupRef}
+              >
+                {currentNewsBatch.map((item) => {
+                  if (!item || !item.id) {
+                    console.error("Invalid item in currentNewsBatch:", item);
+                    return null;
+                  }
+                  const itemIndex = currentNewsBatch.findIndex(i => i.id === item.id);
+                  if (itemIndex === -1) {
+                      console.error("Item not found in currentNewsBatch for positioning:", item.title);
+                      return null; 
+                  }
+                  const phi = Math.acos(-1 + (2 * itemIndex + 1) / NUM_CARDS_PER_PAGE );
+                  const theta = Math.sqrt(NUM_CARDS_PER_PAGE * Math.PI) * phi;
+                  const x = GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta);
+                  const y = GLOBE_RADIUS * Math.cos(phi);
+                  const z = GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta);
+                  const cardPosition: [number, number, number] = [x, y, z];
+                  return (
+                    <GlobeCard 
+                      key={`${item.id}-page-${currentPage}`}
+                      item={item} 
+                      position={cardPosition} 
+                      onDoubleClick={handleCardDoubleClick} // Globe cards still use this
+                    />
+                  );
+                })}
+              </SpinningGlobeGroup> 
+            )}
+          </Canvas>
+        </div>
 
-      {/* Simplified Modal using React Portal */}
+      {/* Search Results Carousel Portal */} 
+      {searchResults && (
+        createPortal(
+          <SearchResultsCarousel 
+            results={searchResults} 
+            onClose={handleCloseSearchResults} 
+            onCardSelect={handleCarouselCardSelect} // Use new handler for carousel card clicks
+          />,
+          document.body
+        )
+      )}
+
+      {/* Main Article Modal Portal */} 
       {focusedNewsItem && createPortal(
         (() => {
           console.log('[Modal JSX Render with Portal] Rendering simplified modal for:', focusedNewsItem?.title);
@@ -315,20 +332,19 @@ export default function NewsGlobe() {
               style={{
                 position: 'fixed', top: '0px', left: '0px', width: '100vw', height: '100vh',
                 backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'block',
-                zIndex: 99999, /* cursor: 'pointer', */ outline: '10px solid limegreen' // Removed cursor for now
+                zIndex: 99999 
               }}
-              onClick={handleCloseModal} // Close modal on backdrop click
+              onClick={handleCloseModal}
             >
               <div 
                 style={{ 
                   position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
                   padding: '20px', background: 'white', color: 'black', textAlign: 'left',
                   borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                  width: '90%', maxWidth: '600px', cursor: 'default' // Prevent close when clicking inside content
+                  width: '90%', maxWidth: '600px', cursor: 'default' 
                 }}
-                onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking on modal content
+                onClick={(e) => e.stopPropagation()} 
               >
-                {/* Using NewsCard directly for the modal content */}
                 <NewsCard item={focusedNewsItem} isModalVersion={true} /> 
                 <button 
                     onClick={handleCloseModal}
@@ -338,17 +354,17 @@ export default function NewsGlobe() {
                         color: '#333', cursor: 'pointer'
                     }}
                 >
-                    &times; {/* Close icon */}
+                    &times; 
                 </button>
               </div>
             </div>
           );
         })(),
-        document.body // Target container for the portal
+        document.body 
       )}
 
-      {/* Other UI elements, conditionally rendered or adjusted if necessary */}
-      {!focusedNewsItem && !targetYRotation && (
+      {/* Other UI elements (Download form, 2D previews) - only show if no modal and no search results carousel */}
+      {!focusedNewsItem && !targetYRotation && !searchResults && (
         <div style={{
           position: 'absolute',
           bottom: '2%',
@@ -359,7 +375,7 @@ export default function NewsGlobe() {
           <DownloadWhitepaperForm />
         </div>
       )}
-      {!focusedNewsItem && !targetYRotation && (
+      {!focusedNewsItem && !targetYRotation && !searchResults && (
         <div className="p-4 min-h-0" style={{ 
           position: 'absolute', 
           bottom: 'calc(2% + 70px)',
