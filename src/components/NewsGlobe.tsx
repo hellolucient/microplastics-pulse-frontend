@@ -96,21 +96,21 @@ const CanvasZIndexManager = ({ isModalFocused }: { isModalFocused: boolean }) =>
   const { gl } = useThree();
   useEffect(() => {
     if (gl.domElement) {
-      if (isModalFocused) {
-        gl.domElement.style.zIndex = '-1';
-        console.log("[CanvasZIndexManager] Canvas zIndex set to -1");
-      } else {
-        gl.domElement.style.zIndex = ''; // Or 'auto' or initial value if known
-        console.log("[CanvasZIndexManager] Canvas zIndex reset");
-      }
+      // if (isModalFocused) {
+      //   gl.domElement.style.zIndex = '-1';
+      //   console.log("[CanvasZIndexManager] Canvas zIndex set to -1 (now commented out)");
+      // } else {
+      //   gl.domElement.style.zIndex = ''; // Or 'auto' or initial value if known
+      //   console.log("[CanvasZIndexManager] Canvas zIndex reset (now commented out)");
+      // }
     }
     // Optional: return a cleanup function to reset zIndex on unmount
-    return () => {
-      if (gl.domElement) {
-        gl.domElement.style.zIndex = '';
-        console.log("[CanvasZIndexManager] Canvas zIndex reset on unmount");
-      }
-    };
+    // return () => {
+    //   if (gl.domElement) {
+    //     gl.domElement.style.zIndex = '';
+    //     console.log("[CanvasZIndexManager] Canvas zIndex reset on unmount (now commented out)");
+    //   }
+    // };
   }, [isModalFocused, gl]);
   return null; // This component doesn't render anything itself
 };
@@ -249,56 +249,62 @@ export default function NewsGlobe() {
         document.body
       )}
 
-      {/* Conditionally render the Canvas container */}
-      {!focusedNewsItem && (
-        <div style={{ height: '100vh' }} > 
-          <Canvas camera={{ position: [0, 0, 0.1], fov: 75 }}> 
-            <CanvasZIndexManager isModalFocused={!!focusedNewsItem} />
-            <ambientLight intensity={1.5} />
-            <pointLight position={[10, 10, 10]} intensity={Math.PI} />
-            <OrbitControls 
-              enabled={isGlobeInteractive}
-              enableZoom={true} 
-              enablePan={false} 
-              minDistance={0.1} 
-              maxDistance={GLOBE_RADIUS - 1} 
-            /> 
-            {!newsLoading && currentNewsBatch.length > 0 && (
-              <SpinningGlobeGroup 
-                targetYRotation={targetYRotation} // This will be null if focusedNewsItem is set by button
-                globeRef={globeGroupRef}
-              >
-                {currentNewsBatch.map((item) => {
-                  // Ensure item is valid before trying to find its index or using its properties
-                  if (!item || !item.id) {
-                    console.error("Invalid item in currentNewsBatch:", item);
-                    return null; // Skip rendering this card
-                  }
-                  const itemIndex = currentNewsBatch.findIndex(i => i.id === item.id);
-                  if (itemIndex === -1) {
-                      console.error("Item not found in currentNewsBatch for positioning:", item.title);
-                      return null; // Skip rendering if somehow not found (should not happen)
-                  }
-                  const phi = Math.acos(-1 + (2 * itemIndex + 1) / NUM_CARDS_PER_PAGE );
-                  const theta = Math.sqrt(NUM_CARDS_PER_PAGE * Math.PI) * phi;
-                  const x = GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta);
-                  const y = GLOBE_RADIUS * Math.cos(phi);
-                  const z = GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta);
-                  const cardPosition: [number, number, number] = [x, y, z];
-                  return (
-                    <GlobeCard 
-                      key={`${item.id}-page-${currentPage}`} 
-                      item={item} 
-                      position={cardPosition} 
-                      onDoubleClick={handleCardDoubleClick}
-                    />
-                  );
-                })}
-              </SpinningGlobeGroup> 
-            )}
-          </Canvas>
-        </div>
-      )}
+      {/* Canvas container - NOW ALWAYS RENDERS */}
+      <div style={{ 
+          height: '100vh',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          zIndex: focusedNewsItem ? 1 : 'auto', // Ensure canvas is behind modal but visible
+          pointerEvents: focusedNewsItem ? 'none' : 'auto' // Modal handles its own events
+      }} > 
+        <Canvas camera={{ position: [0, 0, 0.1], fov: 75 }}> 
+          {/* <CanvasZIndexManager isModalFocused={!!focusedNewsItem} /> // Potentially remove or ensure no conflict */}
+          <ambientLight intensity={1.5} />
+          <pointLight position={[10, 10, 10]} intensity={Math.PI} />
+          <OrbitControls 
+            enabled={isGlobeInteractive}
+            enableZoom={true} 
+            enablePan={false} 
+            minDistance={0.1} 
+            maxDistance={GLOBE_RADIUS - 1} 
+          /> 
+          {!newsLoading && currentNewsBatch.length > 0 && (
+            <SpinningGlobeGroup 
+              targetYRotation={targetYRotation} // This will be null if focusedNewsItem is set by button
+              globeRef={globeGroupRef}
+            >
+              {currentNewsBatch.map((item) => {
+                // Ensure item is valid before trying to find its index or using its properties
+                if (!item || !item.id) {
+                  console.error("Invalid item in currentNewsBatch:", item);
+                  return null; // Skip rendering this card
+                }
+                const itemIndex = currentNewsBatch.findIndex(i => i.id === item.id);
+                if (itemIndex === -1) {
+                    console.error("Item not found in currentNewsBatch for positioning:", item.title);
+                    return null; // Skip rendering if somehow not found (should not happen)
+                }
+                const phi = Math.acos(-1 + (2 * itemIndex + 1) / NUM_CARDS_PER_PAGE );
+                const theta = Math.sqrt(NUM_CARDS_PER_PAGE * Math.PI) * phi;
+                const x = GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta);
+                const y = GLOBE_RADIUS * Math.cos(phi);
+                const z = GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta);
+                const cardPosition: [number, number, number] = [x, y, z];
+                return (
+                  <GlobeCard 
+                    key={`${item.id}-page-${currentPage}`} 
+                    item={item} 
+                    position={cardPosition} 
+                    onDoubleClick={handleCardDoubleClick}
+                  />
+                );
+              })}
+            </SpinningGlobeGroup> 
+          )}
+        </Canvas>
+      </div>
 
       {/* Simplified Modal using React Portal */}
       {focusedNewsItem && createPortal(
