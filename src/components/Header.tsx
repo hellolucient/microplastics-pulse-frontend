@@ -19,6 +19,7 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex items-center gap-8">
           <Link to="/" onClick={scrollToTop} className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Home</Link>
           <Link to="/latest-news" className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Latest News</Link>
+          <Link to="/contact" className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Contact</Link>
         </nav>
       </div>
     </header>

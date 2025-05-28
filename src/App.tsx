@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage.tsx';
 import LatestNewsPage from './pages/LatestNewsPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
+import ContactPage from './pages/ContactPage.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 
@@ -18,6 +19,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/latest-news" element={<LatestNewsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route 
                 path="/admin" 
