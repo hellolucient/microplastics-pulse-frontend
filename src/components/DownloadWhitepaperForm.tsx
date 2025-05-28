@@ -29,17 +29,27 @@ const DownloadWhitepaperForm: React.FC = () => {
   const [showDownloadLink, setShowDownloadLink] = useState(false);
   const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [showCustomTestText, setShowCustomTestText] = useState(false);
 
   const handleIconClick = () => {
     setIsFormOpen(true);
-    // Reset form state when opening
     setShowDownloadLink(false);
     setSubmissionError(null);
     setWhitepaperEmail('');
+    setShowCustomTestText(false);
+  };
+
+  const handleTestButtonClick = () => {
+    setIsFormOpen(true);
+    setShowDownloadLink(false);
+    setSubmissionError(null);
+    setWhitepaperEmail('');
+    setShowCustomTestText(true);
   };
 
   const handleCloseForm = () => {
     setIsFormOpen(false);
+    setShowCustomTestText(false);
   };
 
   const handleWhitepaperSubmit = async (e: React.FormEvent) => {
@@ -78,12 +88,22 @@ const DownloadWhitepaperForm: React.FC = () => {
     return (
       <>
         <style>{pulsingKeyframes}</style> {/* Inject keyframes */} 
-        <div 
-          onClick={handleIconClick} 
-          style={pulseAnimationStyle}
-          className="cursor-pointer p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
-        >
-          <FileText size={32} className="text-green-600" />
+        <div className="flex items-center space-x-3"> {/* Parent flex container */}
+          <div 
+            onClick={handleIconClick} 
+            style={pulseAnimationStyle}
+            className="cursor-pointer p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+            title="Open whitepaper download form"
+          >
+            <FileText size={32} className="text-green-600" />
+          </div>
+          <button
+            onClick={handleTestButtonClick}
+            className="p-3 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors text-xs font-semibold"
+            title="Test button"
+          >
+            TEST
+          </button>
         </div>
       </>
     );
@@ -92,7 +112,7 @@ const DownloadWhitepaperForm: React.FC = () => {
   // Form is open
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"> {/* Modal container */}
-      <div className="bg-white p-6 pt-8 rounded-lg shadow-xl max-w-sm w-full relative sm:p-8"> {/* Adjusted max-width and padding */}
+      <div className="bg-white p-6 pt-8 rounded-lg shadow-xl max-w-sm w-full relative sm:p-8 overflow-y-auto max-h-[90vh]"> {/* Modal Card - RESTORED PADDING */}
         <button 
           onClick={handleCloseForm} 
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
@@ -101,21 +121,30 @@ const DownloadWhitepaperForm: React.FC = () => {
           <X size={20} />
         </button>
 
-        <div className="text-center mb-6"> {/* Centered header text */}
-          <div className="inline-block bg-green-100 p-3 rounded-full mb-3">
+        <div className="mb-6 w-full"> {/* ENSURED w-full for header container */}
+          <div className="bg-green-100 p-3 rounded-full mb-3 mx-auto">
             <FileText size={28} className="text-green-600" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-800">
+          <h3 className="text-xl font-semibold text-gray-800 text-center">
             Download Our Whitepaper
           </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            "Microplastics - the Elephant in the Wellness Room"
-          </p>
+          {showCustomTestText ? (
+            <div className="mt-1 p-2 border border-red-500 text-center">
+              <p className="text-lg font-bold text-red-700">Get the white paper biches!</p>
+            </div>
+          ) : (
+            <p 
+              className="text-sm text-gray-500 mt-1 text-center" 
+              style={{ width: '280px', margin: '0 auto' }}
+            >
+              "Microplastics - the Elephant in the Wellness Room"
+            </p>
+          )}
         </div>
         
         {!showDownloadLink ? (
-          <div className="space-y-4"> {/* Container for form elements with spacing */}
-            <p className="text-sm text-gray-600 text-center px-2">
+          <div className="space-y-4 w-full"> {/* ENSURED w-full for form elements container */}
+            <p className="text-sm text-gray-600 text-center px-2"> {/* RESTORED px-2 */}
               Enter your email address below to receive the download link.
             </p>
             <form onSubmit={handleWhitepaperSubmit} className="w-full">

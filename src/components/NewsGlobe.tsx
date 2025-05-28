@@ -363,18 +363,20 @@ export default function NewsGlobe() {
         document.body 
       )}
 
-      {/* Other UI elements (Download form, 2D previews) - only show if no modal and no search results carousel */}
-      {!focusedNewsItem && !targetYRotation && !searchResults && (
-        <div style={{
-          position: 'absolute',
-          bottom: '2%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 10, 
-        }}>
+      {/* DownloadWhitepaperForm and Footer Portals */}
+      {createPortal(
+        <div style={{ position: 'fixed', bottom: '70px', left: '50%', transform: 'translateX(-50%)', zIndex: 10000 }}>
           <DownloadWhitepaperForm />
-        </div>
+        </div>,
+        document.body
       )}
+      {createPortal(
+        <footer style={{ position: 'fixed', bottom: '0', width: '100%', textAlign: 'center', padding: '20px 0', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 10000, color: 'white' }}>
+          <p>© {new Date().getFullYear()} MicroplasticsWatch. All rights reserved.</p>
+        </footer>,
+        document.body
+      )}
+
     </div>
   );
 } 
