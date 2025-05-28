@@ -59,7 +59,7 @@ const ContactPage: React.FC = () => {
           <img 
             src={mascotImage} 
             alt="Microplastics Elephant Mascot" 
-            className="w-full max-w-sm rounded-lg object-contain"
+            className="w-full max-w-lg rounded-lg object-contain"
           />
         </div>
         <div>
