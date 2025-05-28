@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 // import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
 import axios from 'axios'; // <-- Add axios
 import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
-import placeholderRedX from '../assets/placeholder-red-x.png'; // Import the placeholder
+import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png'; // Import the placeholder
 
 // Updated NewsItem interface
 interface NewsItem {
@@ -33,7 +33,7 @@ interface NewsItemCardProps {
 }
 
 const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
-  const imageUrl = item.ai_image_url || placeholderRedX;
+  const imageUrl = item.ai_image_url || fallbackPlaceholderImage;
   const displayDate = item.published_date ? new Date(item.published_date) : new Date(item.created_at);
   const formattedDate = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
@@ -46,7 +46,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
             src={imageUrl}
             alt={item.title || 'News image'}
             className="w-full h-64 md:h-full object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
+            onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
           />
         </div>
         <div className="p-8 flex-1 flex flex-col">
@@ -73,7 +73,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
         src={imageUrl}
         alt={item.title || 'News image'}
         className="float-left w-32 h-32 md:w-36 md:h-36 object-cover mr-4 mb-2 rounded"
-        onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
+        onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
       />
       <div className="flex flex-wrap items-center justify-between mb-1">
         <span className="text-xs text-gray-500">{formattedDate}</span>

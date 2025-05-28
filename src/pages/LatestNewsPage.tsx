@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Search } from 'lucide-react'; // Removed ListFilter icon
-import placeholderRedX from '../assets/placeholder-red-x.png'; // Import the placeholder
+import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png'; // Import the placeholder
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
 
@@ -34,7 +34,7 @@ interface NewsItemCardProps {
 }
 
 const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
-  const imageUrl = item.ai_image_url || placeholderRedX;
+  const imageUrl = item.ai_image_url || fallbackPlaceholderImage;
   const displayDate = item.published_date ? new Date(item.published_date) : new Date(item.created_at);
   const formattedDate = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
@@ -46,7 +46,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
             src={imageUrl}
             alt={item.title || 'News image'}
             className="w-full h-64 md:h-full object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }} // Fallback for broken AI URL
+            onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }} // Fallback for broken AI URL
           />
         </div>
         <div className="p-8 flex-1 flex flex-col">
@@ -73,7 +73,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
         src={imageUrl} 
         alt={item.title || 'News image'}
         className="float-left w-36 h-36 object-cover mr-4 mb-2 rounded"
-        onError={(e) => { (e.target as HTMLImageElement).src = placeholderRedX; }}
+        onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
       />
       <div className="flex flex-wrap items-center justify-between mb-1">
         <span className="text-xs text-gray-500">{formattedDate}</span>
