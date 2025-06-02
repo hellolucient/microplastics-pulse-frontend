@@ -31,16 +31,20 @@ const STORIES_PER_PAGE = 10;
 interface NewsItemCardProps {
   item: NewsItem;
   isFeatured: boolean;
+  onDoubleClick: () => void; // Added prop for double click
 }
 
-const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
+const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured, onDoubleClick }) => {
   const imageUrl = item.ai_image_url || fallbackPlaceholderImage;
   const displayDate = item.published_date ? new Date(item.published_date) : new Date(item.created_at);
   const formattedDate = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
   if (isFeatured) {
     return (
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12">
+      <div 
+        className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden mb-12 cursor-pointer" // Added cursor-pointer
+        onDoubleClick={onDoubleClick} // Added double click handler
+      >
         <div className="md:w-2/5 flex-shrink-0">
           <img 
             src={imageUrl}
@@ -68,7 +72,10 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
 
   // Secondary story card (non-featured)
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 md:p-6 flow-root">
+    <div 
+      className="bg-white rounded-lg shadow-md border border-gray-200 p-4 md:p-6 flow-root cursor-pointer" // Added cursor-pointer
+      onDoubleClick={onDoubleClick} // Added double click handler
+    >
       <img 
         src={imageUrl} 
         alt={item.title || 'News image'}
@@ -99,6 +106,7 @@ const LatestNewsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageWindowStart, setPageWindowStart] = useState(1); // New state for pagination window
+  const [activeCardId, setActiveCardId] = useState<string | number | null>(null); // State for active card modal
 
   useEffect(() => {
     const fetchNewsFromApi = async () => {
@@ -225,13 +233,22 @@ const LatestNewsPage: React.FC = () => {
         <>
           {/* Featured Story - only on page 1 and if search is not active or shows the first item */}
           {currentPage === 1 && featuredStory && (
-            <NewsItemCard item={featuredStory} isFeatured={true} />
+            <NewsItemCard 
+              item={featuredStory} 
+              isFeatured={true} 
+              onDoubleClick={() => setActiveCardId(featuredStory.id)} // Pass double click handler
+            />
           )}
 
           {/* Grid for secondary stories */}
           <div className={`grid grid-cols-1 ${secondaryStories.length > 0 ? 'md:grid-cols-2' : ''} gap-6 ${currentPage === 1 && featuredStory ? 'mt-8' : 'mt-0'}`}>
             {secondaryStories.map(item => (
-              <NewsItemCard key={item.id || item.url} item={item} isFeatured={false} />
+              <NewsItemCard 
+                key={item.id || item.url} 
+                item={item} 
+                isFeatured={false} 
+                onDoubleClick={() => setActiveCardId(item.id)} // Pass double click handler
+              />
             ))}
           </div>
 
@@ -280,6 +297,66 @@ const LatestNewsPage: React.FC = () => {
             : 'No news items found.'}
         </p>
       )}
+
+      {/* Modal for Active Card */}
+      {activeCardId && (() => {
+        const activeItem = newsItems.find(news => news.id === activeCardId);
+        if (!activeItem) return null;
+
+        const modalImageUrl = activeItem.ai_image_url || fallbackPlaceholderImage;
+        const modalDisplayDate = activeItem.published_date ? new Date(activeItem.published_date) : new Date(activeItem.created_at);
+        const modalFormattedDate = modalDisplayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+
+        return (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+            onClick={() => setActiveCardId(null)} // Close on backdrop click
+          >
+            <div 
+              className="bg-white p-6 md:p-8 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal content
+            >
+              <button 
+                onClick={() => setActiveCardId(null)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-10"
+                aria-label="Close news details"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
+              <img 
+                src={modalImageUrl} 
+                alt={activeItem.title || 'News image'} 
+                className="w-full h-64 object-cover rounded-t-lg mb-4"
+                onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
+              />
+              <h2 className="text-2xl md:text-3xl font-bold text-brand-darker mb-3">
+                {activeItem.title || 'No Title'}
+              </h2>
+              <div className="flex flex-wrap items-center justify-between text-sm text-gray-500 mb-2">
+                <span>{modalFormattedDate}</span>
+                {activeItem.source && <span>Source: {activeItem.source}</span>}
+              </div>
+              <p className="text-brand-dark text-base leading-relaxed mb-6 whitespace-pre-line"> 
+                {activeItem.ai_summary || 'Full summary unavailable.'}
+              </p>
+              <a 
+                href={activeItem.url}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-md font-semibold text-brand-blue hover:text-sky-700 no-underline"
+              >
+                <span>Read full article on source</span>
+                {/* Using a generic link icon, assuming lucide-react is available or add specific import */}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              </a>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
