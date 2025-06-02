@@ -51,6 +51,9 @@ interface RegenerateImageResponse {
 // Interface for email check success response
 interface EmailCheckSuccessResponse {
   message: string;
+  processedCount: number;
+  failedCount: number;
+  failedUrls: string[];
 }
 
 const AdminPage: React.FC = () => {
@@ -85,6 +88,9 @@ const AdminPage: React.FC = () => {
   // --- State for Checking Submitted Emails ---
   const [isCheckingEmails, setIsCheckingEmails] = useState(false);
   const [emailCheckMessage, setEmailCheckMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  const [emailCheckProcessedCount, setEmailCheckProcessedCount] = useState<number>(0);
+  const [emailCheckFailedCount, setEmailCheckFailedCount] = useState<number>(0);
+  const [emailCheckFailedUrls, setEmailCheckFailedUrls] = useState<string[]>([]);
 
   // Fetch search queries on mount
   useEffect(() => {
@@ -325,48 +331,44 @@ const AdminPage: React.FC = () => {
   };
   // --- End Regenerate Image by ID Handler ---
 
-  // --- Handler for Checking Submitted Emails ---
+  // --- Check Submitted Emails Handler ---
   const handleCheckSubmittedEmails = async () => {
     setIsCheckingEmails(true);
     setEmailCheckMessage(null);
-
-    const secret = import.meta.env.VITE_CRON_TRIGGER_SECRET;
-    if (!secret) {
-      setEmailCheckMessage({ type: 'error', text: 'CRON Trigger Secret not configured in frontend environment.'});
-      setIsCheckingEmails(false);
-      return;
-    }
+    setEmailCheckProcessedCount(0);
+    setEmailCheckFailedCount(0);
+    setEmailCheckFailedUrls([]);
 
     try {
-      const response = await axios.get<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/cron/check-emails`, {
-        headers: {
-          'X-Custom-Cron-Secret': secret
+      // Explicitly type the expected response data
+      const response = await axios.get<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/admin/check-submitted-emails`);
+      
+      setEmailCheckMessage({ type: 'success', text: response.data.message || 'Email check completed.' });
+      setEmailCheckProcessedCount(response.data.processedCount || 0);
+      setEmailCheckFailedCount(response.data.failedCount || 0);
+      setEmailCheckFailedUrls(response.data.failedUrls || []);
+
+    } catch (error: unknown) {
+      console.error('Error checking submitted emails:', error);
+      let errorMessage = 'An unknown error occurred while checking emails.';
+      if (typeof error === 'object' && error !== null && 'isAxiosError' in error && (error as any).isAxiosError) {
+        // It's an Axios error, try to get message from response.data
+        const axiosError = error as any; // Type assertion
+        if (axiosError.response && axiosError.response.data) {
+          errorMessage = axiosError.response.data.message || axiosError.response.data.details || axiosError.message;
+        } else {
+          errorMessage = axiosError.message; // Fallback to general Axios error message
         }
-      });
-      setEmailCheckMessage({ type: 'success', text: response.data.message || 'Email check triggered successfully.' });
-      // refreshStories(); // Ensuring this call is commented out as refreshStories is not defined
-    } catch (error: any) {
-      console.error('Error triggering email check:', error);
-      let message = 'An unknown error occurred.';
-      if (error.response && error.response.data) {
-        const responseData = error.response.data as any;
-        if (responseData.message) {
-          message = responseData.message;
-        } else if (responseData.error) {
-          message = responseData.error;
-        }
-      } else if (error.message) {
-        message = error.message;
+      } else if (error instanceof Error) {
+        // Standard JavaScript error
+        errorMessage = error.message;
       }
-      if (error.response && error.response.status) {
-        message = `Error ${error.response.status}: ${message}`;
-      }
-      setEmailCheckMessage({ type: 'error', text: `Failed to trigger email check: ${message}` });
+      setEmailCheckMessage({ type: 'error', text: `Email check failed: ${errorMessage}` });
     } finally {
       setIsCheckingEmails(false);
     }
   };
-  // --- End Handler for Checking Submitted Emails ---
+  // --- End Check Submitted Emails Handler ---
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -623,7 +625,7 @@ const AdminPage: React.FC = () => {
         <p className="mt-3 text-xs text-gray-500">This will attempt to generate a new image for the specified article ID and update it in the database. The summary will not be affected.</p>
       </div>
 
-      {/* --- Check Submitted Emails Section --- */}
+      {/* Check Submitted Emails Section */}
       <div className="mb-8 p-6 bg-gray-800 rounded-lg shadow-xl">
         <h2 className="text-2xl font-semibold mb-4 text-sky-400">Check Submitted Emails</h2>
         <p className="mb-4 text-gray-400">
