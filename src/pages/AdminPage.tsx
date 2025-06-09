@@ -87,10 +87,7 @@ const AdminPage: React.FC = () => {
 
   // --- State for Checking Submitted Emails ---
   const [isCheckingEmails, setIsCheckingEmails] = useState(false);
-  const [emailCheckMessage, setEmailCheckMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-  const [emailCheckProcessedCount, setEmailCheckProcessedCount] = useState<number>(0);
-  const [emailCheckFailedCount, setEmailCheckFailedCount] = useState<number>(0);
-  const [emailCheckFailedUrls, setEmailCheckFailedUrls] = useState<string[]>([]);
+  const [emailCheckResult, setEmailCheckResult] = useState<EmailCheckSuccessResponse & { error?: string } | null>(null);
 
   // Fetch search queries on mount
   useEffect(() => {
@@ -334,36 +331,37 @@ const AdminPage: React.FC = () => {
   // --- Check Submitted Emails Handler ---
   const handleCheckSubmittedEmails = async () => {
     setIsCheckingEmails(true);
-    setEmailCheckMessage(null);
-    setEmailCheckProcessedCount(0);
-    setEmailCheckFailedCount(0);
-    setEmailCheckFailedUrls([]);
+    setEmailCheckResult(null);
 
     try {
-      // Explicitly type the expected response data
       const response = await axios.get<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/admin/check-submitted-emails`);
-      
-      setEmailCheckMessage({ type: 'success', text: response.data.message || 'Email check completed.' });
-      setEmailCheckProcessedCount(response.data.processedCount || 0);
-      setEmailCheckFailedCount(response.data.failedCount || 0);
-      setEmailCheckFailedUrls(response.data.failedUrls || []);
+      setEmailCheckResult(response.data);
 
     } catch (error: unknown) {
       console.error('Error checking submitted emails:', error);
       let errorMessage = 'An unknown error occurred while checking emails.';
-      if (typeof error === 'object' && error !== null && 'isAxiosError' in error && (error as any).isAxiosError) {
-        // It's an Axios error, try to get message from response.data
-        const axiosError = error as any; // Type assertion
-        if (axiosError.response && axiosError.response.data) {
-          errorMessage = axiosError.response.data.message || axiosError.response.data.details || axiosError.message;
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          errorMessage = error.response.data?.details || error.response.data?.message || error.message;
+        } else if (error.request) {
+          // The request was made but no response was received
+          errorMessage = 'No response received from the server.';
         } else {
-          errorMessage = axiosError.message; // Fallback to general Axios error message
+          // Something happened in setting up the request that triggered an Error
+          errorMessage = error.message;
         }
       } else if (error instanceof Error) {
-        // Standard JavaScript error
         errorMessage = error.message;
       }
-      setEmailCheckMessage({ type: 'error', text: `Email check failed: ${errorMessage}` });
+      setEmailCheckResult({ 
+        error: errorMessage, 
+        message: '',
+        processedCount: 0,
+        failedCount: 0,
+        failedUrls: []
+      });
     } finally {
       setIsCheckingEmails(false);
     }
@@ -638,11 +636,34 @@ const AdminPage: React.FC = () => {
         >
           {isCheckingEmails ? 'Checking Emails...' : 'Trigger Email Check'}
         </button>
-        {emailCheckMessage && (
-          <p className={`mt-4 text-sm ${emailCheckMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
-            {emailCheckMessage.text}
-          </p>
+        
+        {/* --- Email Check Results Display --- */}
+        {emailCheckResult && (
+          <div className={`mt-4 p-4 rounded-lg ${emailCheckResult.error ? 'bg-red-900 border-red-700 text-red-100' : 'bg-green-900 border-green-700 text-green-100'} border`}>
+              <p className="font-bold text-lg mb-2">{emailCheckResult.error ? 'Error' : 'Processing Report'}</p>
+              <p className="mb-3">{emailCheckResult.error || emailCheckResult.message}</p>
+              
+              {!emailCheckResult.error && (
+                  <div className="text-sm opacity-90">
+                      <p><strong>Successfully Processed / Skipped:</strong> {emailCheckResult.processedCount}</p>
+                      <p><strong>Failed:</strong> {emailCheckResult.failedCount}</p>
+                  </div>
+              )}
+
+              {emailCheckResult.failedUrls.length > 0 && (
+                  <div className="mt-3">
+                      <p className="font-bold">Failed URLs:</p>
+                      <ul className="list-disc list-inside bg-gray-800 p-2 rounded">
+                          {emailCheckResult.failedUrls.map((url, index) => (
+                              <li key={index} className="text-xs font-mono break-all">{url}</li>
+                          ))}
+                      </ul>
+                  </div>
+              )}
+          </div>
         )}
+        {/* --- End Email Check Results Display --- */}
+
       </div>
 
     </div>
