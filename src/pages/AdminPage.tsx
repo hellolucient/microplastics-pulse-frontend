@@ -87,10 +87,11 @@ const AdminPage: React.FC = () => {
 
   // --- State for Checking Submitted Emails ---
   const [isCheckingEmails, setIsCheckingEmails] = useState(false);
-  const [emailCheckMessage, setEmailCheckMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-  const [emailCheckProcessedCount, setEmailCheckProcessedCount] = useState<number>(0);
-  const [emailCheckFailedCount, setEmailCheckFailedCount] = useState<number>(0);
+  const [emailCheckMessage, setEmailCheckMessage] = useState<string | null>(null);
+  const [emailCheckProcessedCount, setEmailCheckProcessedCount] = useState<number | null>(null);
+  const [emailCheckFailedCount, setEmailCheckFailedCount] = useState<number | null>(null);
   const [emailCheckFailedUrls, setEmailCheckFailedUrls] = useState<string[]>([]);
+  const [emailCheckError, setEmailCheckError] = useState<string | null>(null);
 
   // Fetch search queries on mount
   useEffect(() => {
@@ -183,11 +184,11 @@ const AdminPage: React.FC = () => {
           setTotalAdded(prev => prev + (addedCount || 0));
           setFetchProgress(prev => ({
               ...prev,
-              [index]: { status: 'success', message: message || `Completed. Added: ${addedCount}`, addedCount: addedCount }
+              [index]: { status: 'success', message: message || `Completed. Added: ${addedCount}` }
           }));
 
           if (nextIndex !== null) {
-              await processFetchQueue(nextIndex); // Process next item
+              await processFetchQueue(nextIndex);
           } else {
               setIsFetching(false);
               setCurrentQueryIndex(null);
@@ -197,34 +198,13 @@ const AdminPage: React.FC = () => {
       } catch (error: unknown) {
           console.error(`Error processing query index ${index}:`, error);
           let errorMessage = 'An unknown error occurred';
-
-          // Simplified error message extraction
-          if (error && typeof error === 'object') {
-              let extracted = false;
-              if ('response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data) {
-                  const data = error.response.data as any; // Use any for simplicity here
-                  if (data.error) {
-                      errorMessage = String(data.error);
-                      extracted = true;
-                  } else if (data.details) {
-                      errorMessage = String(data.details);
-                      extracted = true;
-                  }
-              }
-              // Fallback to error message if specific fields weren't found or no response data
-              if (!extracted && 'message' in error) {
-                  errorMessage = String(error.message);
-              }
+          if (axios.isAxiosError(error) && error.response) {
+              // Use detailed error from backend if available
+              errorMessage = error.response.data.details || error.response.data.message || errorMessage;
+          } else if (error instanceof Error) {
+              errorMessage = error.message;
           }
-
-          setFetchProgress(prev => ({
-              ...prev,
-              [index]: { status: 'error', message: `Error: ${errorMessage}` }
-          }));
-          setFetchError(`Failed on query ${index + 1}. ${errorMessage}`);
-          setIsFetching(false); // Stop the queue on error
-          setCurrentQueryIndex(null);
-          setFetchCompleted(true);
+          setFetchError(errorMessage);
       }
   };
 
@@ -238,17 +218,11 @@ const AdminPage: React.FC = () => {
     setCurrentQueryIndex(0);
     setFetchCompleted(false);
 
-    const initialProgress: FetchProgress = {};
-    searchQueries.forEach((_, index) => {
-        initialProgress[index] = { status: 'pending', message: 'Waiting...' };
-    });
-    setFetchProgress(initialProgress);
-
     processFetchQueue(0); // Start the queue
   };
   // --- End Dynamic Manual Fetch Logic ---
 
-  // --- Batch Update Handler ---
+  // --- Batch AI Updates ---
   const handleBatchUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsBatchProcessing(true);
@@ -279,13 +253,13 @@ const AdminPage: React.FC = () => {
       console.error('Error running batch update:', err);
       setBatchMessage({ 
         type: 'error', 
-        text: `Error: ${err.response?.data?.error || err.message}.` 
+        text: `Error: ${err.response?.data?.error || err.message}` 
       });
     } finally {
       setIsBatchProcessing(false);
     }
   };
-  // --- End Batch Update Handler ---
+  // --- End Batch AI Updates ---
 
   // --- Regenerate Image by ID Handler ---
   const handleRegenerateImageById = async (e: React.FormEvent) => {
@@ -335,35 +309,31 @@ const AdminPage: React.FC = () => {
   const handleCheckSubmittedEmails = async () => {
     setIsCheckingEmails(true);
     setEmailCheckMessage(null);
-    setEmailCheckProcessedCount(0);
-    setEmailCheckFailedCount(0);
+    setEmailCheckProcessedCount(null);
+    setEmailCheckFailedCount(null);
     setEmailCheckFailedUrls([]);
+    setEmailCheckError(null);
 
     try {
-      // Explicitly type the expected response data
       const response = await axios.get<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/admin/check-submitted-emails`);
+      const { message, processedCount, failedCount, failedUrls } = response.data;
       
-      setEmailCheckMessage({ type: 'success', text: response.data.message || 'Email check completed.' });
-      setEmailCheckProcessedCount(response.data.processedCount || 0);
-      setEmailCheckFailedCount(response.data.failedCount || 0);
-      setEmailCheckFailedUrls(response.data.failedUrls || []);
+      // Use the raw message from backend as the primary display message
+      setEmailCheckMessage(message || 'Email check process completed.');
+      setEmailCheckProcessedCount(processedCount);
+      setEmailCheckFailedCount(failedCount);
+      setEmailCheckFailedUrls(failedUrls || []);
 
     } catch (error: unknown) {
       console.error('Error checking submitted emails:', error);
       let errorMessage = 'An unknown error occurred while checking emails.';
-      if (typeof error === 'object' && error !== null && 'isAxiosError' in error && (error as any).isAxiosError) {
-        // It's an Axios error, try to get message from response.data
-        const axiosError = error as any; // Type assertion
-        if (axiosError.response && axiosError.response.data) {
-          errorMessage = axiosError.response.data.message || axiosError.response.data.details || axiosError.message;
-        } else {
-          errorMessage = axiosError.message; // Fallback to general Axios error message
-        }
+      if (axios.isAxiosError(error) && error.response) {
+        // Use detailed error from backend if available
+        errorMessage = error.response.data.details || error.response.data.message || errorMessage;
       } else if (error instanceof Error) {
-        // Standard JavaScript error
         errorMessage = error.message;
       }
-      setEmailCheckMessage({ type: 'error', text: `Email check failed: ${errorMessage}` });
+      setEmailCheckError(errorMessage);
     } finally {
       setIsCheckingEmails(false);
     }
@@ -416,234 +386,29 @@ const AdminPage: React.FC = () => {
                 </p>
             )}
         </form>
-        <p className="mt-3 text-xs text-gray-500">Submitting a URL will trigger backend processing (AI summary/category) and save it to the database if new.</p>
+        <p className="mt-3 text-xs text-gray-500">Submitting a URL will trigger backend processing (AI summary) and save it to the database if new.</p>
       </div>
 
       {/* Dynamic Manual Fetch Section */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
         <h2 className="text-xl font-semibold mb-4">Manual News Fetch</h2>
-        
-        <div className="mb-4">
-            <button 
-              onClick={handleTriggerFetchClick} // Updated handler
-              disabled={isFetching || searchQueries.length === 0} 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isFetching ? `Fetching ${currentQueryIndex !== null ? `${currentQueryIndex + 1}/${searchQueries.length}` : '...'}` : 'Trigger Manual News Fetch'}
-            </button>
-            {searchQueries.length === 0 && !fetchError && <p className="mt-2 text-sm text-gray-500">Loading search queries...</p>}
-            {fetchError && <p className="mt-2 text-sm text-red-600">Error: {fetchError}</p>}
-            {fetchCompleted && (
-                <p className="mt-2 text-sm font-semibold text-green-700">
-                    Fetch complete. Total new articles added: {totalAdded}
-                </p>
-            )}
-            <p className="mt-2 text-xs text-gray-500">Manually trigger the backend to search all sources and add new articles step-by-step.</p>
-        </div>
-
-        {/* Progress Display */}
-        {(isFetching || Object.keys(fetchProgress).length > 0) && (
-            <div className="mt-4 border-t pt-4">
-                <h3 className="text-lg font-semibold mb-2">Fetch Progress:</h3>
-                 {isFetching && currentQueryIndex !== null && (
-                     <p className="mb-3 text-sm font-medium text-indigo-600">
-                         Processing query {currentQueryIndex + 1} of {searchQueries.length}... Total added so far: {totalAdded}
-                     </p>
-                 )}
-                <ul className="space-y-2 max-h-60 overflow-y-auto text-sm border rounded p-3 bg-gray-50">
-                    {searchQueries.map((query, index) => (
-                        <li key={index} className="flex justify-between items-center">
-                            <span className="truncate mr-2" title={query}>{index + 1}. {query}</span>
-                            <span className={`font-medium px-2 py-0.5 rounded text-xs ${
-                                fetchProgress[index]?.status === 'success' ? 'bg-green-100 text-green-800' :
-                                fetchProgress[index]?.status === 'error' ? 'bg-red-100 text-red-800' :
-                                fetchProgress[index]?.status === 'processing' ? 'bg-blue-100 text-blue-800 animate-pulse' :
-                                'bg-gray-100 text-gray-600'
-                            }`}>
-                                {fetchProgress[index]?.message || 'Pending'}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        )}
-
-        {/* Cron Job Info */}
-        {/* <div className="mt-6 pt-4 border-t">
-            <h3 className="text-lg font-semibold mb-2">Automated Fetch Schedule</h3>
-            <p className="text-sm text-gray-700">
-                The backend is scheduled to automatically fetch new articles approximately once per day.
-                (UTC Time: 08:00)
-            </p>
-             <p className="mt-1 text-xs text-gray-500">
-                Check the Vercel project settings for exact cron job status and history.
-            </p>
-        </div> */}
-
-        {/* Placeholder for future actions */}
-        <p className="text-gray-600 mt-6">
-          Other admin actions (like category override) could go here...
-        </p>
-      </div>
-
-      {/* AI Update Batch Processing */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Batch AI Updates for Missing Images</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Targets stories in the database that are missing an AI-generated image. 
-          For these stories, new AI summaries and images will be generated.
-          Stories needing images are processed in batches, ordered by their internal ID for consistency.
-          Use the 'Continue Token' if a previous batch was interrupted for manual processing.
-        </p>
-        
-        <form onSubmit={handleBatchUpdate}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label htmlFor="batchSize" className="block text-sm font-medium text-gray-700 mb-1">
-                Batch Size:
-              </label>
-              <input
-                type="number"
-                id="batchSize"
-                value={batchSize}
-                onChange={(e) => setBatchSize(parseInt(e.target.value))}
-                min="1"
-                max="20"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={isBatchProcessing}
-              />
-              <p className="text-xs text-gray-500 mt-1">Recommended: 2-3 stories per batch to avoid API rate limits</p>
-            </div>
-            
-            <div>
-              <label htmlFor="continueToken" className="block text-sm font-medium text-gray-700 mb-1">
-                Continue Token:
-              </label>
-              <input
-                type="text"
-                id="continueToken"
-                value={continueToken}
-                onChange={(e) => setContinueToken(e.target.value)}
-                placeholder="Leave empty to start from oldest stories"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={isBatchProcessing}
-              />
-              <p className="text-xs text-gray-500 mt-1">Continue from where you left off</p>
-            </div>
-          </div>
-          
-          <div className="flex space-x-2">
-            <button
-              type="submit"
-              disabled={isBatchProcessing}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isBatchProcessing ? 'Processing...' : 'Process Batch'}
-            </button>
-          </div>
-        </form>
-        
-        {batchMessage && (
-          <div className={`mt-4 p-3 rounded ${batchMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-            {batchMessage.text}
-          </div>
-        )}
-        
-        {batchResults.length > 0 && (
-          <div className="mt-6">
-            <h3 className="font-medium text-lg mb-2">Batch Results</h3>
-            <div className="border rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Story ID</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {batchResults.map((result, index) => (
-                    <tr key={index} className={result.success ? '' : 'bg-red-50'}>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm">{result.id}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm">
-                        {result.success ? (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Success
-                          </span>
-                        ) : (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                            Failed
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2 text-sm">
-                        {result.updates ? result.updates.join(', ') : result.message}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-2 text-sm text-gray-600">
-              <p>To continue processing the next batch, click "Process Batch" again. The continue token has been set automatically.</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Regenerate Image by ID Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Regenerate Image by ID</h2>
-        <form onSubmit={handleRegenerateImageById}>
-          <label htmlFor="articleIdRegen" className="block text-sm font-medium text-gray-700 mb-1">
-            Enter Article ID to Regenerate Image:
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text" 
-              id="articleIdRegen"
-              value={articleIdToRegenerate}
-              onChange={(e) => setArticleIdToRegenerate(e.target.value)}
-              placeholder="e.g., f7f73745-7447-45de-9a28-7aa1f50778b5"
-              className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              disabled={isRegeneratingImage}
-            />
-            <button
-              type="submit"
-              disabled={isRegeneratingImage}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isRegeneratingImage ? 'Regenerating...' : 'Regenerate Image'}
-            </button>
-          </div>
-          {regenerateImageMessage && (
-            <p className={`mt-3 text-sm ${regenerateImageMessage.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-              {regenerateImageMessage.text}
-            </p>
-          )}
-        </form>
-        <p className="mt-3 text-xs text-gray-500">This will attempt to generate a new image for the specified article ID and update it in the database. The summary will not be affected.</p>
-      </div>
-
-      {/* Check Submitted Emails Section */}
-      <div className="mb-8 p-6 bg-gray-800 rounded-lg shadow-xl">
-        <h2 className="text-2xl font-semibold mb-4 text-sky-400">Check Submitted Emails</h2>
-        <p className="mb-4 text-gray-400">
-          Manually trigger the backend process to check for new emails sent to the submission address (e.g., submit@microplasticswatch.com) and process them.
-        </p>
         <button
-          onClick={handleCheckSubmittedEmails}
-          disabled={isCheckingEmails}
-          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 transition duration-150 ease-in-out"
+            onClick={handleTriggerFetchClick}
+            disabled={isFetching || searchQueries.length === 0}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isCheckingEmails ? 'Checking Emails...' : 'Trigger Email Check'}
+            {isFetching ? `Fetching ${currentQueryIndex !== null ? `${currentQueryIndex + 1}/${searchQueries.length}` : '...'}` : 'Trigger Manual News Fetch'}
         </button>
-        {emailCheckMessage && (
-          <p className={`mt-4 text-sm ${emailCheckMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
-            {emailCheckMessage.text}
-          </p>
-        )}
+        {searchQueries.length === 0 && !fetchError && <p className="mt-2 text-sm text-gray-500">Loading search queries...</p>}
+        {fetchError && <p className="mt-2 text-sm text-red-600">{fetchError}</p>}
       </div>
+
+      {/* Progress Display */}
+      {(isFetching || Object.keys(fetchProgress).length > 0) && (
+          <div className="mt-4 p-3 rounded bg-gray-100">
+              {fetchProgress[currentQueryIndex]?.message || 'Pending...'}
+          </div>
+      )}
 
     </div>
   );
