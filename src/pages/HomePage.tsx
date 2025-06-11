@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Newspaper, FileText, DownloadCloud, Send } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Newspaper, FileText, DownloadCloud, Send, Search } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 // import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
 import axios from 'axios'; // <-- Add axios
 import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
@@ -92,6 +92,8 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
 // --- End NewsItemCard Component ---
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
   // --- State for Latest News --- 
   const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -105,6 +107,13 @@ const HomePage: React.FC = () => {
   const [showDownloadLink, setShowDownloadLink] = useState(false);
   const whitepaperUrl = "/Microplastics - the Elephant in the Wellness Room.pdf";
   // --- End Whitepaper State ---
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/latest-news?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
 
   // --- Effect to fetch latest news from API --- 
   useEffect(() => {
@@ -196,13 +205,32 @@ const HomePage: React.FC = () => {
                     <p className="text-xl text-brand-dark mb-10 max-w-2xl mx-auto lg:mx-0">
                       Welcome to MicroplasticsWatch, your dedicated source for the latest research, news, and insights into the world of microplastics. Our mission is to provide timely updates and comprehensive information to help you stay informed about this critical environmental and health issue.
                     </p>
+                    {/* Search Bar Form */}
+                    <div className="max-w-xl mx-auto lg:mx-0 mb-10">
+                      <form onSubmit={handleSearchSubmit}>
+                        <label htmlFor="home-search" className="sr-only">Search News</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Search className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="search"
+                                id="home-search"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Search news by title, summary, or source..."
+                                className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-brand-blue focus:border-brand-blue sm:text-lg"
+                            />
+                        </div>
+                      </form>
+                    </div>
                     {/* Buttons */}
                     <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
                       <Link 
                         to="/latest-news" 
                         className="inline-flex items-center justify-center px-8 py-3 rounded-full border border-slate-300 bg-white text-brand-dark font-semibold text-lg shadow-sm hover:bg-gray-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue transition-colors duration-150 no-underline"
                       >
-                        Latest News
+                        Browse All News
                       </Link>
                     </div>
                 </div>

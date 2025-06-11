@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Search } from 'lucide-react'; // Removed ListFilter icon
 import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png'; // Import the placeholder
@@ -96,9 +97,26 @@ const LatestNewsPage: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+
+  const location = useLocation();
+  const getSearchTermFromUrl = () => {
+    const queryParams = new URLSearchParams(location.search);
+    return queryParams.get('q') || '';
+  };
+
+  const [searchTerm, setSearchTerm] = useState(getSearchTermFromUrl());
   const [currentPage, setCurrentPage] = useState(1);
   const [pageWindowStart, setPageWindowStart] = useState(1); // New state for pagination window
+
+  useEffect(() => {
+    // Sync search term from URL to state when URL changes (e.g., browser back/forward)
+    const termFromUrl = getSearchTermFromUrl();
+    if (termFromUrl !== searchTerm) {
+      setSearchTerm(termFromUrl);
+      setCurrentPage(1);
+      setPageWindowStart(1);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     const fetchNewsFromApi = async () => {
@@ -195,7 +213,7 @@ const LatestNewsPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
       <div className="sticky top-20 z-20 bg-brand-light px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-darker pb-2">Latest News</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-darker pb-2">Research, Updates & News</h1>
           <div className="max-w-xl mx-auto">
             <label htmlFor="news-search" className="sr-only">Search News</label>
             <div className="relative">
