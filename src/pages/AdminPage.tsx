@@ -56,6 +56,21 @@ interface EmailCheckSuccessResponse {
   failedUrls: string[];
 }
 
+// --- ADDED: Interface for Tweet Candidate ---
+interface Story {
+  id: string;
+  title: string;
+  ai_summary: string;
+  ai_image_url?: string | null;
+  url: string;
+  // Add other fields from your 'latest_news' table as needed
+}
+
+interface TweetCandidate extends Story {
+  generatedTweetText?: string;
+}
+// --- END ADDED ---
+
 const AdminPage: React.FC = () => {
   const { user, signOut } = useAuth();
   // --- State for Manual Submission Form ---
@@ -88,6 +103,14 @@ const AdminPage: React.FC = () => {
   // --- State for Checking Submitted Emails ---
   const [isCheckingEmails, setIsCheckingEmails] = useState(false);
   const [emailCheckResult, setEmailCheckResult] = useState<EmailCheckSuccessResponse & { error?: string } | null>(null);
+
+  // --- ADDED: State for Twitter Feature ---
+  const [isFetchingCandidates, setIsFetchingCandidates] = useState(false);
+  const [tweetCandidates, setTweetCandidates] = useState<TweetCandidate[]>([]);
+  const [tweetCandidateError, setTweetCandidateError] = useState<string | null>(null);
+  const [isPosting, setIsPosting] = useState<string | null>(null); // Holds the ID of the story being posted
+  const [postSuccessMessage, setPostSuccessMessage] = useState<string | null>(null);
+  // --- END ADDED ---
 
   // Fetch search queries on mount
   useEffect(() => {
@@ -368,6 +391,73 @@ const AdminPage: React.FC = () => {
   };
   // --- End Check Submitted Emails Handler ---
 
+  // --- ADDED: Twitter Feature Handlers ---
+
+  const handleFetchTweetCandidates = async () => {
+    setIsFetchingCandidates(true);
+    setTweetCandidateError(null);
+    setTweetCandidates([]);
+    setPostSuccessMessage(null);
+
+    try {
+      const response = await axios.get<TweetCandidate[]>(`${BACKEND_URL}/api/admin/next-tweet-candidate`);
+      
+      // The backend now returns the fully-formed preview text, so no need to generate it here.
+      setTweetCandidates(response.data);
+
+    } catch (error: unknown) {
+      console.error('Error fetching tweet candidates:', error);
+      if (axios.isAxiosError(error)) {
+        setTweetCandidateError(error.response?.data?.message || 'Failed to fetch candidates.');
+      } else if (error instanceof Error) {
+        setTweetCandidateError(error.message);
+      } else {
+        setTweetCandidateError('An unknown error occurred.');
+      }
+    } finally {
+      setIsFetchingCandidates(false);
+    }
+  };
+
+  const handleTweetTextChange = (id: string, newText: string) => {
+    setTweetCandidates(prev =>
+      prev.map(candidate =>
+        candidate.id === id ? { ...candidate, generatedTweetText: newText } : candidate
+      )
+    );
+  };
+
+  const handlePostTweet = async (storyId: string, tweetText: string) => {
+    setIsPosting(storyId);
+    setTweetCandidateError(null);
+    setPostSuccessMessage(null);
+
+    try {
+      await axios.post(`${BACKEND_URL}/api/admin/post-tweet`, {
+        storyId,
+        tweetText,
+      });
+
+      setPostSuccessMessage(`Tweet for story ${storyId} posted successfully!`);
+      // Remove the posted tweet from the list
+      setTweetCandidates(prev => prev.filter(candidate => candidate.id !== storyId));
+
+    } catch (error: unknown) {
+      console.error('Error posting tweet:', error);
+      if (axios.isAxiosError(error)) {
+        setTweetCandidateError(error.response?.data?.details || error.response?.data?.error || 'Failed to post tweet.');
+      } else if (error instanceof Error) {
+        setTweetCandidateError(error.message);
+      } else {
+        setTweetCandidateError('An unknown error occurred while posting.');
+      }
+    } finally {
+      setIsPosting(null);
+    }
+  };
+
+  // --- END ADDED ---
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       <div className="flex justify-between items-center mb-6">
@@ -622,6 +712,65 @@ const AdminPage: React.FC = () => {
         </form>
         <p className="mt-3 text-xs text-gray-500">This will attempt to generate a new image for the specified article ID and update it in the database. The summary will not be affected.</p>
       </div>
+
+      {/* --- ADDED: Post to X/Twitter Section --- */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Post to X/Twitter</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Fetch the next stories recommended for posting based on the "Oldest-Newest-Oldest" strategy. You can edit the generated text before posting.
+        </p>
+        <div className="mb-4">
+          <button
+            onClick={handleFetchTweetCandidates}
+            disabled={isFetchingCandidates}
+            className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+          >
+            {isFetchingCandidates ? 'Fetching...' : 'Fetch Tweet Candidates'}
+          </button>
+        </div>
+
+        {tweetCandidateError && <p className="text-red-600 text-sm mb-4">{tweetCandidateError}</p>}
+        {postSuccessMessage && <p className="text-green-600 text-sm mb-4">{postSuccessMessage}</p>}
+
+        {tweetCandidates.length > 0 && (
+          <div className="space-y-6">
+            {tweetCandidates.map((candidate) => (
+              <div key={candidate.id} className="border-t pt-4">
+                <h3 className="font-semibold text-lg">{candidate.title}</h3>
+                <p className="text-xs text-gray-500 mb-2">ID: {candidate.id}</p>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="md:w-1/4">
+                    {candidate.ai_image_url && (
+                      <img src={candidate.ai_image_url} alt="AI generated image" className="rounded-md shadow-md w-full" />
+                    )}
+                  </div>
+                  <div className="md:w-3/4">
+                    <textarea
+                      value={candidate.generatedTweetText}
+                      onChange={(e) => handleTweetTextChange(candidate.id, e.target.value)}
+                      className="w-full h-36 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                      maxLength={280}
+                    />
+                    <p className="text-right text-sm text-gray-500">
+                      {candidate.generatedTweetText?.length || 0}/280
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right mt-2">
+                  <button
+                    onClick={() => handlePostTweet(candidate.id, candidate.generatedTweetText || '')}
+                    disabled={isPosting !== null}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                  >
+                    {isPosting === candidate.id ? 'Posting...' : 'Post This Tweet'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* --- END ADDED --- */}
 
       {/* Check Submitted Emails Section */}
       <div className="mb-8 p-6 bg-gray-800 rounded-lg shadow-xl">
