@@ -71,6 +71,12 @@ interface TweetCandidate extends Story {
 }
 // --- END ADDED ---
 
+interface ManualSubmissionResponse {
+  success: boolean;
+  message: string;
+  data?: any; // You can define a more specific type for the article data if needed
+}
+
 const AdminPage: React.FC = () => {
   const { user, signOut } = useAuth();
   // --- State for Manual Submission Form ---
@@ -137,44 +143,26 @@ const AdminPage: React.FC = () => {
   // --- Form Submit Handler ---
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!submitUrl) return;
+
     setIsSubmitting(true);
     setSubmitMessage(null);
 
-    if (!submitUrl || !submitUrl.startsWith('http')) {
-        setSubmitMessage({ type: 'error', text: 'Please enter a valid URL starting with http/https.'});
-        setIsSubmitting(false);
-        return;
-    }
-
     try {
-        // Using fetch here, so keeping its error handling style
-        const response = await fetch(`${BACKEND_URL}/api/add-news`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: submitUrl })
-        });
+      const response = await axios.post<ManualSubmissionResponse>(`${BACKEND_URL}/api/submit-article-url`, { url: submitUrl });
 
-        const result = await response.json();
-
-        if (!response.ok) {
-            // Use error message from backend if available, otherwise generic
-            throw new Error(result.message || result.error || `HTTP error! status: ${response.status}`);
-        }
-
-        setSubmitMessage({ type: 'success', text: result.message || 'Article submitted successfully! Processing in background...' });
+      if (response.data.success) {
+        setSubmitMessage({type: 'success', text: response.data.message || 'Article submitted successfully!'});
         setSubmitUrl(''); // Clear input on success
-
-    } catch (error: unknown) {
-        console.error('Error submitting URL:', error);
-        if (error instanceof Error) {
-            setSubmitMessage({ type: 'error', text: `Submission failed: ${error.message}` });
-        } else {
-            setSubmitMessage({ type: 'error', text: 'An unknown error occurred during submission.' });
-        }
+      } else {
+         throw new Error(response.data.message || 'An unknown error occurred during submission.');
+      }
+    } catch (error: any) {
+      console.error('Error submitting URL:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred.';
+      setSubmitMessage({type: 'error', text: `Submission failed: ${errorMessage}`});
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
   // --- End Form Submit Handler ---
@@ -360,24 +348,9 @@ const AdminPage: React.FC = () => {
       const response = await axios.get<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/admin/check-submitted-emails`);
       setEmailCheckResult(response.data);
 
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Error checking submitted emails:', error);
-      let errorMessage = 'An unknown error occurred while checking emails.';
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          errorMessage = error.response.data?.details || error.response.data?.message || error.message;
-        } else if (error.request) {
-          // The request was made but no response was received
-          errorMessage = 'No response received from the server.';
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          errorMessage = error.message;
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
+      const errorMessage = error.response?.data?.details || error.response?.data?.message || error.message || 'An unknown error occurred while checking emails.';
       setEmailCheckResult({ 
         error: errorMessage, 
         message: '',
