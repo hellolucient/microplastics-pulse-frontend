@@ -125,8 +125,14 @@ const LatestNewsPage: React.FC = () => {
       setNewsItems([]);
       try {
         const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
-        setNewsItems(response.data || []);
-        console.log("Fetched news items count:", (response.data || []).length);
+        if (Array.isArray(response.data)) {
+          setNewsItems(response.data);
+          console.log("Fetched news items count:", response.data.length);
+        } else {
+          // The response was not an array. This is an unexpected API response.
+          console.error('API Error: Expected an array of news items, but received:', response.data);
+          setErrorMessage('Failed to fetch news: The server returned an unexpected response.');
+        }
       } catch (error) {
         console.error('Error fetching news from API:', error);
         let message = 'Failed to fetch news due to an unknown error.';

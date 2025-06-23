@@ -124,7 +124,12 @@ const HomePage: React.FC = () => {
       try {
         const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
         // Take only the first 3 items returned by the API
-        setLatestNews(response.data.slice(0, 3)); 
+        if (Array.isArray(response.data)) {
+          setLatestNews(response.data.slice(0, 3));
+        } else {
+          console.error('API Error: Expected an array of news items, but received:', response.data);
+          setNewsError('Failed to load news: The server returned an unexpected response.');
+        }
       } catch (error: unknown) {
         console.error('Error fetching latest news for homepage:', error);
         let message = 'An unknown error occurred loading news.';
