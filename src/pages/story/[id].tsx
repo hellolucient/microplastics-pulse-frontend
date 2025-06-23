@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import fallbackPlaceholderImage from '../../assets/fail whale elephant_404 overload.png';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 
 interface NewsItem {
   id: string | number;

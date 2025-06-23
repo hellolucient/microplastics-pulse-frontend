@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import useAuth to access user info and signOut
 import axios from 'axios'; // Import axios for API calls
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001'; // Fallback for safety
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : ''; // Fallback for safety
 
 // Interface for progress tracking
 interface FetchProgress {
@@ -400,30 +400,24 @@ const AdminPage: React.FC = () => {
     );
   };
 
-  const handlePostTweet = async (storyId: string, tweetText: string) => {
-    setIsPosting(storyId);
+  const handlePostTweet = async (candidateId: string) => {
+    setIsPosting(candidateId);
     setTweetCandidateError(null);
     setPostSuccessMessage(null);
 
     try {
-      await axios.post(`${BACKEND_URL}/api/admin/post-tweet`, {
-        storyId,
-        tweetText,
-      });
-
-      setPostSuccessMessage(`Tweet for story ${storyId} posted successfully!`);
-      // Remove the posted tweet from the list
-      setTweetCandidates(prev => prev.filter(candidate => candidate.id !== storyId));
-
+      const response = await axios.post(`${BACKEND_URL}/api/admin/post-tweet`, { candidateId });
+      setPostSuccessMessage(response.data.message || 'Tweet posted successfully!');
+      setTweetCandidates(prev => prev.filter(c => c.id !== candidateId));
     } catch (error: unknown) {
       console.error('Error posting tweet:', error);
+      let errorMessage = 'An unknown error occurred while posting the tweet.';
       if (axios.isAxiosError(error)) {
-        setTweetCandidateError(error.response?.data?.details || error.response?.data?.error || 'Failed to post tweet.');
+        errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to post tweet.';
       } else if (error instanceof Error) {
-        setTweetCandidateError(error.message);
-      } else {
-        setTweetCandidateError('An unknown error occurred while posting.');
+        errorMessage = error.message;
       }
+      setTweetCandidateError(errorMessage); // Use the error state for the candidate section
     } finally {
       setIsPosting(null);
     }
@@ -731,7 +725,7 @@ const AdminPage: React.FC = () => {
                 </div>
                 <div className="text-right mt-2">
                   <button
-                    onClick={() => handlePostTweet(candidate.id, candidate.generatedTweetText || '')}
+                    onClick={() => handlePostTweet(candidate.id)}
                     disabled={isPosting !== null}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
                   >

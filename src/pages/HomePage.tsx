@@ -20,7 +20,7 @@ interface NewsItem {
 }
 
 // --- Add Backend URL --- 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 // --- End Backend URL ---
 
 // Helper for placeholder image

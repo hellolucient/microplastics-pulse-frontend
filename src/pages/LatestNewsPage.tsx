@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Search } from 'lucide-react'; // Removed ListFilter icon
 import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png'; // Import the placeholder
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3001';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 
 // Define NewsItem type locally
 interface NewsItem {
