@@ -12,6 +12,8 @@ const AdminPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState('');
+  const [isCheckingEmails, setIsCheckingEmails] = useState(false);
+  const [emailCheckResult, setEmailCheckResult] = useState(null);
   
   const handleAddUrl = async (e) => {
     e.preventDefault();
@@ -61,7 +63,36 @@ const AdminPage = () => {
       setIsLoading(false);
     }
   };
-  
+
+  // --- Check Submitted Emails Handler ---
+  const handleCheckSubmittedEmails = async () => {
+    setIsCheckingEmails(true);
+    setEmailCheckResult(null);
+
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/admin/start-email-check`);
+      setEmailCheckResult({ 
+        message: response.data.message || 'Email processing started successfully in the background.',
+        processedCount: 0, 
+        failedCount: 0,
+        failedUrls: []
+      });
+    } catch (error) {
+      console.error('Error starting email check:', error);
+      const errorMessage = error.response?.data?.details || error.response?.data?.message || 'An unknown error occurred while starting the email check.';
+      setEmailCheckResult({ 
+        error: errorMessage, 
+        message: '',
+        processedCount: 0,
+        failedCount: 0,
+        failedUrls: []
+      });
+    } finally {
+      setIsCheckingEmails(false);
+    }
+  };
+  // --- End Check Submitted Emails Handler ---
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Admin Tools</h1>
