@@ -405,9 +405,23 @@ const AdminPage: React.FC = () => {
     setTweetCandidateError(null);
     setPostSuccessMessage(null);
 
+    // Find the specific candidate to get its text
+    const candidateToPost = tweetCandidates.find(c => c.id === candidateId);
+    if (!candidateToPost || !candidateToPost.generatedTweetText) {
+      setTweetCandidateError('Could not find tweet text. Please try fetching candidates again.');
+      setIsPosting(null);
+      return;
+    }
+
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/admin/post-tweet`, { candidateId });
+      // The backend expects storyId and tweetText
+      const response = await axios.post(`${BACKEND_URL}/api/admin/post-tweet`, {
+        storyId: candidateToPost.id,
+        tweetText: candidateToPost.generatedTweetText,
+      });
+
       setPostSuccessMessage(response.data.message || 'Tweet posted successfully!');
+      // Remove the posted candidate from the list
       setTweetCandidates(prev => prev.filter(c => c.id !== candidateId));
     } catch (error: unknown) {
       console.error('Error posting tweet:', error);
