@@ -248,7 +248,7 @@ const AdminPage: React.FC = () => {
 
     const initialProgress: FetchProgress = {};
     searchQueries.forEach((_, index) => {
-        initialProgress[index] = { status: 'pending', message: 'Waiting...' };
+      initialProgress[index] = { status: 'pending', message: 'Queued' };
     });
     setFetchProgress(initialProgress);
 
@@ -256,19 +256,16 @@ const AdminPage: React.FC = () => {
   };
   // --- End Dynamic Manual Fetch Logic ---
 
-  // --- Batch Update Handler ---
+  // --- Batch AI Update Logic ---
   const handleBatchUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsBatchProcessing(true);
     setBatchMessage(null);
-    setBatchResults([]);
-    
     try {
-      const response = await axios.post<BatchUpdateResponse>(`${BACKEND_URL}/api/batch-update-stories`, {
+      const response = await axios.post<BatchUpdateResponse>(`/api/batch-update-stories`, {
         batch_size: parseInt(batchSize.toString()),
         continue_token: continueToken || undefined
       });
-      
       const data = response.data;
       
       setBatchMessage({ 
@@ -293,29 +290,17 @@ const AdminPage: React.FC = () => {
       setIsBatchProcessing(false);
     }
   };
-  // --- End Batch Update Handler ---
+  // --- End Batch AI Update Logic ---
 
   // --- Regenerate Image by ID Handler ---
   const handleRegenerateImageById = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!articleIdToRegenerate) return;
+
     setIsRegeneratingImage(true);
     setRegenerateImageMessage(null);
 
-    const idToRegenerate = articleIdToRegenerate.trim();
-
-    if (!idToRegenerate) {
-      setRegenerateImageMessage({ type: 'error', text: 'Please enter an Article ID.' });
-      setIsRegeneratingImage(false);
-      return;
-    }
-
-    // Basic UUID format check on the frontend (optional, but good for quick feedback)
-    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    if (!uuidRegex.test(idToRegenerate)) {
-      setRegenerateImageMessage({ type: 'error', text: 'Article ID must be a valid UUID format (e.g., xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).' });
-      setIsRegeneratingImage(false);
-      return;
-    }
+    const idToRegenerate = articleIdToRegenerate;
 
     try {
       // Explicitly type the expected success response data
@@ -378,7 +363,7 @@ const AdminPage: React.FC = () => {
       // The backend now returns the fully-formed preview text, so no need to generate it here.
       setTweetCandidates(response.data);
 
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Error fetching tweet candidates:', error);
       if (axios.isAxiosError(error)) {
         setTweetCandidateError(error.response?.data?.message || 'Failed to fetch candidates.');
@@ -393,10 +378,8 @@ const AdminPage: React.FC = () => {
   };
 
   const handleTweetTextChange = (id: string, newText: string) => {
-    setTweetCandidates(prev =>
-      prev.map(candidate =>
-        candidate.id === id ? { ...candidate, generatedTweetText: newText } : candidate
-      )
+    setTweetCandidates(prev => 
+      prev.map(c => (c.id === id ? { ...c, generatedTweetText: newText } : c))
     );
   };
 
@@ -423,7 +406,7 @@ const AdminPage: React.FC = () => {
       setPostSuccessMessage(response.data.message || 'Tweet posted successfully!');
       // Remove the posted candidate from the list
       setTweetCandidates(prev => prev.filter(c => c.id !== candidateId));
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Error posting tweet:', error);
       let errorMessage = 'An unknown error occurred while posting the tweet.';
       if (axios.isAxiosError(error)) {
@@ -440,360 +423,277 @@ const AdminPage: React.FC = () => {
   // --- END ADDED ---
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+    <div className="container mx-auto p-4 md:p-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         {user && (
-            <button 
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          <div className="flex items-center">
+            <span className="mr-4 text-gray-700">Welcome, {user.email}</span>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
             >
-                Logout ({user.email?.split('@')[0]})
+              Logout
             </button>
-        )}
-      </div>
-      
-      {/* Manual News Submission Form */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Manual News Submission</h2>
-        <form onSubmit={handleManualSubmit}>
-            <label htmlFor="newsUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                Enter News Article URL:
-            </label>
-            <div className="flex gap-2">
-                <input
-                    type="url" 
-                    id="newsUrl"
-                    value={submitUrl}
-                    onChange={(e) => setSubmitUrl(e.target.value)}
-                    placeholder="https://example.com/news-article"
-                    required
-                    className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    disabled={isSubmitting}
-                />
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {isSubmitting ? 'Submitting...' : 'Add Article'}
-                </button>
-            </div>
-             {submitMessage && (
-                <p className={`mt-3 text-sm ${submitMessage.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-                    {submitMessage.text}
-                </p>
-            )}
-        </form>
-        <p className="mt-3 text-xs text-gray-500">Submitting a URL will trigger backend processing (AI summary/category) and save it to the database if new.</p>
-      </div>
-
-      {/* Dynamic Manual Fetch Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 className="text-xl font-semibold mb-4">Manual News Fetch</h2>
-        
-        <div className="mb-4">
-            <button 
-              onClick={handleTriggerFetchClick} // Updated handler
-              disabled={isFetching || searchQueries.length === 0} 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isFetching ? `Fetching ${currentQueryIndex !== null ? `${currentQueryIndex + 1}/${searchQueries.length}` : '...'}` : 'Trigger Manual News Fetch'}
-            </button>
-            {searchQueries.length === 0 && !fetchError && <p className="mt-2 text-sm text-gray-500">Loading search queries...</p>}
-            {fetchError && <p className="mt-2 text-sm text-red-600">Error: {fetchError}</p>}
-            {fetchCompleted && (
-                <p className="mt-2 text-sm font-semibold text-green-700">
-                    Fetch complete. Total new articles added: {totalAdded}
-                </p>
-            )}
-            <p className="mt-2 text-xs text-gray-500">Manually trigger the backend to search all sources and add new articles step-by-step.</p>
-        </div>
-
-        {/* Progress Display */}
-        {(isFetching || Object.keys(fetchProgress).length > 0) && (
-            <div className="mt-4 border-t pt-4">
-                <h3 className="text-lg font-semibold mb-2">Fetch Progress:</h3>
-                 {isFetching && currentQueryIndex !== null && (
-                     <p className="mb-3 text-sm font-medium text-indigo-600">
-                         Processing query {currentQueryIndex + 1} of {searchQueries.length}... Total added so far: {totalAdded}
-                     </p>
-                 )}
-                <ul className="space-y-2 max-h-60 overflow-y-auto text-sm border rounded p-3 bg-gray-50">
-                    {searchQueries.map((query, index) => (
-                        <li key={index} className="flex justify-between items-center">
-                            <span className="truncate mr-2" title={query}>{index + 1}. {query}</span>
-                            <span className={`font-medium px-2 py-0.5 rounded text-xs ${
-                                fetchProgress[index]?.status === 'success' ? 'bg-green-100 text-green-800' :
-                                fetchProgress[index]?.status === 'error' ? 'bg-red-100 text-red-800' :
-                                fetchProgress[index]?.status === 'processing' ? 'bg-blue-100 text-blue-800 animate-pulse' :
-                                'bg-gray-100 text-gray-600'
-                            }`}>
-                                {fetchProgress[index]?.message || 'Pending'}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        )}
-
-        {/* Cron Job Info */}
-        {/* <div className="mt-6 pt-4 border-t">
-            <h3 className="text-lg font-semibold mb-2">Automated Fetch Schedule</h3>
-            <p className="text-sm text-gray-700">
-                The backend is scheduled to automatically fetch new articles approximately once per day.
-                (UTC Time: 08:00)
-            </p>
-             <p className="mt-1 text-xs text-gray-500">
-                Check the Vercel project settings for exact cron job status and history.
-            </p>
-        </div> */}
-
-        {/* Placeholder for future actions */}
-        <p className="text-gray-600 mt-6">
-          Other admin actions (like category override) could go here...
-        </p>
-      </div>
-
-      {/* AI Update Batch Processing */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Batch AI Updates for Missing Images</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Targets stories in the database that are missing an AI-generated image. 
-          For these stories, new AI summaries and images will be generated.
-          Stories needing images are processed in batches, ordered by their internal ID for consistency.
-          Use the 'Continue Token' if a previous batch was interrupted for manual processing.
-        </p>
-        
-        <form onSubmit={handleBatchUpdate}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label htmlFor="batchSize" className="block text-sm font-medium text-gray-700 mb-1">
-                Batch Size:
-              </label>
-              <input
-                type="number"
-                id="batchSize"
-                value={batchSize}
-                onChange={(e) => setBatchSize(parseInt(e.target.value))}
-                min="1"
-                max="20"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={isBatchProcessing}
-              />
-              <p className="text-xs text-gray-500 mt-1">Recommended: 2-3 stories per batch to avoid API rate limits</p>
-            </div>
-            
-            <div>
-              <label htmlFor="continueToken" className="block text-sm font-medium text-gray-700 mb-1">
-                Continue Token:
-              </label>
-              <input
-                type="text"
-                id="continueToken"
-                value={continueToken}
-                onChange={(e) => setContinueToken(e.target.value)}
-                placeholder="Leave empty to start from oldest stories"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={isBatchProcessing}
-              />
-              <p className="text-xs text-gray-500 mt-1">Continue from where you left off</p>
-            </div>
           </div>
-          
-          <div className="flex space-x-2">
+        )}
+      </div>
+
+      {/* Manual URL Submission Section */}
+      <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4">Manual Article Submission</h2>
+        <form onSubmit={handleManualSubmit}>
+          <input
+            type="url"
+            value={submitUrl}
+            onChange={(e) => setSubmitUrl(e.target.value)}
+            placeholder="Enter article URL"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+            required
+          />
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-blue-300"
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit URL'}
+          </button>
+        </form>
+        {submitMessage && (
+          <div className={`mt-4 text-sm ${submitMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            {submitMessage.text}
+          </div>
+        )}
+      </div>
+
+      <hr className="my-8" />
+      
+      {/* Batch AI Processing Section */}
+      <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4">Batch Process AI Data</h2>
+        <form onSubmit={handleBatchUpdate} className="flex items-center space-x-4">
+          <div>
+            <label htmlFor="batch-size" className="block text-sm font-medium text-gray-700">
+              Batch Size
+            </label>
+            <input
+              id="batch-size"
+              type="number"
+              value={batchSize}
+              onChange={(e) => setBatchSize(parseInt(e.target.value, 10))}
+              className="w-24 px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div>
+            <label htmlFor="continue-token" className="block text-sm font-medium text-gray-700">
+              Continue Token (optional)
+            </label>
+            <input
+              id="continue-token"
+              type="text"
+              value={continueToken}
+              onChange={(e) => setContinueToken(e.target.value)}
+              placeholder="Last processed ID"
+              className="w-48 px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div className="pt-5">
             <button
               type="submit"
               disabled={isBatchProcessing}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-green-300"
             >
-              {isBatchProcessing ? 'Processing...' : 'Process Batch'}
+              {isBatchProcessing ? 'Processing...' : 'Start/Continue Batch'}
             </button>
           </div>
         </form>
-        
+
         {batchMessage && (
-          <div className={`mt-4 p-3 rounded ${batchMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+           <div className={`mt-4 text-sm ${batchMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
             {batchMessage.text}
           </div>
         )}
         
         {batchResults.length > 0 && (
-          <div className="mt-6">
-            <h3 className="font-medium text-lg mb-2">Batch Results</h3>
-            <div className="border rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Story ID</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {batchResults.map((result, index) => (
-                    <tr key={index} className={result.success ? '' : 'bg-red-50'}>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm">{result.id}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm">
-                        {result.success ? (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Success
-                          </span>
-                        ) : (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                            Failed
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2 text-sm">
-                        {result.updates ? result.updates.join(', ') : result.message}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-2 text-sm text-gray-600">
-              <p>To continue processing the next batch, click "Process Batch" again. The continue token has been set automatically.</p>
-            </div>
+          <div className="mt-4">
+            <h3 className="font-bold">Batch Results:</h3>
+            <ul className="list-disc list-inside text-sm max-h-60 overflow-y-auto">
+              {batchResults.map((result) => (
+                <li key={result.id} className={result.success ? 'text-gray-700' : 'text-red-700'}>
+                  Story {result.id}: {result.success ? `Updated ${result.updates?.join(', ')}` : `Failed - ${result.message}`}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>
 
-      {/* Regenerate Image by ID Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Regenerate Image by ID</h2>
-        <form onSubmit={handleRegenerateImageById}>
-          <label htmlFor="articleIdRegen" className="block text-sm font-medium text-gray-700 mb-1">
-            Enter Article ID to Regenerate Image:
-          </label>
-          <div className="flex gap-2">
+      <hr className="my-8" />
+      
+      {/* Dynamic Manual Fetch Section */}
+      <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4">Manual News Fetch from Google</h2>
+        <button
+          onClick={handleTriggerFetchClick}
+          disabled={isFetching}
+          className="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:bg-indigo-300"
+        >
+          {isFetching ? `Processing Query ${currentQueryIndex !== null ? currentQueryIndex + 1 : ''}...` : 'Fetch All News Queries'}
+        </button>
+
+        {fetchError && (
+          <div className="mt-4 text-red-600">
+            <strong>Error:</strong> {fetchError}
+          </div>
+        )}
+        
+        {(isFetching || fetchCompleted) && (
+          <div className="mt-4">
+            <p><strong>Total New Articles Added: {totalAdded}</strong></p>
+            <ul className="list-disc list-inside mt-2">
+              {searchQueries.map((query, index) => (
+                <li key={index} className="text-sm">
+                  Query {index + 1}: {query} - 
+                  <span 
+                    className={`font-semibold ${
+                      fetchProgress[index]?.status === 'success' ? 'text-green-600' : 
+                      fetchProgress[index]?.status === 'error' ? 'text-red-600' : 
+                      'text-gray-500'
+                    }`}
+                  >
+                    {` ${fetchProgress[index]?.message || 'Queued'}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <hr className="my-8" />
+
+      {/* Regenerate Image Section */}
+      <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4">Regenerate Article Image</h2>
+        <form onSubmit={handleRegenerateImageById} className="flex items-end space-x-4">
+          <div className="flex-grow">
+            <label htmlFor="regenerate-id" className="block text-sm font-medium text-gray-700">
+              Article ID (UUID)
+            </label>
             <input
-              type="text" 
-              id="articleIdRegen"
+              id="regenerate-id"
+              type="text"
               value={articleIdToRegenerate}
               onChange={(e) => setArticleIdToRegenerate(e.target.value)}
-              placeholder="e.g., f7f73745-7447-45de-9a28-7aa1f50778b5"
-              className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              disabled={isRegeneratingImage}
+              placeholder="Enter the full article ID"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              required
             />
-            <button
-              type="submit"
-              disabled={isRegeneratingImage}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isRegeneratingImage ? 'Regenerating...' : 'Regenerate Image'}
-            </button>
           </div>
-          {regenerateImageMessage && (
-            <p className={`mt-3 text-sm ${regenerateImageMessage.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-              {regenerateImageMessage.text}
-            </p>
-          )}
-        </form>
-        <p className="mt-3 text-xs text-gray-500">This will attempt to generate a new image for the specified article ID and update it in the database. The summary will not be affected.</p>
-      </div>
-
-      {/* --- ADDED: Post to X/Twitter Section --- */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Post to X/Twitter</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Fetch the next stories recommended for posting based on the "Oldest-Newest-Oldest" strategy. You can edit the generated text before posting.
-        </p>
-        <div className="mb-4">
           <button
-            onClick={handleFetchTweetCandidates}
-            disabled={isFetchingCandidates}
-            className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+            type="submit"
+            disabled={isRegeneratingImage}
+            className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:bg-purple-300"
           >
-            {isFetchingCandidates ? 'Fetching...' : 'Fetch Tweet Candidates'}
+            {isRegeneratingImage ? 'Regenerating...' : 'Regenerate'}
           </button>
-        </div>
-
-        {tweetCandidateError && <p className="text-red-600 text-sm mb-4">{tweetCandidateError}</p>}
-        {postSuccessMessage && <p className="text-green-600 text-sm mb-4">{postSuccessMessage}</p>}
-
-        {tweetCandidates.length > 0 && (
-          <div className="space-y-6">
-            {tweetCandidates.map((candidate) => (
-              <div key={candidate.id} className="border-t pt-4">
-                <h3 className="font-semibold text-lg">{candidate.title}</h3>
-                <p className="text-xs text-gray-500 mb-2">ID: {candidate.id}</p>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="md:w-1/4">
-                    {candidate.ai_image_url && (
-                      <img src={candidate.ai_image_url} alt="AI generated image" className="rounded-md shadow-md w-full" />
-                    )}
-                  </div>
-                  <div className="md:w-3/4">
-                    <textarea
-                      value={candidate.generatedTweetText}
-                      onChange={(e) => handleTweetTextChange(candidate.id, e.target.value)}
-                      className="w-full h-36 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
-                      maxLength={280}
-                    />
-                    <p className="text-right text-sm text-gray-500">
-                      {candidate.generatedTweetText?.length || 0}/280
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right mt-2">
-                  <button
-                    onClick={() => handlePostTweet(candidate.id)}
-                    disabled={isPosting !== null}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
-                  >
-                    {isPosting === candidate.id ? 'Posting...' : 'Post This Tweet'}
-                  </button>
-                </div>
-              </div>
-            ))}
+        </form>
+        {regenerateImageMessage && (
+          <div className={`mt-4 text-sm ${regenerateImageMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            {regenerateImageMessage.text}
           </div>
         )}
       </div>
-      {/* --- END ADDED --- */}
 
-      {/* Check Submitted Emails Section */}
-      <div className="mb-8 p-6 bg-gray-800 rounded-lg shadow-xl">
-        <h2 className="text-2xl font-semibold mb-4 text-sky-400">Check Submitted Emails</h2>
-        <p className="mb-4 text-gray-400">
-          Manually trigger the backend process to check for new emails sent to the submission address (e.g., submit@microplasticswatch.com) and process them.
-        </p>
+      <hr className="my-8" />
+
+      {/* Check Emails Section */}
+      <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4">Check for Submitted Emails</h2>
         <button
           onClick={handleCheckSubmittedEmails}
           disabled={isCheckingEmails}
-          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 transition duration-150 ease-in-out"
+          className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded disabled:bg-teal-300"
         >
-          {isCheckingEmails ? 'Checking Emails...' : 'Trigger Email Check'}
+          {isCheckingEmails ? 'Checking...' : 'Check Submitted Emails'}
         </button>
-        
-        {/* --- Email Check Results Display --- */}
-        {emailCheckResult && (
-          <div className={`mt-4 p-4 rounded-lg ${emailCheckResult.error ? 'bg-red-900 border-red-700 text-red-100' : 'bg-green-900 border-green-700 text-green-100'} border`}>
-              <p className="font-bold text-lg mb-2">{emailCheckResult.error ? 'Error' : 'Processing Report'}</p>
-              <p className="mb-3">{emailCheckResult.error || emailCheckResult.message}</p>
-              
-              {!emailCheckResult.error && (
-                  <div className="text-sm opacity-90">
-                      <p><strong>Successfully Processed / Skipped:</strong> {emailCheckResult.processedCount}</p>
-                      <p><strong>Failed:</strong> {emailCheckResult.failedCount}</p>
-                  </div>
-              )}
 
-              {emailCheckResult.failedUrls.length > 0 && (
-                  <div className="mt-3">
-                      <p className="font-bold">Failed URLs:</p>
-                      <ul className="list-disc list-inside bg-gray-800 p-2 rounded">
-                          {emailCheckResult.failedUrls.map((url, index) => (
-                              <li key={index} className="text-xs font-mono break-all">{url}</li>
-                          ))}
-                      </ul>
-                  </div>
-              )}
+        {emailCheckResult && (
+          <div className="mt-4 p-4 bg-gray-100 rounded">
+            <p><strong>Result:</strong> {emailCheckResult.message}</p>
+            {emailCheckResult.error && <p className="text-red-600"><strong>Error:</strong> {emailCheckResult.error}</p>}
+            
+            {emailCheckResult.processedCount > 0 && <p>Successfully processed: {emailCheckResult.processedCount}</p>}
+            {emailCheckResult.failedCount > 0 && <p>Failed to process: {emailCheckResult.failedCount}</p>}
+            
+            {emailCheckResult.failedUrls.length > 0 && (
+              <div className="mt-3">
+                <p className="font-bold">Failed URLs:</p>
+                <ul className="list-disc list-inside text-sm text-red-700">
+                  {emailCheckResult.failedUrls.map((url, index) => <li key={index}>{url}</li>)}
+                </ul>
+              </div>
+            )}
           </div>
         )}
-        {/* --- End Email Check Results Display --- */}
+      </div>
 
+      <hr className="my-8" />
+
+      {/* Twitter Integration Section */}
+      <div className="p-6 bg-white rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4">Twitter Integration</h2>
+          <button
+              onClick={handleFetchTweetCandidates}
+              disabled={isFetchingCandidates}
+              className="bg-sky-500 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded disabled:bg-sky-300"
+          >
+              {isFetchingCandidates ? 'Fetching...' : 'Fetch Next Tweet Candidates'}
+          </button>
+
+          {tweetCandidateError && (
+              <div className="mt-4 text-red-600">
+                  <strong>Error:</strong> {tweetCandidateError}
+              </div>
+          )}
+
+          {postSuccessMessage && (
+              <div className="mt-4 text-green-600">
+                  <strong>Success:</strong> {postSuccessMessage}
+              </div>
+          )}
+          
+          {tweetCandidates.length > 0 && (
+              <div className="mt-6 space-y-6">
+                  {tweetCandidates.map((candidate) => (
+                      <div key={candidate.id} className="p-4 border rounded-lg">
+                          <h3 className="font-bold text-lg">{candidate.title}</h3>
+                          <a href={candidate.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline break-all">{candidate.url}</a>
+                          
+                          <div className="mt-4">
+                              <label htmlFor={`tweet-text-${candidate.id}`} className="block text-sm font-medium text-gray-700">
+                                  Generated Tweet Text (Editable)
+                              </label>
+                              <textarea
+                                  id={`tweet-text-${candidate.id}`}
+                                  value={candidate.generatedTweetText}
+                                  onChange={(e) => handleTweetTextChange(candidate.id, e.target.value)}
+                                  rows={6}
+                                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+                              />
+                          </div>
+
+                          <button
+                              onClick={() => handlePostTweet(candidate.id)}
+                              disabled={isPosting === candidate.id}
+                              className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-green-300"
+                          >
+                              {isPosting === candidate.id ? 'Posting...' : 'Post This Tweet'}
+                          </button>
+                      </div>
+                  ))}
+              </div>
+          )}
       </div>
 
     </div>
