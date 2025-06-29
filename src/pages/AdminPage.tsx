@@ -141,7 +141,7 @@ const AdminPage: React.FC = () => {
     // Navigate to home or login page after logout handled by AuthProvider listener
   };
 
-  // --- Form Submit Handler ---
+  // --- Manual Submission Handler ---
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!submitUrl) return;
@@ -150,23 +150,19 @@ const AdminPage: React.FC = () => {
     setSubmitMessage(null);
 
     try {
-      const response = await axios.post<ManualSubmissionResponse>(`${BACKEND_URL}/api/submit-article-url`, { url: submitUrl });
+      const response = await axios.post<{ message: string; data?: any }>(`${BACKEND_URL}/api/add-news`, { url: submitUrl });
+      setSubmitMessage({ type: 'success', text: response.data.message });
+      setSubmitUrl(''); // Clear input on success
 
-      if (response.data.success) {
-        setSubmitMessage({type: 'success', text: response.data.message || 'Article submitted successfully!'});
-        setSubmitUrl(''); // Clear input on success
-      } else {
-         throw new Error(response.data.message || 'An unknown error occurred during submission.');
-      }
-    } catch (error: any) {
-      console.error('Error submitting URL:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred.';
-      setSubmitMessage({type: 'error', text: `Submission failed: ${errorMessage}`});
+    } catch (err: any) {
+      console.error('Error submitting URL manually:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'An unknown error occurred.';
+      setSubmitMessage({ type: 'error', text: `Submission failed: ${errorMessage}` });
     } finally {
       setIsSubmitting(false);
     }
   };
-  // --- End Form Submit Handler ---
+  // --- End Manual Submission Handler ---
 
   // --- Dynamic Manual Fetch Logic ---
   const processFetchQueue = async (index: number) => {
@@ -331,7 +327,8 @@ const AdminPage: React.FC = () => {
     setEmailCheckResult(null);
 
     try {
-      const response = await axios.get<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/admin/check-submitted-emails`);
+      // Changed to a POST request to the new endpoint
+      const response = await axios.post<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/admin/check-emails`);
       setEmailCheckResult(response.data);
 
     } catch (error: any) {
@@ -366,8 +363,8 @@ const AdminPage: React.FC = () => {
 
     } catch (error: any) {
       console.error('Error fetching tweet candidates:', error);
-      if (axios.isAxiosError(error)) {
-        setTweetCandidateError(error.response?.data?.message || 'Failed to fetch candidates.');
+      if (error.response) {
+        setTweetCandidateError(error.response.data?.message || 'Failed to fetch candidates.');
       } else if (error instanceof Error) {
         setTweetCandidateError(error.message);
       } else {
@@ -384,38 +381,33 @@ const AdminPage: React.FC = () => {
     );
   };
 
-  const handlePostTweet = async (candidateId: string) => {
-    setIsPosting(candidateId);
-    setTweetCandidateError(null);
-    setPostSuccessMessage(null);
+  const handlePostTweet = async (id: string) => {
+    const candidate = tweetCandidates.find(c => c.id === id);
+    if (!candidate) return;
 
-    // Find the specific candidate to get its text
-    const candidateToPost = tweetCandidates.find(c => c.id === candidateId);
-    if (!candidateToPost || !candidateToPost.generatedTweetText) {
-      setTweetCandidateError('Could not find tweet text. Please try fetching candidates again.');
-      setIsPosting(null);
-      return;
-    }
+    setIsPosting(id);
+    setPostSuccessMessage(null);
+    setTweetCandidateError(null); // Clear previous errors
 
     try {
-      // The backend expects storyId and tweetText
-      const response = await axios.post(`${BACKEND_URL}/api/admin/post-tweet`, {
-        storyId: candidateToPost.id,
-        tweetText: candidateToPost.generatedTweetText,
+      await axios.post<{ message: string, tweet: any }>(`${BACKEND_URL}/api/admin/post-tweet`, {
+        storyId: candidate.id,
+        tweetText: candidate.generatedTweetText
       });
 
-      setPostSuccessMessage(response.data.message || 'Tweet posted successfully!');
+      setPostSuccessMessage(`Tweet for "${candidate.title}" posted successfully!`);
       // Remove the posted candidate from the list
-      setTweetCandidates(prev => prev.filter(c => c.id !== candidateId));
+      setTweetCandidates(prev => prev.filter(c => c.id !== id));
+
     } catch (error: any) {
       console.error('Error posting tweet:', error);
-      let errorMessage = 'An unknown error occurred while posting the tweet.';
-      if (axios.isAxiosError(error)) {
-        errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to post tweet.';
+      if (error.response) {
+        setTweetCandidateError(error.response.data?.error || 'Failed to post tweet.');
       } else if (error instanceof Error) {
-        errorMessage = error.message;
+        setTweetCandidateError(error.message);
+      } else {
+        setTweetCandidateError('An unknown error occurred while posting.');
       }
-      setTweetCandidateError(errorMessage); // Use the error state for the candidate section
     } finally {
       setIsPosting(null);
     }
