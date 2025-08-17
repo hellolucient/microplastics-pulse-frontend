@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import useAuth to access user info and signOut
 import axios from 'axios'; // Import axios for API calls
-import AutomationLogSection from '../components/AutomationLogSection'; // Import the new component
+import AutomationLogSection from '../components/AutomationLogSection';
+import FailedUrlsSection from '../components/FailedUrlsSection';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : ''; // Fallback for safety
 
@@ -479,6 +480,8 @@ const AdminPage: React.FC = () => {
         </div>
 
         <AutomationLogSection />
+        
+        <FailedUrlsSection />
         
         <div className="mt-8">
           {/* Manual Article Submission */}
