@@ -375,15 +375,50 @@ const AdminPage: React.FC = () => {
     setEmailCheckResult(null);
 
     try {
-      // Changed to a POST request to the new endpoint
       const response = await axios.post<EmailCheckSuccessResponse>(`${BACKEND_URL}/api/admin/check-emails`);
       setEmailCheckResult(response.data);
 
     } catch (error: any) {
       console.error('Error checking submitted emails:', error);
-      const errorMessage = error.response?.data?.details || error.response?.data?.message || error.message || 'An unknown error occurred while checking emails.';
+      
+      let errorMessage = 'An unknown error occurred while checking emails.';
+      let errorDetails = '';
+      
+      // Get error details from response if available
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        errorMessage = errorData.error || errorMessage;
+        errorDetails = errorData.details || '';
+        
+        // Handle specific error codes
+        switch (errorData.code) {
+          case 'EMAIL_CONFIG_MISSING':
+            errorMessage = 'Email configuration is missing on the server.';
+            errorDetails = 'Please check the server configuration.';
+            break;
+          case 'EMAIL_AUTH_FAILED':
+            errorMessage = 'Failed to authenticate with Gmail.';
+            errorDetails = 'Please verify the email credentials on the server.';
+            break;
+          case 'EMAIL_TIMEOUT':
+            errorMessage = 'Connection to Gmail timed out.';
+            errorDetails = 'Please try again. If the problem persists, contact support.';
+            break;
+          case 'EMAIL_CONNECTION_FAILED':
+            errorMessage = 'Could not connect to Gmail.';
+            errorDetails = 'The email service is currently unavailable. Please try again later.';
+            break;
+          case 'DB_UNAVAILABLE':
+            errorMessage = 'Database connection is unavailable.';
+            errorDetails = 'Please try again later.';
+            break;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       setEmailCheckResult({ 
-        error: errorMessage, 
+        error: errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage,
         message: '',
         processedCount: 0,
         failedCount: 0,
