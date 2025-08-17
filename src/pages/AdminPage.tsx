@@ -61,6 +61,7 @@ interface EmailCheckSuccessResponse {
   processedCount: number;
   failedCount: number;
   failedUrls: FailedUrl[];
+  processedUrls: string[];
 }
 
 // --- ADDED: Interface for Tweet Candidate ---
@@ -721,80 +722,155 @@ const AdminPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Other Tools */}
+          {/* Email Processing */}
           <div className="w-full mb-8">
             <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4 text-gray-700">Other Tools</h2>
-                {/* Check Emails */}
-                <div className="mb-6">
-                  <button
-                    onClick={handleCheckSubmittedEmails}
-                    disabled={isCheckingEmails}
-                    className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded disabled:bg-teal-300"
-                  >
-                    {isCheckingEmails ? 'Checking...' : 'Check Submitted Emails'}
-                  </button>
+              <h2 className="text-xl font-semibold mb-4 text-gray-700">Email Processing</h2>
+              <button
+                onClick={handleCheckSubmittedEmails}
+                disabled={isCheckingEmails}
+                className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded disabled:bg-teal-300"
+              >
+                {isCheckingEmails ? 'Checking...' : 'Check Submitted Emails'}
+              </button>
 
-                  {emailCheckResult && (
-                    <div className="mt-4 p-4 bg-gray-100 rounded">
-                      <p><strong>Result:</strong> {emailCheckResult.message}</p>
-                      {emailCheckResult.error && <p className="text-red-600"><strong>Error:</strong> {emailCheckResult.error}</p>}
-                      
-                      {emailCheckResult.processedCount > 0 && <p>Successfully processed: {emailCheckResult.processedCount}</p>}
-                      {emailCheckResult.failedCount > 0 && <p>Failed to process: {emailCheckResult.failedCount}</p>}
-                      
-                      {emailCheckResult.failedUrls && emailCheckResult.failedUrls.length > 0 && (
-                        <div className="mt-3">
-                          <p className="font-bold">Failed URLs:</p>
-                          <ul className="list-disc list-inside text-sm">
-                            {emailCheckResult.failedUrls.map((failure, index) => (
-                              <li key={index} className="mb-2">
-                                <span className="text-red-700 break-all">{failure.url || 'Unknown URL'}</span>
-                                {failure.reason && (
-                                  <span className="text-gray-600 ml-2 break-normal">
-                                    - {failure.reason}
-                                  </span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+              {emailCheckResult && (
+                <div className="mt-4 p-4 bg-gray-100 rounded">
+                  <p><strong>Result:</strong> {emailCheckResult.message}</p>
+                  {emailCheckResult.error && <p className="text-red-600"><strong>Error:</strong> {emailCheckResult.error}</p>}
+                  
+                  {emailCheckResult.processedCount > 0 && <p>Successfully processed: {emailCheckResult.processedCount}</p>}
+                  {emailCheckResult.failedCount > 0 && <p>Failed to process: {emailCheckResult.failedCount}</p>}
+                  
+                  {emailCheckResult.processedUrls && emailCheckResult.processedUrls.length > 0 && (
+                    <div className="mt-3">
+                      <p className="font-bold text-green-700">Successfully Added URLs:</p>
+                      <ul className="list-disc list-inside text-sm">
+                        {emailCheckResult.processedUrls.map((url, index) => (
+                          <li key={index} className="mb-2">
+                            <span className="text-green-700 break-all">{url}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {emailCheckResult.failedUrls && emailCheckResult.failedUrls.length > 0 && (
+                    <div className="mt-3">
+                      <p className="font-bold text-red-700">Failed URLs:</p>
+                      <ul className="list-disc list-inside text-sm">
+                        {emailCheckResult.failedUrls.map((failure, index) => (
+                          <li key={index} className="mb-2">
+                            <span className="text-red-700 break-all">{failure.url || 'Unknown URL'}</span>
+                            {failure.reason && (
+                              <span className="text-gray-600 ml-2 break-normal">
+                                - {failure.reason}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>
-                {/* Regenerate Image */}
+              )}
+            </div>
+          </div>
+
+          {/* Batch Process AI Data */}
+          <div className="w-full mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-gray-700">Batch Process AI Data</h2>
+              <form onSubmit={handleBatchUpdate} className="flex items-center space-x-4">
                 <div>
-                  <h3 className="text-lg font-medium mb-2 text-gray-600">Regenerate Image by Article ID</h3>
-                  <form onSubmit={handleRegenerateImageById} className="flex items-center space-x-4">
-                    <div className="flex-grow">
-                      <label htmlFor="regenerate-id" className="block text-sm font-medium text-gray-700">
-                        Article ID (UUID)
-                      </label>
-                      <input
-                        id="regenerate-id"
-                        type="text"
-                        value={articleIdToRegenerate}
-                        onChange={(e) => setArticleIdToRegenerate(e.target.value)}
-                        placeholder="Enter the full article ID"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                        required
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={isRegeneratingImage}
-                      className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:bg-purple-300"
-                    >
-                      {isRegeneratingImage ? 'Regenerating...' : 'Regenerate'}
-                    </button>
-                  </form>
-                  {regenerateImageMessage && (
-                    <div className={`mt-4 text-sm ${regenerateImageMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                      {regenerateImageMessage.text}
-                    </div>
-                  )}
+                  <label htmlFor="batch-size" className="block text-sm font-medium text-gray-700">
+                    Batch Size
+                  </label>
+                  <input
+                    id="batch-size"
+                    type="number"
+                    value={batchSize}
+                    onChange={(e) => setBatchSize(parseInt(e.target.value, 10))}
+                    className="w-24 px-3 py-2 border border-gray-300 rounded-md"
+                  />
                 </div>
+                <div>
+                  <label htmlFor="continue-token" className="block text-sm font-medium text-gray-700">
+                    Continue Token (optional)
+                  </label>
+                  <input
+                    id="continue-token"
+                    type="text"
+                    value={continueToken}
+                    onChange={(e) => setContinueToken(e.target.value)}
+                    placeholder="Last processed ID"
+                    className="w-48 px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div className="pt-5">
+                  <button
+                    type="submit"
+                    disabled={isBatchProcessing}
+                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-green-300"
+                  >
+                    {isBatchProcessing ? 'Processing...' : 'Start/Continue Batch'}
+                  </button>
+                </div>
+              </form>
+
+              {batchMessage && (
+                <div className={`mt-4 text-sm ${batchMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                  {batchMessage.text}
+                </div>
+              )}
+              
+              {batchResults.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="font-bold">Batch Results:</h3>
+                  <ul className="list-disc list-inside text-sm max-h-60 overflow-y-auto">
+                    {batchResults.map((result) => (
+                      <li key={result.id} className={result.success ? 'text-gray-700' : 'text-red-700'}>
+                        Story {result.id}: {result.success ? `Updated ${result.updates?.join(', ')}` : `Failed - ${result.message}`}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Regenerate Image */}
+          <div className="w-full mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-gray-700">Regenerate Image by Article ID</h2>
+              <form onSubmit={handleRegenerateImageById} className="flex items-center space-x-4">
+                <div className="flex-grow">
+                  <label htmlFor="regenerate-id" className="block text-sm font-medium text-gray-700">
+                    Article ID (UUID)
+                  </label>
+                  <input
+                    id="regenerate-id"
+                    type="text"
+                    value={articleIdToRegenerate}
+                    onChange={(e) => setArticleIdToRegenerate(e.target.value)}
+                    placeholder="Enter the full article ID"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isRegeneratingImage}
+                  className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:bg-purple-300"
+                >
+                  {isRegeneratingImage ? 'Regenerating...' : 'Regenerate'}
+                </button>
+              </form>
+              {regenerateImageMessage && (
+                <div className={`mt-4 text-sm ${regenerateImageMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                  {regenerateImageMessage.text}
+                </div>
+              )}
             </div>
           </div>
         </div>
