@@ -743,15 +743,15 @@ const AdminPage: React.FC = () => {
                       {emailCheckResult.processedCount > 0 && <p>Successfully processed: {emailCheckResult.processedCount}</p>}
                       {emailCheckResult.failedCount > 0 && <p>Failed to process: {emailCheckResult.failedCount}</p>}
                       
-                      {emailCheckResult.failedUrls.length > 0 && (
+                      {emailCheckResult.failedUrls && emailCheckResult.failedUrls.length > 0 && (
                         <div className="mt-3">
                           <p className="font-bold">Failed URLs:</p>
                           <ul className="list-disc list-inside text-sm">
                             {emailCheckResult.failedUrls.map((failure, index) => (
                               <li key={index} className="mb-2">
-                                <span className="text-red-700">{failure.url}</span>
+                                <span className="text-red-700 break-all">{failure.url || 'Unknown URL'}</span>
                                 {failure.reason && (
-                                  <span className="text-gray-600 ml-2">
+                                  <span className="text-gray-600 ml-2 break-normal">
                                     - {failure.reason}
                                   </span>
                                 )}
