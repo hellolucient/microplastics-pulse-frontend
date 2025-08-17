@@ -51,11 +51,16 @@ interface RegenerateImageResponse {
 }
 
 // Interface for email check success response
+interface FailedUrl {
+  url: string;
+  reason: string;
+}
+
 interface EmailCheckSuccessResponse {
   message: string;
   processedCount: number;
   failedCount: number;
-  failedUrls: string[];
+  failedUrls: FailedUrl[];
 }
 
 // --- ADDED: Interface for Tweet Candidate ---
@@ -741,8 +746,17 @@ const AdminPage: React.FC = () => {
                       {emailCheckResult.failedUrls.length > 0 && (
                         <div className="mt-3">
                           <p className="font-bold">Failed URLs:</p>
-                          <ul className="list-disc list-inside text-sm text-red-700">
-                            {emailCheckResult.failedUrls.map((url, index) => <li key={index}>{url}</li>)}
+                          <ul className="list-disc list-inside text-sm">
+                            {emailCheckResult.failedUrls.map((failure, index) => (
+                              <li key={index} className="mb-2">
+                                <span className="text-red-700">{failure.url}</span>
+                                {failure.reason && (
+                                  <span className="text-gray-600 ml-2">
+                                    - {failure.reason}
+                                  </span>
+                                )}
+                              </li>
+                            ))}
                           </ul>
                         </div>
                       )}
