@@ -150,14 +150,61 @@ const AdminPage: React.FC = () => {
     setSubmitMessage(null);
 
     try {
-      const response = await axios.post<{ message: string; data?: any }>(`${BACKEND_URL}/api/add-news`, { url: submitUrl });
-      setSubmitMessage({ type: 'success', text: response.data.message });
+      const response = await axios.post<{ message: string; data?: any; code: string }>(`${BACKEND_URL}/api/add-news`, { url: submitUrl });
+      setSubmitMessage({ 
+        type: 'success', 
+        text: response.data.message || 'Article processed successfully.' 
+      });
       setSubmitUrl(''); // Clear input on success
 
     } catch (err: any) {
       console.error('Error submitting URL manually:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'An unknown error occurred.';
-      setSubmitMessage({ type: 'error', text: `Submission failed: ${errorMessage}` });
+      const errorResponse = err.response?.data;
+      let errorMessage = 'An unknown error occurred';
+      let errorDetails = '';
+
+      if (errorResponse) {
+        errorMessage = errorResponse.error || errorResponse.message || errorMessage;
+        errorDetails = errorResponse.details || '';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      // Handle specific error codes
+      const errorCode = errorResponse?.code || '';
+      switch (errorCode) {
+        case 'URL_DUPLICATE':
+        case 'URL_DUPLICATE_RACE':
+          setSubmitMessage({ 
+            type: 'error', 
+            text: `${errorMessage} ${errorDetails}` 
+          });
+          break;
+        case 'GOOGLE_RATE_LIMIT':
+          setSubmitMessage({ 
+            type: 'error', 
+            text: `${errorMessage} Please wait a few minutes before trying again.` 
+          });
+          break;
+        case 'ARTICLE_NOT_FOUND':
+          setSubmitMessage({ 
+            type: 'error', 
+            text: `${errorMessage} ${errorDetails}` 
+          });
+          break;
+        case 'AI_SUMMARY_FAILED':
+        case 'AI_IMAGE_FAILED':
+          setSubmitMessage({ 
+            type: 'error', 
+            text: `Processing failed: ${errorMessage}. ${errorDetails}` 
+          });
+          break;
+        default:
+          setSubmitMessage({ 
+            type: 'error', 
+            text: errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage 
+          });
+      }
     } finally {
       setIsSubmitting(false);
     }
