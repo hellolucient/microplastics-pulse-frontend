@@ -85,6 +85,20 @@ interface ManualSubmissionResponse {
   data?: any; // You can define a more specific type for the article data if needed
 }
 
+interface DuplicateCheckResponse {
+  totalRecords: number;
+  databaseCount: number;
+  uniqueUrls: number;
+  duplicateUrls: number;
+  duplicatePercentage: string;
+  duplicateGroups: Array<{
+    url: string;
+    occurrences: number;
+    originalId: number;
+    duplicateIds: number[];
+  }>;
+}
+
 const AdminPage: React.FC = () => {
   const { user, signOut } = useAuth();
   // --- State for Manual Submission Form ---
@@ -117,6 +131,11 @@ const AdminPage: React.FC = () => {
   // --- State for Checking Submitted Emails ---
   const [isCheckingEmails, setIsCheckingEmails] = useState(false);
   const [emailCheckResult, setEmailCheckResult] = useState<EmailCheckSuccessResponse & { error?: string } | null>(null);
+
+  // --- State for Duplicate URL Checker ---
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  const [duplicateCheckResult, setDuplicateCheckResult] = useState<DuplicateCheckResponse | null>(null);
+  const [duplicateCheckError, setDuplicateCheckError] = useState<string | null>(null);
 
   // --- ADDED: State for Twitter Feature ---
   const [isFetchingCandidates, setIsFetchingCandidates] = useState(false);
@@ -445,6 +464,25 @@ const AdminPage: React.FC = () => {
     }
   };
   // --- End Check Submitted Emails Handler ---
+
+  // --- Duplicate URL Checker Handler ---
+  const handleCheckDuplicates = async () => {
+    setIsCheckingDuplicates(true);
+    setDuplicateCheckResult(null);
+    setDuplicateCheckError(null);
+
+    try {
+      const response = await axios.post<DuplicateCheckResponse>(`${BACKEND_URL}/api/admin/check-duplicates`);
+      setDuplicateCheckResult(response.data);
+    } catch (error: any) {
+      console.error('Error checking duplicates:', error);
+      const errorMessage = error.response?.data?.details || error.response?.data?.error || error.message || 'An unknown error occurred';
+      setDuplicateCheckError(`Failed to check duplicates: ${errorMessage}`);
+    } finally {
+      setIsCheckingDuplicates(false);
+    }
+  };
+  // --- End Duplicate URL Checker Handler ---
 
   // --- ADDED: Twitter Feature Handlers ---
 
@@ -782,6 +820,96 @@ const AdminPage: React.FC = () => {
                       </ul>
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Database Duplicate URL Checker */}
+          <div className="w-full mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-gray-700">Database Integrity Check</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Check for duplicate URLs in the database. This scans all {duplicateCheckResult?.databaseCount || '1200+'} records to identify any duplicates.
+              </p>
+              <button
+                onClick={handleCheckDuplicates}
+                disabled={isCheckingDuplicates}
+                className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:bg-purple-300"
+              >
+                {isCheckingDuplicates ? 'Checking...' : 'Check for Duplicate URLs'}
+              </button>
+
+              {duplicateCheckError && (
+                <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                  <strong>Error:</strong> {duplicateCheckError}
+                </div>
+              )}
+
+              {duplicateCheckResult && (
+                <div className="mt-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-bold text-lg mb-3">📊 Database Analysis Results</h3>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="bg-blue-100 p-3 rounded text-center">
+                        <div className="text-2xl font-bold text-blue-600">{duplicateCheckResult.totalRecords}</div>
+                        <div className="text-sm text-blue-800">Records Scanned</div>
+                      </div>
+                      <div className="bg-green-100 p-3 rounded text-center">
+                        <div className="text-2xl font-bold text-green-600">{duplicateCheckResult.uniqueUrls}</div>
+                        <div className="text-sm text-green-800">Unique URLs</div>
+                      </div>
+                      <div className={`p-3 rounded text-center ${duplicateCheckResult.duplicateUrls > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
+                        <div className={`text-2xl font-bold ${duplicateCheckResult.duplicateUrls > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {duplicateCheckResult.duplicateUrls}
+                        </div>
+                        <div className={`text-sm ${duplicateCheckResult.duplicateUrls > 0 ? 'text-red-800' : 'text-green-800'}`}>
+                          Duplicates
+                        </div>
+                      </div>
+                      <div className="bg-gray-100 p-3 rounded text-center">
+                        <div className="text-2xl font-bold text-gray-600">{duplicateCheckResult.duplicatePercentage}%</div>
+                        <div className="text-sm text-gray-800">Duplicate Rate</div>
+                      </div>
+                    </div>
+
+                    {duplicateCheckResult.duplicateUrls === 0 ? (
+                      <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                        <div className="flex items-center">
+                          <span className="text-green-500 text-xl mr-2">🎉</span>
+                          <span className="text-green-700 font-semibold">Database is clean! No duplicate URLs found.</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <h4 className="font-semibold mb-2">🔍 Top Duplicated URLs:</h4>
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {duplicateCheckResult.duplicateGroups.map((group, index) => (
+                            <div key={index} className="bg-yellow-50 border border-yellow-200 p-3 rounded">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="font-mono text-sm text-gray-600 break-all">{group.url}</div>
+                                  <div className="text-sm text-gray-500 mt-1">
+                                    Original ID: {group.originalId} | Duplicate IDs: {group.duplicateIds.join(', ')}
+                                  </div>
+                                </div>
+                                <div className="ml-4 bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-semibold">
+                                  {group.occurrences}x
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                          <p className="text-sm text-blue-800">
+                            💡 <strong>Tip:</strong> If duplicates are found, you can use the cleanup script from the terminal:
+                            <code className="bg-blue-100 px-1 rounded ml-1">node scripts/check-duplicates.js</code>
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
