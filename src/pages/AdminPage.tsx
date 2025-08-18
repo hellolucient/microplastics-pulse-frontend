@@ -137,6 +137,11 @@ const AdminPage: React.FC = () => {
   const [duplicateCheckResult, setDuplicateCheckResult] = useState<DuplicateCheckResponse | null>(null);
   const [duplicateCheckError, setDuplicateCheckError] = useState<string | null>(null);
 
+  // --- State for Manual Automation Trigger ---
+  const [isRunningAutomation, setIsRunningAutomation] = useState(false);
+  const [automationResult, setAutomationResult] = useState<{message: string, timestamp: string} | null>(null);
+  const [automationError, setAutomationError] = useState<string | null>(null);
+
   // --- ADDED: State for Twitter Feature ---
   const [isFetchingCandidates, setIsFetchingCandidates] = useState(false);
   const [tweetCandidates, setTweetCandidates] = useState<TweetCandidate[]>([]);
@@ -483,6 +488,25 @@ const AdminPage: React.FC = () => {
     }
   };
   // --- End Duplicate URL Checker Handler ---
+
+  // --- Manual Automation Trigger Handler ---
+  const handleTriggerAutomation = async () => {
+    setIsRunningAutomation(true);
+    setAutomationResult(null);
+    setAutomationError(null);
+
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/admin/trigger-automation`);
+      setAutomationResult(response.data);
+    } catch (error: any) {
+      console.error('Error triggering automation:', error);
+      const errorMessage = error.response?.data?.details || error.response?.data?.error || error.message || 'An unknown error occurred';
+      setAutomationError(`Failed to run automation: ${errorMessage}`);
+    } finally {
+      setIsRunningAutomation(false);
+    }
+  };
+  // --- End Manual Automation Trigger Handler ---
 
   // --- ADDED: Twitter Feature Handlers ---
 
@@ -909,6 +933,50 @@ const AdminPage: React.FC = () => {
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Manual Automation Trigger */}
+          <div className="w-full mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-gray-700">Manual Automation Trigger</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Manually run the complete automation suite (Google fetch + Email check + Tweet post). 
+                This is the same process that runs automatically daily at 2:00 AM UTC.
+              </p>
+              <button
+                onClick={handleTriggerAutomation}
+                disabled={isRunningAutomation}
+                className="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:bg-indigo-300"
+              >
+                {isRunningAutomation ? 'Running Full Automation...' : 'Run Full Automation Suite'}
+              </button>
+
+              {automationError && (
+                <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                  <strong>Error:</strong> {automationError}
+                </div>
+              )}
+
+              {automationResult && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <span className="text-green-500 text-xl mr-2">✅</span>
+                    <span className="text-green-700 font-semibold">Automation completed successfully!</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    <strong>Completed at:</strong> {new Date(automationResult.timestamp).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {automationResult.message}
+                  </p>
+                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-sm text-blue-800">
+                      💡 <strong>Tip:</strong> Check the "Automation Task Logs" section above for detailed results of each task.
+                    </p>
                   </div>
                 </div>
               )}
