@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Newspaper, FileText, DownloadCloud, Send, Search } from 'lucide-react';
+import { FileText, DownloadCloud, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 // import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
 import axios from 'axios'; // <-- Add axios
 import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
 import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png'; // Import the placeholder
+import SocialShare from '../components/SocialShare';
 
 // Updated NewsItem interface
 interface NewsItem {
@@ -23,8 +24,7 @@ interface NewsItem {
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 // --- End Backend URL ---
 
-// Helper for placeholder image
-const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x250?text=News+Image";
+// Removed unused PLACEHOLDER_IMAGE constant
 
 // --- NewsItemCard Component (Copied and adapted from LatestNewsPage.tsx) ---
 interface NewsItemCardProps {
@@ -58,9 +58,18 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
             {item.title || 'No Title'}
           </a>
           <p className="text-brand-dark text-base mb-6 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p>
-          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline mt-auto self-start transition-colors duration-150">
-            Read Full Article →
-          </a>
+          <div className="mt-auto">
+            <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline self-start transition-colors duration-150 block mb-4">
+              Read Full Article →
+            </a>
+            <SocialShare 
+              title={item.title || 'Microplastics Research'}
+              url={item.url}
+              summary={item.ai_summary}
+              size="medium"
+              className="border-t border-gray-100 pt-4"
+            />
+          </div>
         </div>
       </div>
     );
@@ -83,9 +92,18 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
         {item.title || 'No Title'}
       </a>
       <p className="text-brand-dark text-sm mb-4 break-words">{item.ai_summary || 'Summary unavailable.'}</p>
-      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline block clear-left mt-2 transition-colors duration-150">
-        Read Full Article →
-      </a>
+      <div className="clear-left">
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline block mb-3 transition-colors duration-150">
+          Read Full Article →
+        </a>
+        <SocialShare 
+          title={item.title || 'Microplastics Research'}
+          url={item.url}
+          summary={item.ai_summary}
+          size="small"
+          className="border-t border-gray-100 pt-3"
+        />
+      </div>
     </div>
   );
 };
