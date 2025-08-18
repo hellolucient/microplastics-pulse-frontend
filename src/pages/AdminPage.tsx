@@ -237,7 +237,7 @@ const AdminPage: React.FC = () => {
       try {
           // Explicitly type the expected success response data
           const response = await axios.post<TriggerFetchResponse>(`${BACKEND_URL}/api/trigger-fetch`, { queryIndex: index }, {
-              timeout: 120000 // 2 minute timeout
+              timeout: 180000 // 3 minute timeout - increased for complex queries
           });
           const { addedCount, nextIndex, message } = response.data; 
 
