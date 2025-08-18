@@ -31,11 +31,14 @@ The project operates through a combination of automated fetching, AI processing,
 *   **Automated News Aggregation:** Regularly scans for new articles based on defined search terms.
 *   **AI-Generated Summaries:** Provides concise summaries of articles using GPT-3.5-turbo.
 *   **AI-Generated Images:** Creates unique, relevant images for articles using DALL-E 3.
-*   **Admin Dashboard:** A secure area for project administrators to:
-    *   **Manually Submit Articles:** Add specific URLs for processing.
-    *   **Trigger Manual News Fetch:** Initiate the article fetching and processing cycle for each predefined search query, one by one.
-    *   **Batch AI Updates for Missing Images:** Process stories in the database that are missing an AI-generated image. This function will generate both a new summary and a new image for these articles.
-    *   **Regenerate Image by ID:** Allows an administrator to regenerate the AI image for a specific article using its UUID, without affecting its summary.
+*   **Advanced Admin Dashboard:** A secure area for project administrators with comprehensive management tools:
+    *   **Manual Article Submission:** Add specific URLs for immediate processing
+    *   **Manual News Fetch:** Trigger individual search queries with real-time progress tracking
+    *   **Full Automation Suite:** **NEW** - Run complete daily automation (Google + Email + Twitter) instantly
+    *   **Database Integrity Checker:** **NEW** - Scan for duplicate URLs with detailed statistics and cleanup guidance
+    *   **Batch AI Updates:** Process articles missing AI images with batch controls
+    *   **Image Regeneration:** Regenerate AI images for specific articles by UUID
+    *   **Real-time Status Updates:** Live progress tracking with success/error states and timestamps
 *   **Public News Feed:** Displays the curated and AI-enhanced articles to users.
 *   **Secure Image Storage:** Utilizes Vercel Blob for reliable image hosting.
 *   **Robust Database:** Employs Supabase (PostgreSQL) for structured data storage.
@@ -49,8 +52,8 @@ The project is organized into two main repositories, typically managed within a 
     *   **Responsibilities:** User interface, presenting the news feed, admin dashboard interactions, and communication with the backend API.
 
 2.  **`microplastics-pulse-backend`**
-    *   **Description:** Contains the backend API built with Node.js and Express.js, designed for serverless deployment on Vercel.
-    *   **Responsibilities:** API endpoints for fetching/serving news, handling article submissions, AI processing (summaries, images), database interactions (Supabase), and interfacing with Google Search and Vercel Blob.
+    *   **Description:** Contains the backend API built with Node.js and Express.js, deployed on Railway with automated daily scheduling.
+    *   **Responsibilities:** Automated daily tasks (Google fetch, email processing, Twitter posting), AI processing (summaries, images), database management (Supabase), comprehensive admin tools, and real-time status monitoring.
 
 ## 5. Tech Stack
 
@@ -73,7 +76,8 @@ The project is organized into two main repositories, typically managed within a 
 *   **External Search:**
     *   Google Custom Search API
 *   **Deployment & Hosting:**
-    *   Vercel (for frontend and backend serverless functions)
+    *   Frontend: Vercel (React/TypeScript application)
+    *   Backend: Railway (Node.js with persistent processes and cron scheduling)
 
 ## 6. Key Backend API Endpoints
 
@@ -118,15 +122,42 @@ To set up and run the project locally, you'll generally need to:
     *   **Backend:** `cd microplastics-pulse-backend && npm run dev` (or your configured script, often `node api/index.js` for local testing if set up for it).
     *   **Frontend:** `cd microplastics-pulse-frontend && npm run dev` (or `yarn dev`). This will usually start the Vite development server, and you can access the frontend in your browser (typically `http://localhost:5173` or similar).
 
-## 8. Future Considerations / Potential Improvements
+## 8. Admin Panel Features (Recently Enhanced)
 
-*   **Cron Job Robustness:** If automated fetching is desired on Vercel, explore options like:
-    *   Modifying the cron-triggered backend function to process only a small subset of queries per invocation, using a persistent store (like a Supabase table or Vercel KV) to track progress between runs.
-    *   Using an external, more robust cron job service that calls a simple trigger endpoint on Vercel.
-*   **UI for Search Query Management:** Allow admins to add/edit/delete search queries directly from the admin panel.
-*   **Image Cropping/Editing:** Basic tools to adjust or select from multiple AI-generated image variants.
-*   **Detailed Logging/Monitoring:** Enhanced logging for easier debugging of backend processes.
-*   **Scalability:** For significantly higher traffic or processing loads, a move from serverless to a dedicated server (as discussed) might be necessary, requiring infrastructure management.
+### **🚀 New Automation Controls**
+*   **Manual Automation Trigger**: Run the complete daily automation suite instantly
+*   **Database Integrity Checker**: Comprehensive duplicate URL detection with statistics
+*   **Real-time Status Updates**: Live progress tracking with detailed success/error feedback
+*   **Individual Task Controls**: Separate triggers for Google fetch, email check, and Twitter posting
+
+### **📊 Enhanced Monitoring**
+*   **Automation Task Logs**: Real-time display of backend automation results
+*   **Failed URLs Tracking**: Monitor and retry failed article processing
+*   **Batch Processing Controls**: Advanced controls for updating existing articles
+*   **Timestamp Tracking**: Detailed timing information for all operations
+
+### **🎯 User Experience Improvements**
+*   **Beautiful UI Design**: Modern, responsive interface with clear visual feedback
+*   **Loading States**: Professional loading indicators and disabled button handling
+*   **Error Recovery**: Graceful error handling with detailed error messages
+*   **Success Celebrations**: Clear confirmation of successful operations with helpful tips
+
+## 9. Current Production Status
+
+**✅ Frontend Status: FULLY OPERATIONAL**
+
+The admin panel now provides comprehensive tools for:
+*   **✅ Real-time Automation Control**: Test and monitor backend systems instantly
+*   **✅ Database Management**: Monitor data integrity with automated duplicate detection
+*   **✅ Production Monitoring**: Real-time status updates and detailed logging
+*   **✅ User-friendly Interface**: Beautiful, responsive design with excellent UX
+
+## 10. Future Considerations
+
+*   **UI for Search Query Management**: Allow admins to add/edit/delete search queries directly
+*   **Enhanced Analytics Dashboard**: Detailed metrics on article engagement and automation performance  
+*   **Image Cropping/Editing**: Basic tools to adjust AI-generated image variants
+*   **Multi-user Admin System**: Role-based access controls for different admin levels
 
 ---
 
