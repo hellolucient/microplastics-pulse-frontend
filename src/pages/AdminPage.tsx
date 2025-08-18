@@ -236,7 +236,9 @@ const AdminPage: React.FC = () => {
 
       try {
           // Explicitly type the expected success response data
-          const response = await axios.post<TriggerFetchResponse>(`${BACKEND_URL}/api/trigger-fetch`, { queryIndex: index });
+          const response = await axios.post<TriggerFetchResponse>(`${BACKEND_URL}/api/trigger-fetch`, { queryIndex: index }, {
+              timeout: 120000 // 2 minute timeout
+          });
           const { addedCount, nextIndex, message } = response.data; 
 
           setTotalAdded(prev => prev + (addedCount || 0));
@@ -281,9 +283,17 @@ const AdminPage: React.FC = () => {
               [index]: { status: 'error', message: `Error: ${errorMessage}` }
           }));
           setFetchError(`Failed on query ${index + 1}. ${errorMessage}`);
-          setIsFetching(false); // Stop the queue on error
-          setCurrentQueryIndex(null);
-          setFetchCompleted(true);
+          
+          // Continue to next query on error instead of stopping completely
+          const nextIndex = index + 1;
+          if (nextIndex < searchQueries.length) {
+              console.log(`Continuing to next query ${nextIndex + 1} after error on ${index + 1}`);
+              setTimeout(() => processFetchQueue(nextIndex), 1000); // Small delay before continuing
+          } else {
+              setIsFetching(false);
+              setCurrentQueryIndex(null);
+              setFetchCompleted(true);
+          }
       }
   };
 
