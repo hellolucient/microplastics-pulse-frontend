@@ -115,6 +115,7 @@ interface CronStatusResponse {
   nextScheduledRun: string;
   serverUptime: number;
   timezone: string;
+  appSleepingWarning?: string;
 }
 
 const AdminPage: React.FC = () => {
@@ -690,6 +691,17 @@ const AdminPage: React.FC = () => {
                   <p className="text-sm text-gray-600"><strong>Timezone:</strong> {cronStatus.timezone}</p>
                 </div>
               </div>
+              {cronStatus.appSleepingWarning && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center">
+                    <span className="text-yellow-600 font-semibold mr-2">⚠️ Warning:</span>
+                    <p className="text-sm text-yellow-700">{cronStatus.appSleepingWarning}</p>
+                  </div>
+                  <p className="text-xs text-yellow-600 mt-2">
+                    Consider using an external cron service to call /api/admin/trigger-automation at 2am UTC, or upgrade to a Railway plan with always-on services.
+                  </p>
+                </div>
+              )}
             ) : (
               <p className="text-red-600">Unable to fetch cron job status. Please check server connection.</p>
             )}
