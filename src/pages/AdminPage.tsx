@@ -79,11 +79,7 @@ interface TweetCandidate extends Story {
 }
 // --- END ADDED ---
 
-interface ManualSubmissionResponse {
-  success: boolean;
-  message: string;
-  data?: any; // You can define a more specific type for the article data if needed
-}
+
 
 interface DuplicateCheckResponse {
   totalRecords: number;
@@ -97,6 +93,28 @@ interface DuplicateCheckResponse {
     originalId: number;
     duplicateIds: number[];
   }>;
+}
+
+// Interface for automation trigger response
+interface AutomationTriggerResponse {
+  message: string;
+  status: 'SUCCESS' | 'FAILURE';
+  details: {
+    google_fetch: { status: string; details: string; articles_added: number };
+    email_check: { status: string; details: string };
+    tweet_post: { status: string; details: string };
+  };
+  timestamp: string;
+}
+
+// Interface for cron status response
+interface CronStatusResponse {
+  currentTime: string;
+  cronSchedule: string;
+  cronJobRunning: boolean;
+  nextScheduledRun: string;
+  serverUptime: number;
+  timezone: string;
 }
 
 const AdminPage: React.FC = () => {
@@ -139,8 +157,12 @@ const AdminPage: React.FC = () => {
 
   // --- State for Manual Automation Trigger ---
   const [isRunningAutomation, setIsRunningAutomation] = useState(false);
-  const [automationResult, setAutomationResult] = useState<{message: string, timestamp: string} | null>(null);
+  const [automationResult, setAutomationResult] = useState<AutomationTriggerResponse | null>(null);
   const [automationError, setAutomationError] = useState<string | null>(null);
+
+  // --- State for Cron Status ---
+  const [cronStatus, setCronStatus] = useState<CronStatusResponse | null>(null);
+  const [isFetchingCronStatus, setIsFetchingCronStatus] = useState(false);
 
   // --- ADDED: State for Twitter Feature ---
   const [isFetchingCandidates, setIsFetchingCandidates] = useState(false);
@@ -462,7 +484,8 @@ const AdminPage: React.FC = () => {
         message: '',
         processedCount: 0,
         failedCount: 0,
-        failedUrls: []
+        failedUrls: [],
+        processedUrls: []
       });
     } finally {
       setIsCheckingEmails(false);
@@ -497,16 +520,53 @@ const AdminPage: React.FC = () => {
 
     try {
       const response = await axios.post(`${BACKEND_URL}/api/admin/trigger-automation`);
-      setAutomationResult(response.data);
+      
+      // Handle both success (200) and partial success (207) as successful completion
+      if (response.status === 200 || response.status === 207) {
+        setAutomationResult(response.data as AutomationTriggerResponse);
+        // Clear any previous errors since the automation completed
+        setAutomationError(null);
+      } else {
+        // This shouldn't happen with axios, but just in case
+        const errorMessage = (response.data as any)?.details || (response.data as any)?.error || 'Unexpected response status';
+        setAutomationError(`Automation completed with issues: ${errorMessage}`);
+      }
     } catch (error: any) {
       console.error('Error triggering automation:', error);
-      const errorMessage = error.response?.data?.details || error.response?.data?.error || error.message || 'An unknown error occurred';
-      setAutomationError(`Failed to run automation: ${errorMessage}`);
+      
+      // Check if it's a partial success (207) that axios treated as an error
+      if (error.response?.status === 207) {
+        setAutomationResult(error.response.data as AutomationTriggerResponse);
+        setAutomationError(null);
+      } else {
+        const errorMessage = error.response?.data?.details || error.response?.data?.error || error.message || 'An unknown error occurred';
+        setAutomationError(`Failed to run automation: ${errorMessage}`);
+      }
     } finally {
       setIsRunningAutomation(false);
     }
   };
   // --- End Manual Automation Trigger Handler ---
+
+  // --- Cron Status Handler ---
+  const fetchCronStatus = async () => {
+    setIsFetchingCronStatus(true);
+    try {
+      const response = await axios.get<CronStatusResponse>(`${BACKEND_URL}/api/admin/cron-status`);
+      setCronStatus(response.data);
+    } catch (error: any) {
+      console.error('Error fetching cron status:', error);
+      setCronStatus(null);
+    } finally {
+      setIsFetchingCronStatus(false);
+    }
+  };
+
+  // Fetch cron status on component mount
+  useEffect(() => {
+    fetchCronStatus();
+  }, []);
+  // --- End Cron Status Handler ---
 
   // --- ADDED: Twitter Feature Handlers ---
 
@@ -593,6 +653,48 @@ const AdminPage: React.FC = () => {
         </div>
 
         <AutomationLogSection />
+
+        {/* Cron Job Status */}
+        <div className="mb-8">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-700">Cron Job Status</h2>
+              <button
+                onClick={fetchCronStatus}
+                disabled={isFetchingCronStatus}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-blue-300"
+              >
+                {isFetchingCronStatus ? 'Refreshing...' : 'Refresh Status'}
+              </button>
+            </div>
+            
+            {cronStatus ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-semibold text-gray-700 mb-2">Schedule Information</h3>
+                  <p className="text-sm text-gray-600"><strong>Schedule:</strong> {cronStatus.cronSchedule} (Daily at 2:00 AM UTC)</p>
+                  <p className="text-sm text-gray-600"><strong>Next Run:</strong> {new Date(cronStatus.nextScheduledRun).toLocaleString()}</p>
+                  <p className="text-sm text-gray-600"><strong>Current Time:</strong> {new Date(cronStatus.currentTime).toLocaleString()}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-semibold text-gray-700 mb-2">System Status</h3>
+                  <p className="text-sm text-gray-600">
+                    <strong>Cron Job Status:</strong> 
+                    <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
+                      cronStatus.cronJobRunning ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
+                    }`}>
+                      {cronStatus.cronJobRunning ? 'RUNNING' : 'STOPPED'}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-600"><strong>Server Uptime:</strong> {Math.floor(cronStatus.serverUptime / 3600)}h {Math.floor((cronStatus.serverUptime % 3600) / 60)}m</p>
+                  <p className="text-sm text-gray-600"><strong>Timezone:</strong> {cronStatus.timezone}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-red-600">Unable to fetch cron job status. Please check server connection.</p>
+            )}
+          </div>
+        </div>
         
         <FailedUrlsSection />
         
