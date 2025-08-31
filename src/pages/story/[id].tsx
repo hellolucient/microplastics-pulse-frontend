@@ -55,6 +55,11 @@ const StoryPage: React.FC = () => {
   const displayDate = story?.published_date ? new Date(story.published_date) : (story?.created_at ? new Date(story.created_at) : new Date());
   const formattedDate = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   
+  // Debug logging
+  console.log('Story data:', story);
+  console.log('Image URL:', imageUrl);
+  console.log('Final OG image URL:', imageUrl.startsWith('http') ? imageUrl : `${window.location.origin}${imageUrl}`);
+  
   // Clean HTML tags from text content
   const cleanText = (text: string | null): string => {
     if (!text) return '';
@@ -100,7 +105,7 @@ const StoryPage: React.FC = () => {
         <meta property="og:type" content="article" />
         <meta property="og:title" content={cleanTitle} />
         <meta property="og:description" content={cleanSummary || cleanTitle} />
-        <meta property="og:image" content={imageUrl.startsWith('http') ? imageUrl : `${window.location.origin}${imageUrl}`} />
+        <meta property="og:image" content={`${imageUrl.startsWith('http') ? imageUrl : `${window.location.origin}${imageUrl}`}?v=${Date.now()}`} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:type" content="image/jpeg" />
@@ -112,7 +117,7 @@ const StoryPage: React.FC = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={cleanTitle} />
         <meta name="twitter:description" content={cleanSummary || cleanTitle} />
-        <meta name="twitter:image" content={imageUrl.startsWith('http') ? imageUrl : `${window.location.origin}${imageUrl}`} />
+        <meta name="twitter:image" content={`${imageUrl.startsWith('http') ? imageUrl : `${window.location.origin}${imageUrl}`}?v=${Date.now()}`} />
         
         {/* Additional meta tags */}
         <meta name="author" content="MicroplasticsWatch" />
