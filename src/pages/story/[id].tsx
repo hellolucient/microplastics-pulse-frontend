@@ -52,6 +52,15 @@ const StoryPage: React.FC = () => {
   const imageUrl = story?.ai_image_url || fallbackPlaceholderImage;
   const displayDate = story?.published_date ? new Date(story.published_date) : (story?.created_at ? new Date(story.created_at) : new Date());
   const formattedDate = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  
+  // Clean HTML tags from text content
+  const cleanText = (text: string | null): string => {
+    if (!text) return '';
+    return text.replace(/<[^>]*>/g, '');
+  };
+  
+  const cleanTitle = cleanText(story?.title || null);
+  const cleanSummary = cleanText(story?.ai_summary || null);
 
   if (isLoading) {
     return (
@@ -82,21 +91,21 @@ const StoryPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>{story.title} | MicroplasticsWatch</title>
-        <meta name="description" content={story.ai_summary || story.title} />
+        <title>{cleanTitle} | MicroplasticsWatch</title>
+        <meta name="description" content={cleanSummary || cleanTitle} />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="article" />
-        <meta property="og:title" content={story.title} />
-        <meta property="og:description" content={story.ai_summary || story.title} />
+        <meta property="og:title" content={cleanTitle} />
+        <meta property="og:description" content={cleanSummary || cleanTitle} />
         <meta property="og:image" content={imageUrl} />
         <meta property="og:url" content={`${window.location.origin}/story/${story.id}`} />
         <meta property="og:site_name" content="MicroplasticsWatch" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={story.title} />
-        <meta name="twitter:description" content={story.ai_summary || story.title} />
+        <meta name="twitter:title" content={cleanTitle} />
+        <meta name="twitter:description" content={cleanSummary || cleanTitle} />
         <meta name="twitter:image" content={imageUrl} />
         
         {/* Additional meta tags */}
@@ -108,7 +117,7 @@ const StoryPage: React.FC = () => {
         <article>
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-brand-darker leading-tight mb-4">
-            {story.title}
+            {cleanTitle}
           </h1>
           <div className="text-md text-gray-500">
             <span>Published on {formattedDate}</span>
@@ -119,14 +128,14 @@ const StoryPage: React.FC = () => {
         <div className="mb-8">
           <img
             src={imageUrl}
-            alt={story.title}
+            alt={cleanTitle}
             className="w-full h-auto object-cover rounded-lg shadow-lg"
             onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
           />
         </div>
 
         <div className="prose prose-lg max-w-none text-brand-dark">
-          <p>{story.ai_summary}</p>
+          <p>{cleanSummary}</p>
         </div>
 
         <footer className="mt-12 pt-8 border-t border-gray-200">
@@ -141,9 +150,9 @@ const StoryPage: React.FC = () => {
             </a>
             
             <SocialShare
-              title={story.title}
+              title={cleanTitle}
               url={story.url}
-              summary={story.ai_summary}
+              summary={cleanSummary}
               storyId={story.id}
               size="medium"
               className="sm:ml-4"
