@@ -95,7 +95,10 @@ const SocialShare: React.FC<SocialShareProps> = ({
     try {
       await navigator.clipboard.writeText(modalContent.content);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      // Auto-open social platform after copying
+      setTimeout(() => {
+        openSocialPlatform();
+      }, 1000);
     } catch (err) {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
@@ -105,7 +108,10 @@ const SocialShare: React.FC<SocialShareProps> = ({
       document.execCommand('copy');
       document.body.removeChild(textArea);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      // Auto-open social platform after copying
+      setTimeout(() => {
+        openSocialPlatform();
+      }, 1000);
     }
   };
 
@@ -200,58 +206,50 @@ const SocialShare: React.FC<SocialShareProps> = ({
           />
           
           {/* Modal */}
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+          <div className="relative bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[70vh] overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-brand-blue to-sky-600 text-white">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-brand-blue to-sky-600 text-white">
+              <div className="flex items-center gap-2">
                 {modalContent.platform === 'Facebook' ? (
-                  <Facebook className="h-6 w-6" />
+                  <Facebook className="h-5 w-5" />
                 ) : (
-                  <Linkedin className="h-6 w-6" />
+                  <Linkedin className="h-5 w-5" />
                 )}
-                <h3 className="text-xl font-bold">{modalContent.title}</h3>
+                <h3 className="text-lg font-semibold">{modalContent.title}</h3>
               </div>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
+                className="p-1.5 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
             
             {/* Content */}
-            <div className="p-6 max-h-96 overflow-y-auto">
-              <div className="bg-gray-50 rounded-lg p-4 border">
-                <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
+            <div className="p-4 max-h-48 overflow-y-auto">
+              <div className="bg-gray-50 rounded-lg p-3 border">
+                <div className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">
                   {modalContent.content}
-                </pre>
+                </div>
               </div>
             </div>
             
             {/* Footer */}
-            <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-              <div className="text-sm text-gray-600">
-                Copy the post above, then click "Open {modalContent.platform}" to share
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="text-sm text-gray-600 mb-3">
+                Copy this post, then paste in the {modalContent.platform} share popup
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={copyModalContent}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    copied 
-                      ? 'bg-green-100 text-green-700 border border-green-300' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
-                  }`}
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {copied ? 'Copied!' : 'Copy Post'}
-                </button>
-                <button
-                  onClick={openSocialPlatform}
-                  className="flex items-center gap-2 px-6 py-2 bg-brand-blue text-white rounded-lg font-medium hover:bg-sky-700 transition-colors duration-200"
-                >
-                  Open {modalContent.platform}
-                </button>
-              </div>
+              <button
+                onClick={copyModalContent}
+                className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+                  copied 
+                    ? 'bg-green-100 text-green-700 border border-green-300' 
+                    : 'bg-brand-blue text-white hover:bg-sky-700 border border-brand-blue'
+                }`}
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? 'Copied!' : 'Copy Post'}
+              </button>
             </div>
           </div>
         </div>
