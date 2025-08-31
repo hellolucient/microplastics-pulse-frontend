@@ -30,16 +30,23 @@ const SocialShare: React.FC<SocialShareProps> = ({
   };
 
   const shareToFacebook = () => {
-    // Facebook only accepts URLs and crawls the page for meta tags
-    // The rich preview depends on proper Open Graph meta tags being generated
-    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-    window.open(facebookShareUrl, '_blank', 'width=580,height=296');
+    // Generate a professional Facebook post
+    const cleanTitle = title.replace(/<[^>]*>/g, '');
+    const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
+    const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research\n\nRead more: ${shareUrl}`;
+    
+    // Show the post in an alert that users can copy
+    alert(`Facebook Post Ready to Copy:\n\n${facebookPost}\n\nCopy this text and paste it into Facebook!`);
   };
 
   const shareToLinkedIn = () => {
-    // LinkedIn Share API supports pre-filled content like Twitter
-    const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary || title)}`;
-    window.open(linkedinShareUrl, '_blank', 'width=520,height=570');
+    // Generate a professional LinkedIn post
+    const cleanTitle = title.replace(/<[^>]*>/g, '');
+    const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
+    const linkedinPost = `🔬 New Research Alert: ${cleanTitle}\n\n${cleanSummary}\n\nThis study highlights the critical impact of microplastics on our health and environment. As researchers continue to uncover the extent of this crisis, it's crucial we stay informed and take action.\n\n#microplastics #health #environment #research\n\nRead the full article: ${shareUrl}`;
+    
+    // Show the post in an alert that users can copy
+    alert(`LinkedIn Post Ready to Copy:\n\n${linkedinPost}\n\nCopy this text and paste it into LinkedIn!`);
   };
 
   const copyToClipboard = async () => {
