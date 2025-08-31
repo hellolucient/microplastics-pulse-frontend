@@ -35,28 +35,12 @@ const SocialShare: React.FC<SocialShareProps> = ({
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
     const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research\n\nRead more: ${shareUrl}`;
     
-    // Open Facebook share popup first
+    // Show our alert first, then open Facebook popup
+    alert(`Facebook Post Ready to Copy:\n\n${facebookPost}\n\nClick OK, then the Facebook popup will open. Copy this post and paste it into Facebook!`);
+    
+    // Open Facebook share popup after alert
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
     window.open(facebookShareUrl, '_blank', 'width=580,height=296');
-    
-    // Then show our alert with the post content
-    const userClickedCopy = confirm(`Facebook Post Ready to Copy:\n\n${facebookPost}\n\nClick "OK" to copy, "Cancel" to close.`);
-    
-    if (userClickedCopy) {
-      // Copy to clipboard
-      navigator.clipboard.writeText(facebookPost).then(() => {
-        alert('Post copied to clipboard! Now paste it into the Facebook popup.');
-      }).catch(() => {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = facebookPost;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        alert('Post copied to clipboard! Now paste it into the Facebook popup.');
-      });
-    }
   };
 
   const shareToLinkedIn = () => {
@@ -65,28 +49,12 @@ const SocialShare: React.FC<SocialShareProps> = ({
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
     const linkedinPost = `🔬 New Research Alert: ${cleanTitle}\n\n${cleanSummary}\n\nThis study highlights the critical impact of microplastics on our health and environment. As researchers continue to uncover the extent of this crisis, it's crucial we stay informed and take action.\n\n#microplastics #health #environment #research\n\nRead the full article: ${shareUrl}`;
     
-    // Open LinkedIn share popup first
+    // Show our alert first, then open LinkedIn popup
+    alert(`LinkedIn Post Ready to Copy:\n\n${linkedinPost}\n\nClick OK, then the LinkedIn popup will open. Copy this post and paste it into LinkedIn!`);
+    
+    // Open LinkedIn share popup after alert
     const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(cleanTitle)}&summary=${encodeURIComponent(cleanSummary)}`;
     window.open(linkedinShareUrl, '_blank', 'width=520,height=570');
-    
-    // Then show our alert with the post content
-    const userClickedCopy = confirm(`LinkedIn Post Ready to Copy:\n\n${linkedinPost}\n\nClick "OK" to copy, "Cancel" to close.`);
-    
-    if (userClickedCopy) {
-      // Copy to clipboard
-      navigator.clipboard.writeText(linkedinPost).then(() => {
-        alert('Post copied to clipboard! Now paste it into the LinkedIn popup.');
-      }).catch(() => {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = linkedinPost;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        alert('Post copied to clipboard! Now paste it into the LinkedIn popup.');
-      });
-    }
   };
 
   const copyToClipboard = async () => {
