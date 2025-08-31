@@ -40,8 +40,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
     // Generate a professional Facebook post
     const cleanTitle = title.replace(/<[^>]*>/g, '');
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
-    const imageText = imageUrl ? `\n\n🖼️ Image: ${imageUrl}` : '';
-    const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research${imageText}\n\nRead more: ${shareUrl}`;
+    const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research\n\nRead more: ${shareUrl}`;
     
     // Reset copied state and show our beautiful modal
     setCopied(false);
@@ -58,8 +57,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
     // Generate a professional LinkedIn post
     const cleanTitle = title.replace(/<[^>]*>/g, '');
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
-    const imageText = imageUrl ? `\n\n🖼️ Image: ${imageUrl}` : '';
-    const linkedinPost = `🔬 New Research Alert: ${cleanTitle}\n\n${cleanSummary}\n\nThis study highlights the critical impact of microplastics on our health and environment. As researchers continue to uncover the extent of this crisis, it's crucial we stay informed and take action.\n\n#microplastics #health #environment #research${imageText}\n\nRead the full article: ${shareUrl}`;
+    const linkedinPost = `🔬 New Research Alert: ${cleanTitle}\n\n${cleanSummary}\n\nThis study highlights the critical impact of microplastics on our health and environment. As researchers continue to uncover the extent of this crisis, it's crucial we stay informed and take action.\n\n#microplastics #health #environment #research\n\nRead the full article: ${shareUrl}`;
     
     // Reset copied state and show our beautiful modal
     setCopied(false);

@@ -101,6 +101,10 @@ const StoryPage: React.FC = () => {
         <meta property="og:title" content={cleanTitle} />
         <meta property="og:description" content={cleanSummary || cleanTitle} />
         <meta property="og:image" content={imageUrl.startsWith('http') ? imageUrl : `${window.location.origin}${imageUrl}`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:alt" content={cleanTitle} />
         <meta property="og:url" content={`${window.location.origin}/story/${story.id}`} />
         <meta property="og:site_name" content="MicroplasticsWatch" />
         
