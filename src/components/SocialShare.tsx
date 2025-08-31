@@ -49,7 +49,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
       content: facebookPost,
       platform: 'Facebook',
       url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-      imageUrl: imageUrl
+      imageUrl: imageUrl || null
     });
     setIsModalOpen(true);
   };
@@ -67,7 +67,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
       content: linkedinPost,
       platform: 'LinkedIn',
       url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-      imageUrl: imageUrl
+      imageUrl: imageUrl || null
     });
     setIsModalOpen(true);
   };
