@@ -5,6 +5,8 @@ import fallbackPlaceholderImage from '../../assets/fail whale elephant_404 overl
 import SocialShare from '../../components/SocialShare';
 import { Helmet } from 'react-helmet-async';
 
+
+
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 
 interface NewsItem {
