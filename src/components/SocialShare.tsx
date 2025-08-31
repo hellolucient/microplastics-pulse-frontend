@@ -19,19 +19,25 @@ const SocialShare: React.FC<SocialShareProps> = ({
   storyId 
 }) => {
   // Generate your site's story URL if storyId is provided, otherwise use the original URL
+  // This ensures social shares point to YOUR site first, not the source
   const shareUrl = storyId ? `${window.location.origin}/story/${storyId}` : url;
   const shareToTwitter = () => {
+    // Twitter accepts pre-filled content directly (title, hashtags, URL)
+    // This is why Twitter works - no crawling needed!
     const text = `${title} - Important microplastics research`;
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}&hashtags=microplastics,health,environment`;
     window.open(twitterShareUrl, '_blank', 'width=550,height=420');
   };
 
   const shareToFacebook = () => {
+    // Facebook only accepts URLs and crawls the page for meta tags
+    // The rich preview depends on proper Open Graph meta tags being generated
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
     window.open(facebookShareUrl, '_blank', 'width=580,height=296');
   };
 
   const shareToLinkedIn = () => {
+    // LinkedIn Share API supports pre-filled content like Twitter
     const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary || title)}`;
     window.open(linkedinShareUrl, '_blank', 'width=520,height=570');
   };
