@@ -40,8 +40,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
     
     // Copy the post to clipboard
     navigator.clipboard.writeText(facebookPost).then(() => {
-      // Open Facebook sharing popup with no pre-populated content
-      window.open('https://www.facebook.com/sharer/sharer.php', '_blank', 'width=580,height=296');
+      // Open Facebook sharing popup with the URL to share
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=580,height=296');
     }).catch(() => {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
@@ -50,8 +50,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      // Open Facebook sharing popup with no pre-populated content
-      window.open('https://www.facebook.com/sharer/sharer.php', '_blank', 'width=580,height=296');
+      // Open Facebook sharing popup with the URL to share
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=580,height=296');
     });
   };
 
@@ -66,8 +66,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
     
     // Copy the post to clipboard
     navigator.clipboard.writeText(linkedinPost).then(() => {
-      // Open LinkedIn sharing popup with no pre-populated content
-      window.open('https://www.linkedin.com/sharing/share-offsite/', '_blank', 'width=520,height=570');
+      // Open LinkedIn sharing popup with the URL to share
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank', 'width=520,height=570');
     }).catch(() => {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
@@ -76,8 +76,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      // Open LinkedIn sharing popup with no pre-populated content
-      window.open('https://www.linkedin.com/sharing/share-offsite/', '_blank', 'width=520,height=570');
+      // Open LinkedIn sharing popup with the URL to share
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank', 'width=520,height=570');
     });
   };
 

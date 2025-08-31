@@ -100,7 +100,7 @@ const StoryPage: React.FC = () => {
         <meta property="og:type" content="article" />
         <meta property="og:title" content={cleanTitle} />
         <meta property="og:description" content={cleanSummary || cleanTitle} />
-        <meta property="og:image" content={imageUrl} />
+        <meta property="og:image" content={imageUrl.startsWith('http') ? imageUrl : `${window.location.origin}${imageUrl}`} />
         <meta property="og:url" content={`${window.location.origin}/story/${story.id}`} />
         <meta property="og:site_name" content="MicroplasticsWatch" />
         
@@ -108,7 +108,7 @@ const StoryPage: React.FC = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={cleanTitle} />
         <meta name="twitter:description" content={cleanSummary || cleanTitle} />
-        <meta name="twitter:image" content={imageUrl} />
+        <meta name="twitter:image" content={imageUrl.startsWith('http') ? imageUrl : `${window.location.origin}${imageUrl}`} />
         
         {/* Additional meta tags */}
         <meta name="author" content="MicroplasticsWatch" />
