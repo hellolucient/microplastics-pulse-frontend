@@ -11,6 +11,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const story = await response.json();
     
+    // Clean HTML tags from content
+    const cleanTitle = story.title?.replace(/<[^>]*>/g, '') || 'Story';
+    const cleanSummary = story.ai_summary?.replace(/<[^>]*>/g, '') || story.title?.replace(/<[^>]*>/g, '') || 'Stay informed with the latest microplastics research.';
+    
     // Generate HTML with meta tags for crawlers
     const html = `
 <!DOCTYPE html>
@@ -18,22 +22,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${story.title} | MicroplasticsWatch</title>
-  <meta name="description" content="${story.ai_summary || story.title}">
+  <title>${cleanTitle} | MicroplasticsWatch</title>
+  <meta name="description" content="${cleanSummary}">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="article">
-  <meta property="og:title" content="${story.title}">
-  <meta property="og:description" content="${story.ai_summary || story.title}">
-  <meta property="og:image" content="${story.ai_image_url || '/Microplastics Watch_verticle logo.png'}">
+  <meta property="og:title" content="${cleanTitle}">
+  <meta property="og:description" content="${cleanSummary}">
+  <meta property="og:image" content="${story.ai_image_url || 'https://www.microplasticswatch.com/Microplastics Watch_verticle logo.png'}">
   <meta property="og:url" content="https://www.microplasticswatch.com/story/${id}">
   <meta property="og:site_name" content="MicroplasticsWatch">
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${story.title}">
-  <meta name="twitter:description" content="${story.ai_summary || story.title}">
-  <meta name="twitter:image" content="${story.ai_image_url || '/Microplastics Watch_verticle logo.png'}">
+  <meta name="twitter:title" content="${cleanTitle}">
+  <meta name="twitter:description" content="${cleanSummary}">
+  <meta name="twitter:image" content="${story.ai_image_url || 'https://www.microplasticswatch.com/Microplastics Watch_verticle logo.png'}">
   
   <!-- Additional meta tags -->
   <meta name="author" content="MicroplasticsWatch">
@@ -56,6 +60,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).send(html);
     
   } catch (error) {
+    console.error('Edge Function error:', error);
+    
     // Fallback to basic meta tags if story fetch fails
     const fallbackHtml = `
 <!DOCTYPE html>
@@ -70,7 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="og:type" content="website">
   <meta property="og:title" content="MicroplasticsWatch - Latest Research & News">
   <meta property="og:description" content="Stay informed with the latest microplastics research, news, and insights.">
-  <meta property="og:image" content="/Microplastics Watch_verticle logo.png">
+  <meta property="og:image" content="https://www.microplasticswatch.com/Microplastics Watch_verticle logo.png">
   <meta property="og:url" content="https://www.microplasticswatch.com/story/${id}">
   <meta property="og:site_name" content="MicroplasticsWatch">
   
@@ -78,7 +84,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MicroplasticsWatch - Latest Research & News">
   <meta name="twitter:description" content="Stay informed with the latest microplastics research, news, and insights.">
-  <meta name="twitter:image" content="/Microplastics Watch_verticle logo.png">
+  <meta name="twitter:image" content="https://www.microplasticswatch.com/Microplastics Watch_verticle logo.png">
   
   <!-- Redirect to the actual story page -->
   <meta http-equiv="refresh" content="0;url=https://www.microplasticswatch.com/story/${id}">
