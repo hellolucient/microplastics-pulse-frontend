@@ -38,8 +38,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
     // Show our alert first, then open Facebook popup
     alert(`Facebook Post Ready to Copy:\n\n${facebookPost}\n\nClick OK, then the Facebook popup will open. Copy this post and paste it into Facebook!`);
     
-    // Open Facebook popup with no pre-populated content
-    window.open('https://www.facebook.com/', '_blank', 'width=580,height=296');
+    // Open Facebook sharing popup with no pre-populated content
+    window.open('https://www.facebook.com/sharer/sharer.php', '_blank', 'width=580,height=296');
   };
 
   const shareToLinkedIn = () => {
@@ -51,8 +51,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
     // Show our alert first, then open LinkedIn popup
     alert(`LinkedIn Post Ready to Copy:\n\n${linkedinPost}\n\nClick OK, then the LinkedIn popup will open. Copy this post and paste it into LinkedIn!`);
     
-    // Open LinkedIn popup with no pre-populated content
-    window.open('https://www.linkedin.com/feed/', '_blank', 'width=520,height=570');
+    // Open LinkedIn sharing popup with no pre-populated content
+    window.open('https://www.linkedin.com/sharing/share-offsite/', '_blank', 'width=520,height=570');
   };
 
   const copyToClipboard = async () => {
