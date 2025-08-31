@@ -17,24 +17,24 @@ const Header: React.FC = () => {
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-gray-900/10 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center">
           <Link to="/" onClick={handleLinkClick} className="flex items-center">
-            <img src="/microplastics_watch_icon.png" alt="MicroplasticsWatch Logo" className="h-16 w-auto" />
+            <img src="/Microplastics Watch_verticle logo.png" alt="MicroplasticsWatch Logo" className="h-12 w-auto" />
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
-          <Link to="/" onClick={handleLinkClick} className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Home</Link>
-          <Link to="/latest-news" onClick={handleLinkClick} className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Latest News</Link>
-          <Link to="/contact" onClick={handleLinkClick} className="text-base font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Contact</Link>
+        <nav className="hidden md:flex items-center gap-6">
+          <Link to="/" onClick={handleLinkClick} className="text-sm font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Home</Link>
+          <Link to="/latest-news" onClick={handleLinkClick} className="text-sm font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">News Archives</Link>
+          <Link to="/contact" onClick={handleLinkClick} className="text-sm font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Contact</Link>
         </nav>
 
         {/* Mobile Menu Button */}
         <div className="md:hidden">
           <button onClick={toggleMobileMenu} className="text-brand-dark hover:text-brand-blue focus:outline-none">
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>

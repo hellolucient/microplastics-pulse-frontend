@@ -17,11 +17,6 @@ const Footer: React.FC = () => {
             </Link>
           </div>
 
-          <nav className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 mb-4 md:mb-0 md:ml-10">
-            <Link to="/" onClick={scrollToTop} className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Home</Link>
-            <Link to="/latest-news" className="text-sm text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Latest News</Link>
-          </nav>
-
           <div className="text-center md:text-right">
             <p className="text-sm text-gray-600">
               &copy; {new Date().getFullYear()} MicroplasticsWatch

@@ -7,6 +7,7 @@ interface SocialShareProps {
   summary?: string | null;
   className?: string;
   size?: 'small' | 'medium' | 'large';
+  storyId?: string | number; // Add storyId to generate your site's URL
 }
 
 const SocialShare: React.FC<SocialShareProps> = ({ 
@@ -14,27 +15,30 @@ const SocialShare: React.FC<SocialShareProps> = ({
   url, 
   summary, 
   className = '', 
-  size = 'medium' 
+  size = 'medium',
+  storyId 
 }) => {
+  // Generate your site's story URL if storyId is provided, otherwise use the original URL
+  const shareUrl = storyId ? `${window.location.origin}/story/${storyId}` : url;
   const shareToTwitter = () => {
     const text = `${title} - Important microplastics research`;
-    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=microplastics,health,environment`;
-    window.open(shareUrl, '_blank', 'width=550,height=420');
+    const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}&hashtags=microplastics,health,environment`;
+    window.open(twitterShareUrl, '_blank', 'width=550,height=420');
   };
 
   const shareToFacebook = () => {
-    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-    window.open(shareUrl, '_blank', 'width=580,height=296');
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    window.open(facebookShareUrl, '_blank', 'width=580,height=296');
   };
 
   const shareToLinkedIn = () => {
-    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary || title)}`;
-    window.open(shareUrl, '_blank', 'width=520,height=570');
+    const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary || title)}`;
+    window.open(linkedinShareUrl, '_blank', 'width=520,height=570');
   };
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareUrl);
       // Simple feedback - you could enhance this with a toast notification later
       const button = document.activeElement as HTMLButtonElement;
       const originalText = button.innerHTML;
@@ -47,7 +51,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
     } catch (err) {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
-      textArea.value = url;
+      textArea.value = shareUrl;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import fallbackPlaceholderImage from '../../assets/fail whale elephant_404 overload.png';
+import SocialShare from '../../components/SocialShare';
+import { Helmet } from 'react-helmet-async';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 
@@ -78,8 +80,32 @@ const StoryPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <article>
+    <>
+      <Helmet>
+        <title>{story.title} | MicroplasticsWatch</title>
+        <meta name="description" content={story.ai_summary || story.title} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={story.title} />
+        <meta property="og:description" content={story.ai_summary || story.title} />
+        <meta property="og:image" content={imageUrl} />
+        <meta property="og:url" content={`${window.location.origin}/story/${story.id}`} />
+        <meta property="og:site_name" content="MicroplasticsWatch" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={story.title} />
+        <meta name="twitter:description" content={story.ai_summary || story.title} />
+        <meta name="twitter:image" content={imageUrl} />
+        
+        {/* Additional meta tags */}
+        <meta name="author" content="MicroplasticsWatch" />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <article>
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-brand-darker leading-tight mb-4">
             {story.title}
@@ -104,17 +130,29 @@ const StoryPage: React.FC = () => {
         </div>
 
         <footer className="mt-12 pt-8 border-t border-gray-200">
-          <a
-            href={story.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-brand-blue text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-700 transition-colors duration-200"
-          >
-            Read Full Article
-          </a>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <a
+              href={story.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-brand-blue text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-700 transition-colors duration-200"
+            >
+              Read Full Article
+            </a>
+            
+            <SocialShare
+              title={story.title}
+              url={story.url}
+              summary={story.ai_summary}
+              storyId={story.id}
+              size="medium"
+              className="sm:ml-4"
+            />
+          </div>
         </footer>
       </article>
     </div>
+    </>
   );
 };
 

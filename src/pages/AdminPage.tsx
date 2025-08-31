@@ -670,38 +670,40 @@ const AdminPage: React.FC = () => {
             </div>
             
             {cronStatus ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-semibold text-gray-700 mb-2">Schedule Information</h3>
-                  <p className="text-sm text-gray-600"><strong>Schedule:</strong> {cronStatus.cronSchedule} (Daily at 2:00 AM UTC)</p>
-                  <p className="text-sm text-gray-600"><strong>Next Run:</strong> {new Date(cronStatus.nextScheduledRun).toLocaleString()}</p>
-                  <p className="text-sm text-gray-600"><strong>Current Time:</strong> {new Date(cronStatus.currentTime).toLocaleString()}</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-semibold text-gray-700 mb-2">System Status</h3>
-                  <p className="text-sm text-gray-600">
-                    <strong>Cron Job Status:</strong> 
-                    <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
-                      cronStatus.cronJobRunning ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
-                    }`}>
-                      {cronStatus.cronJobRunning ? 'RUNNING' : 'STOPPED'}
-                    </span>
-                  </p>
-                  <p className="text-sm text-gray-600"><strong>Server Uptime:</strong> {Math.floor(cronStatus.serverUptime / 3600)}h {Math.floor((cronStatus.serverUptime % 3600) / 60)}m</p>
-                  <p className="text-sm text-gray-600"><strong>Timezone:</strong> {cronStatus.timezone}</p>
-                </div>
-              </div>
-              {cronStatus.appSleepingWarning && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center">
-                    <span className="text-yellow-600 font-semibold mr-2">⚠️ Warning:</span>
-                    <p className="text-sm text-yellow-700">{cronStatus.appSleepingWarning}</p>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-semibold text-gray-700 mb-2">Schedule Information</h3>
+                    <p className="text-sm text-gray-600"><strong>Schedule:</strong> {cronStatus.cronSchedule} (Daily at 2:00 AM UTC)</p>
+                    <p className="text-sm text-gray-600"><strong>Next Run:</strong> {new Date(cronStatus.nextScheduledRun).toLocaleString()}</p>
+                    <p className="text-sm text-gray-600"><strong>Current Time:</strong> {new Date(cronStatus.currentTime).toLocaleString()}</p>
                   </div>
-                  <p className="text-xs text-yellow-600 mt-2">
-                    Consider using an external cron service to call /api/admin/trigger-automation at 2am UTC, or upgrade to a Railway plan with always-on services.
-                  </p>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-semibold text-gray-700 mb-2">System Status</h3>
+                    <p className="text-sm text-gray-600">
+                      <strong>Cron Job Status:</strong> 
+                      <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
+                        cronStatus.cronJobRunning ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
+                      }`}>
+                        {cronStatus.cronJobRunning ? 'RUNNING' : 'STOPPED'}
+                      </span>
+                    </p>
+                    <p className="text-sm text-gray-600"><strong>Server Uptime:</strong> {Math.floor(cronStatus.serverUptime / 3600)}h {Math.floor((cronStatus.serverUptime % 3600) / 60)}m</p>
+                    <p className="text-sm text-gray-600"><strong>Timezone:</strong> {cronStatus.timezone}</p>
+                  </div>
                 </div>
-              )}
+                {cronStatus.appSleepingWarning && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center">
+                      <span className="text-yellow-600 font-semibold mr-2">⚠️ Warning:</span>
+                      <p className="text-sm text-yellow-700">{cronStatus.appSleepingWarning}</p>
+                    </div>
+                    <p className="text-xs text-yellow-600 mt-2">
+                      Consider using an external cron service to call /api/admin/trigger-automation at 2am UTC, or upgrade to a Railway plan with always-on services.
+                    </p>
+                  </div>
+                )}
+              </>
             ) : (
               <p className="text-red-600">Unable to fetch cron job status. Please check server connection.</p>
             )}

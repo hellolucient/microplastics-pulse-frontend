@@ -37,8 +37,38 @@ interface NewsItemCardProps {
 
 const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
   const imageUrl = item.ai_image_url || fallbackPlaceholderImage;
+  
+  // Fix 1: Better date formatting (e.g., "31 August 2025")
   const displayDate = item.published_date ? new Date(item.published_date) : new Date(item.created_at);
-  const formattedDate = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const formattedDate = displayDate.toLocaleDateString('en-GB', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
+  // Fix 2: Extract domain from the actual article URL for cleaner source display
+  const extractDomain = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      let domain = urlObj.hostname;
+      // Remove 'www.' prefix if present
+      if (domain.startsWith('www.')) {
+        domain = domain.substring(4);
+      }
+      return domain;
+    } catch {
+      // Fallback if URL parsing fails
+      return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+    }
+  };
+  
+  // Use the article URL (item.url) instead of the source field
+  const cleanSource = item.url ? extractDomain(item.url) : null;
+  
+  // Fix 3: Remove HTML tags from title and summary
+  const cleanText = (text: string): string => {
+    return text.replace(/<[^>]*>/g, '');
+  };
 
   if (isFeatured) {
     return (
@@ -54,20 +84,21 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
         <div className="p-8 flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500">{formattedDate}</span>
-            {item.source && <span className="text-xs text-gray-500">Source: {item.source}</span>}
+            {cleanSource && <span className="text-xs text-gray-500">Source: {cleanSource}</span>}
           </div>
           <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-2xl md:text-3xl font-bold text-brand-darker mb-4 hover:text-brand-blue transition-colors duration-150 no-underline">
-            {item.title || 'No Title'}
+            {cleanText(item.title || 'No Title')}
           </a>
-          <p className="text-brand-dark text-base mb-6 flex-grow">{item.ai_summary || 'Summary unavailable.'}</p>
+          <p className="text-brand-dark text-base mb-6 flex-grow">{cleanText(item.ai_summary || 'Summary unavailable.')}</p>
           <div className="mt-auto">
             <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline self-start transition-colors duration-150 block mb-4">
               Read Full Article →
             </a>
             <SocialShare 
-              title={item.title || 'Microplastics Research'}
+              title={cleanText(item.title || 'Microplastics Research')}
               url={item.url}
-              summary={item.ai_summary}
+              summary={cleanText(item.ai_summary || '')}
+              storyId={item.id}
               size="medium"
               className="border-t border-gray-100 pt-4"
             />
@@ -88,22 +119,23 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
       />
       <div className="flex flex-wrap items-center justify-between mb-1">
         <span className="text-xs text-gray-500">{formattedDate}</span>
-        {item.source && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {item.source}</span>}
+        {cleanSource && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {cleanSource}</span>}
       </div>
       <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-md md:text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline leading-tight block">
-        {item.title || 'No Title'}
+        {cleanText(item.title || 'No Title')}
       </a>
       <p className="text-brand-dark text-sm mb-3 md:mb-4 break-words">
-        {item.ai_summary || 'Summary unavailable.'}
+        {cleanText(item.ai_summary || 'Summary unavailable.')}
       </p>
       <div className="clear-left">
         <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline block mb-3">
           Read Full Article →
         </a>
         <SocialShare 
-          title={item.title || 'Microplastics Research'}
+          title={cleanText(item.title || 'Microplastics Research')}
           url={item.url}
-          summary={item.ai_summary}
+          summary={cleanText(item.ai_summary || '')}
+          storyId={item.id}
           size="small"
           className="border-t border-gray-100 pt-3"
         />
@@ -235,8 +267,8 @@ const LatestNewsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-      <div className="sticky top-20 z-20 bg-brand-light px-4 sm:px-6 lg:px-8 py-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="sticky top-0 z-20 bg-brand-light px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-darker pb-2">Research, Updates & News</h1>
           <div className="max-w-xl mx-auto">
