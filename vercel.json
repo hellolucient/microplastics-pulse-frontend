@@ -1,32 +1,12 @@
 {
-  "functions": {
-    "api/story/[id].ts": {
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://microplastics-pulse-backend-production.up.railway.app/api/:path*"
     },
-    {
-      "source": "/story/:id",
-      "destination": "/api/story/[id]"
-    },
     { 
       "source": "/((?!api/|_next/|static/|favicon.ico|logo).*)", 
       "destination": "/index.html" 
-    }
-  ],
-  "headers": [
-    {
-      "source": "/story/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
     }
   ]
 } 
