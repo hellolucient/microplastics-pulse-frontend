@@ -26,7 +26,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<{title: string, content: string, platform: string, url: string} | null>(null);
+  const [modalContent, setModalContent] = useState<{title: string, content: string, platform: string, url: string, imageUrl: string | null} | null>(null);
   const [copied, setCopied] = useState(false);
   const shareToTwitter = () => {
     // Twitter accepts pre-filled content directly (title, hashtags, URL)
@@ -48,7 +48,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
       title: 'Facebook Post Ready to Copy',
       content: facebookPost,
       platform: 'Facebook',
-      url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+      url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      imageUrl: imageUrl
     });
     setIsModalOpen(true);
   };
@@ -65,7 +66,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
       title: 'LinkedIn Post Ready to Copy',
       content: linkedinPost,
       platform: 'LinkedIn',
-      url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
+      url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      imageUrl: imageUrl
     });
     setIsModalOpen(true);
   };
@@ -232,13 +234,10 @@ const SocialShare: React.FC<SocialShareProps> = ({
             {/* Content */}
             <div className="p-4 max-h-64 overflow-y-auto">
               {/* Show image if available */}
-              {imageUrl && (
+              {modalContent.imageUrl && (
                 <div className="mb-4">
-                  <div className="text-xs text-gray-500 mb-2">
-                    💡 Right-click this image to copy or save it for your post
-                  </div>
                   <img 
-                    src={imageUrl} 
+                    src={modalContent.imageUrl} 
                     alt="Article image" 
                     className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -256,7 +255,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
             {/* Footer */}
             <div className="p-4 border-t border-gray-200 bg-gray-50">
               <div className="text-sm text-gray-600 mb-3">
-                {imageUrl ? (
+                {modalContent.imageUrl ? (
                   <>
                     Copy this post, then paste in the {modalContent.platform} share popup.<br/>
                     <span className="text-xs text-gray-500">💡 Tip: Right-click the image above to copy/save it, then add it to your post!</span>
