@@ -156,6 +156,7 @@ const StoryPage: React.FC = () => {
               url={story.url}
               summary={cleanSummary}
               storyId={story.id}
+              imageUrl={story.ai_image_url}
               size="medium"
               className="sm:ml-4"
             />

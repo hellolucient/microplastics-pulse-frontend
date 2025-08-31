@@ -290,6 +290,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
                 url={currentNews.url}
                 summary={currentNews.ai_summary?.replace(/<[^>]*>/g, '') || ''}
                 storyId={currentNews.id}
+                imageUrl={currentNews.ai_image_url}
                 size="small"
                 className="border-t border-gray-100 pt-3"
               />

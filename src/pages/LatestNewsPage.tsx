@@ -99,6 +99,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
               url={item.url}
               summary={cleanText(item.ai_summary || '')}
               storyId={item.id}
+              imageUrl={item.ai_image_url}
               size="medium"
               className="border-t border-gray-100 pt-4"
             />
@@ -136,6 +137,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
           url={item.url}
           summary={cleanText(item.ai_summary || '')}
           storyId={item.id}
+          imageUrl={item.ai_image_url}
           size="small"
           className="border-t border-gray-100 pt-3"
         />
