@@ -1,13 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import axios from 'axios';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
   
   try {
     // Fetch story data from your backend
-    const response = await axios.get(`${process.env.BACKEND_URL || 'https://microplastics-pulse-backend-production.up.railway.app'}/api/story/${id}`);
-    const story = response.data;
+    const response = await fetch(`${process.env.BACKEND_URL || 'https://microplastics-pulse-backend-production.up.railway.app'}/api/story/${id}`);
+    if (!response.ok) {
+      throw new Error(`Backend responded with status: ${response.status}`);
+    }
+    const story = await response.json();
     
     // Generate HTML with meta tags for crawlers
     const html = `
