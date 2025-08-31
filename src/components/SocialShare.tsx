@@ -38,8 +38,21 @@ const SocialShare: React.FC<SocialShareProps> = ({
     // Show our alert first, then open Facebook popup
     alert(`Facebook Post Ready to Copy:\n\n${facebookPost}\n\nClick OK, then the Facebook popup will open. Copy this post and paste it into Facebook!`);
     
-    // Open Facebook sharing popup with no pre-populated content
-    window.open('https://www.facebook.com/sharer/sharer.php', '_blank', 'width=580,height=296');
+    // Copy the post to clipboard
+    navigator.clipboard.writeText(facebookPost).then(() => {
+      // Open Facebook sharing popup with no pre-populated content
+      window.open('https://www.facebook.com/sharer/sharer.php', '_blank', 'width=580,height=296');
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = facebookPost;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      // Open Facebook sharing popup with no pre-populated content
+      window.open('https://www.facebook.com/sharer/sharer.php', '_blank', 'width=580,height=296');
+    });
   };
 
   const shareToLinkedIn = () => {
@@ -51,8 +64,21 @@ const SocialShare: React.FC<SocialShareProps> = ({
     // Show our alert first, then open LinkedIn popup
     alert(`LinkedIn Post Ready to Copy:\n\n${linkedinPost}\n\nClick OK, then the LinkedIn popup will open. Copy this post and paste it into LinkedIn!`);
     
-    // Open LinkedIn sharing popup with no pre-populated content
-    window.open('https://www.linkedin.com/sharing/share-offsite/', '_blank', 'width=520,height=570');
+    // Copy the post to clipboard
+    navigator.clipboard.writeText(linkedinPost).then(() => {
+      // Open LinkedIn sharing popup with no pre-populated content
+      window.open('https://www.linkedin.com/sharing/share-offsite/', '_blank', 'width=520,height=570');
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = linkedinPost;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      // Open LinkedIn sharing popup with no pre-populated content
+      window.open('https://www.linkedin.com/sharing/share-offsite/', '_blank', 'width=520,height=570');
+    });
   };
 
   const copyToClipboard = async () => {
