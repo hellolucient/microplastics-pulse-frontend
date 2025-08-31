@@ -1,6 +1,6 @@
 {
   "functions": {
-    "src/pages/story/[id].tsx": {
+    "api/story/[id].ts": {
       "maxDuration": 30
     }
   },
