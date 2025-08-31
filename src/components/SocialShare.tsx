@@ -40,7 +40,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
     const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research\n\nRead more: ${shareUrl}`;
     
-    // Show our beautiful modal
+    // Reset copied state and show our beautiful modal
+    setCopied(false);
     setModalContent({
       title: 'Facebook Post Ready to Copy',
       content: facebookPost,
@@ -56,7 +57,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
     const linkedinPost = `🔬 New Research Alert: ${cleanTitle}\n\n${cleanSummary}\n\nThis study highlights the critical impact of microplastics on our health and environment. As researchers continue to uncover the extent of this crisis, it's crucial we stay informed and take action.\n\n#microplastics #health #environment #research\n\nRead the full article: ${shareUrl}`;
     
-    // Show our beautiful modal
+    // Reset copied state and show our beautiful modal
+    setCopied(false);
     setModalContent({
       title: 'LinkedIn Post Ready to Copy',
       content: linkedinPost,
