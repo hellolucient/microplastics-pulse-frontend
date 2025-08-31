@@ -35,13 +35,17 @@ const SocialShare: React.FC<SocialShareProps> = ({
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
     const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research\n\nRead more: ${shareUrl}`;
     
-    // Show the post in an alert that users can copy
+    // Open Facebook share popup first
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    window.open(facebookShareUrl, '_blank', 'width=580,height=296');
+    
+    // Then show our alert with the post content
     const userClickedCopy = confirm(`Facebook Post Ready to Copy:\n\n${facebookPost}\n\nClick "OK" to copy, "Cancel" to close.`);
     
     if (userClickedCopy) {
       // Copy to clipboard
       navigator.clipboard.writeText(facebookPost).then(() => {
-        alert('Post copied to clipboard! Now paste it into Facebook!');
+        alert('Post copied to clipboard! Now paste it into the Facebook popup.');
       }).catch(() => {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
@@ -50,7 +54,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert('Post copied to clipboard! Now paste it into Facebook!');
+        alert('Post copied to clipboard! Now paste it into the Facebook popup.');
       });
     }
   };
