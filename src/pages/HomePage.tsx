@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios'; // <-- Add axios
 import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
 import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png'; // Import the placeholder
+import whitepaperImage from '../assets/whitepaper-hero.png'; // Import the whitepaper image
 import SocialShare from '../components/SocialShare';
 import NewsCarousel from '../components/NewsCarousel';
 
@@ -64,7 +65,7 @@ const HomePage: React.FC = () => {
             source: 'MicroplasticsWatch Research',
             published_date: new Date(Date.now() - 86400000).toISOString(),
             ai_summary: 'Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions. This comprehensive whitepaper covers the latest findings, policy implications, and actionable steps for addressing microplastic pollution.',
-            ai_image_url: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop'
+            ai_image_url: whitepaperImage
           };
           
           // Take only the first 3 items returned by the API
