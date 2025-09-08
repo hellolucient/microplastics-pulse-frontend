@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'; // Import useAuth to access us
 import axios from 'axios'; // Import axios for API calls
 import AutomationLogSection from '../components/AutomationLogSection';
 import FailedUrlsSection from '../components/FailedUrlsSection';
+import AIUsageSection from '../components/AIUsageSection';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : ''; // Fallback for safety
 
@@ -120,6 +121,10 @@ interface CronStatusResponse {
 
 const AdminPage: React.FC = () => {
   const { user, signOut } = useAuth();
+  
+  // --- State for UI Management ---
+  const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
+  
   // --- State for Manual Submission Form ---
   const [submitUrl, setSubmitUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -637,118 +642,468 @@ const AdminPage: React.FC = () => {
 
   // --- END ADDED ---
 
-  return (
-    <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+  const renderOverview = () => (
+    <div className="space-y-6">
+      {/* Quick Actions */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <div>
-            <span className="text-gray-600 mr-4">Welcome, {user?.email}</span>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
-            >
-              Logout
-            </button>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
         </div>
-
-        <AutomationLogSection />
-
-        {/* Cron Job Status */}
-        <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-700">Cron Job Status</h2>
-              <button
-                onClick={fetchCronStatus}
-                disabled={isFetchingCronStatus}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-blue-300"
-              >
-                {isFetchingCronStatus ? 'Refreshing...' : 'Refresh Status'}
-              </button>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <button
+            onClick={() => setExpandedFeature('run-automation')}
+            className="group relative flex items-center justify-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="text-sm font-medium text-indigo-700">Run Automation</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Run the complete automation suite (Google fetch + Email check + Tweet post)
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
-            
-            {cronStatus ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-semibold text-gray-700 mb-2">Schedule Information</h3>
-                    <p className="text-sm text-gray-600"><strong>Schedule:</strong> {cronStatus.cronSchedule} (Daily at 2:00 AM UTC)</p>
-                    <p className="text-sm text-gray-600"><strong>Next Run:</strong> {new Date(cronStatus.nextScheduledRun).toLocaleString()}</p>
-                    <p className="text-sm text-gray-600"><strong>Current Time:</strong> {new Date(cronStatus.currentTime).toLocaleString()}</p>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('fetch-news')}
+            className="group relative flex items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span className="text-sm font-medium text-blue-700">Fetch News</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Manually fetch news articles from Google search queries
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('check-emails')}
+            className="group relative flex items-center justify-center p-4 bg-teal-50 hover:bg-teal-100 rounded-lg border border-teal-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-teal-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span className="text-sm font-medium text-teal-700">Check Emails</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Check submitted emails for new article URLs to process
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('tweet-candidates')}
+            className="group relative flex items-center justify-center p-4 bg-sky-50 hover:bg-sky-100 rounded-lg border border-sky-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-sky-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <span className="text-sm font-medium text-sky-700">Tweet Candidates</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Get next articles ready for Twitter posting with generated tweet text
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('add-article')}
+            className="group relative flex items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <span className="text-sm font-medium text-green-700">Add Article</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Manually submit a single article URL for processing
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('regenerate-image')}
+            className="group relative flex items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-sm font-medium text-purple-700">Regenerate Image</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Regenerate AI image for a specific article by ID
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('check-database')}
+            className="group relative flex items-center justify-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span className="text-sm font-medium text-orange-700">Check Database</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Scan database for duplicate URLs and data integrity issues
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('batch-process')}
+            className="group relative flex items-center justify-center p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-emerald-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <span className="text-sm font-medium text-emerald-700">Batch Process</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Process multiple articles in batches for AI updates
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('cron-status')}
+            className="group relative flex items-center justify-center p-4 bg-cyan-50 hover:bg-cyan-100 rounded-lg border border-cyan-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-cyan-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm font-medium text-cyan-700">Cron Status</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Check cron job status and server uptime
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setExpandedFeature('ai-usage')}
+            className="group relative flex items-center justify-center p-4 bg-violet-50 hover:bg-violet-100 rounded-lg border border-violet-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-violet-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span className="text-sm font-medium text-violet-700">AI Usage</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Track OpenAI and Anthropic API usage, costs, and performance
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Expanded Features */}
+      {expandedFeature && (
+        <div className="space-y-6">
+          {/* Run Automation Feature */}
+          {expandedFeature === 'run-automation' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Run Automation Suite</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Run the complete automation suite (Google fetch + Email check + Tweet post). 
+                This is the same process that runs automatically daily at 2:00 AM UTC.
+              </p>
+              <button
+                onClick={handleTriggerAutomation}
+                disabled={isRunningAutomation}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isRunningAutomation ? 'Running Full Automation...' : 'Run Full Automation Suite'}
+              </button>
+
+              {automationError && (
+                <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                  <strong>Error:</strong> {automationError}
+                </div>
+              )}
+
+              {automationResult && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <span className="text-green-500 text-xl mr-2">✅</span>
+                    <span className="text-green-700 font-semibold">Automation completed successfully!</span>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-semibold text-gray-700 mb-2">System Status</h3>
-                    <p className="text-sm text-gray-600">
-                      <strong>Cron Job Status:</strong> 
-                      <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
-                        cronStatus.cronJobRunning ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
-                      }`}>
-                        {cronStatus.cronJobRunning ? 'RUNNING' : 'STOPPED'}
-                      </span>
+                  <p className="text-sm text-gray-600">
+                    <strong>Completed at:</strong> {new Date(automationResult.timestamp).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {automationResult.message}
+                  </p>
+                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-sm text-blue-800">
+                      💡 <strong>Tip:</strong> Check the "View Logs" section for detailed results of each task.
                     </p>
-                    <p className="text-sm text-gray-600"><strong>Server Uptime:</strong> {Math.floor(cronStatus.serverUptime / 3600)}h {Math.floor((cronStatus.serverUptime % 3600) / 60)}m</p>
-                    <p className="text-sm text-gray-600"><strong>Timezone:</strong> {cronStatus.timezone}</p>
                   </div>
                 </div>
-                {cronStatus.appSleepingWarning && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center">
-                      <span className="text-yellow-600 font-semibold mr-2">⚠️ Warning:</span>
-                      <p className="text-sm text-yellow-700">{cronStatus.appSleepingWarning}</p>
-                    </div>
-                    <p className="text-xs text-yellow-600 mt-2">
-                      Consider using an external cron service to call /api/admin/trigger-automation at 2am UTC, or upgrade to a Railway plan with always-on services.
-                    </p>
+              )}
+            </div>
+          )}
+
+          {/* Fetch News Feature */}
+          {expandedFeature === 'fetch-news' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manual News Fetch</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Manually fetch news articles from Google search queries. This will process all configured search queries and add new articles to the database.
+              </p>
+              <button
+                onClick={handleTriggerFetchClick}
+                disabled={isFetching}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isFetching ? `Processing Query ${currentQueryIndex !== null ? currentQueryIndex + 1 : ''}...` : 'Fetch All News Queries'}
+              </button>
+
+              {fetchError && (
+                <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                  <strong>Error:</strong> {fetchError}
+                </div>
+              )}
+              
+              {(isFetching || fetchCompleted) && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm font-semibold text-blue-800 mb-2">
+                    <strong>Total New Articles Added: {totalAdded}</strong>
+                  </p>
+                  <div className="space-y-2">
+                    {searchQueries.map((query, index) => (
+                      <div key={index} className="text-sm">
+                        <span className="text-gray-700">Query {index + 1}: {query}</span>
+                        <span 
+                          className={`ml-2 font-semibold ${
+                            fetchProgress[index]?.status === 'success' ? 'text-green-600' : 
+                            fetchProgress[index]?.status === 'error' ? 'text-red-600' : 
+                            'text-gray-500'
+                          }`}
+                        >
+                          {` ${fetchProgress[index]?.message || 'Queued'}`}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </>
-            ) : (
-              <p className="text-red-600">Unable to fetch cron job status. Please check server connection.</p>
-            )}
-          </div>
-        </div>
-        
-        <FailedUrlsSection />
-        
-        <div className="mt-8">
-          {/* Manual Article Submission */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Manual Article Submission</h2>
-              <form onSubmit={handleManualSubmit}>
-                <input
-                  type="url"
-                  value={submitUrl}
-                  onChange={(e) => setSubmitUrl(e.target.value)}
-                  placeholder="Enter article URL"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-                  required
-                />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Check Emails Feature */}
+          {expandedFeature === 'check-emails' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Processing</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Check submitted emails for new article URLs to process. This will scan the configured email account for new submissions and add them to the database.
+              </p>
+              <button
+                onClick={handleCheckSubmittedEmails}
+                disabled={isCheckingEmails}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isCheckingEmails ? 'Checking Emails...' : 'Check Submitted Emails'}
+              </button>
+
+              {emailCheckResult && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <span className="text-green-500 text-xl mr-2">📧</span>
+                    <span className="text-gray-700 font-semibold">Email Processing Results</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{emailCheckResult.message}</p>
+                  {emailCheckResult.error && (
+                    <p className="text-sm text-red-600 mb-3"><strong>Error:</strong> {emailCheckResult.error}</p>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {emailCheckResult.processedCount > 0 && (
+                      <div className="bg-green-100 p-3 rounded text-center">
+                        <div className="text-2xl font-bold text-green-600">{emailCheckResult.processedCount}</div>
+                        <div className="text-sm text-green-800">Successfully Processed</div>
+                      </div>
+                    )}
+                    {emailCheckResult.failedCount > 0 && (
+                      <div className="bg-red-100 p-3 rounded text-center">
+                        <div className="text-2xl font-bold text-red-600">{emailCheckResult.failedCount}</div>
+                        <div className="text-sm text-red-800">Failed to Process</div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {emailCheckResult.processedUrls && emailCheckResult.processedUrls.length > 0 && (
+                    <div className="mb-3">
+                      <p className="font-bold text-green-700 text-sm mb-2">✅ Successfully Added URLs:</p>
+                      <div className="max-h-40 overflow-y-auto space-y-1">
+                        {emailCheckResult.processedUrls.map((url, index) => (
+                          <div key={index} className="text-sm text-green-700 break-all bg-green-50 p-2 rounded">
+                            {url}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {emailCheckResult.failedUrls && emailCheckResult.failedUrls.length > 0 && (
+                    <div>
+                      <p className="font-bold text-red-700 text-sm mb-2">❌ Failed URLs:</p>
+                      <div className="max-h-40 overflow-y-auto space-y-1">
+                        {emailCheckResult.failedUrls.map((failure, index) => (
+                          <div key={index} className="text-sm bg-red-50 p-2 rounded">
+                            <div className="text-red-700 break-all">{failure.url || 'Unknown URL'}</div>
+                            {failure.reason && (
+                              <div className="text-gray-600 text-xs mt-1">
+                                Reason: {failure.reason}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tweet Candidates Feature */}
+          {expandedFeature === 'tweet-candidates' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Twitter Integration</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Get next articles ready for Twitter posting with generated tweet text. You can review and edit the generated tweets before posting.
+              </p>
+              <button
+                onClick={handleFetchTweetCandidates}
+                disabled={isFetchingCandidates}
+                className="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isFetchingCandidates ? 'Fetching...' : 'Fetch Next Tweet Candidates'}
+              </button>
+
+              {tweetCandidateError && (
+                <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                  <strong>Error:</strong> {tweetCandidateError}
+                </div>
+              )}
+
+              {postSuccessMessage && (
+                <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg">
+                  <strong>Success:</strong> {postSuccessMessage}
+                </div>
+              )}
+              
+              {tweetCandidates.length > 0 && (
+                <div className="mt-6 space-y-6">
+                  {tweetCandidates.map((candidate) => (
+                    <div key={candidate.id} className="p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-semibold text-lg text-gray-900 mb-2">{candidate.title}</h4>
+                      <a href={candidate.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline break-all block mb-3">
+                        {candidate.url}
+                      </a>
+                      
+                      <div className="space-y-2">
+                        <label htmlFor={`tweet-text-${candidate.id}`} className="block text-sm font-medium text-gray-700">
+                          Generated Tweet Text (Editable)
+                        </label>
+                        <textarea
+                          id={`tweet-text-${candidate.id}`}
+                          value={candidate.generatedTweetText}
+                          onChange={(e) => handleTweetTextChange(candidate.id, e.target.value)}
+                          rows={4}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => handlePostTweet(candidate.id)}
+                        disabled={isPosting === candidate.id}
+                        className="mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {isPosting === candidate.id ? 'Posting...' : 'Post This Tweet'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Add Article Feature */}
+          {expandedFeature === 'add-article' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manual Article Submission</h3>
+              <form onSubmit={handleManualSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="submit-url" className="block text-sm font-medium text-gray-700 mb-2">
+                    Article URL
+                  </label>
+                  <input
+                    id="submit-url"
+                    type="url"
+                    value={submitUrl}
+                    onChange={(e) => setSubmitUrl(e.target.value)}
+                    placeholder="Enter article URL"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-blue-300"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit URL'}
+                  {isSubmitting ? 'Submitting...' : 'Submit Article'}
                 </button>
               </form>
               {submitMessage && (
-                <div className={`mt-4 text-sm ${submitMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`mt-4 p-3 rounded-lg ${submitMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                   {submitMessage.text}
                 </div>
               )}
             </div>
-          </div>
+          )}
 
-          {/* Batch Process AI Data */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4 text-gray-700">Batch Process AI Data</h2>
-                <form onSubmit={handleBatchUpdate} className="flex items-center space-x-4">
+          {/* Regenerate Image Feature */}
+          {expandedFeature === 'regenerate-image' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Regenerate Image</h3>
+              <form onSubmit={handleRegenerateImageById} className="space-y-4">
+                <div>
+                  <label htmlFor="regenerate-id" className="block text-sm font-medium text-gray-700 mb-2">
+                    Article ID (UUID)
+                  </label>
+                  <input
+                    id="regenerate-id"
+                    type="text"
+                    value={articleIdToRegenerate}
+                    onChange={(e) => setArticleIdToRegenerate(e.target.value)}
+                    placeholder="Enter the full article ID"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isRegeneratingImage}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {isRegeneratingImage ? 'Regenerating...' : 'Regenerate Image'}
+                </button>
+              </form>
+              {regenerateImageMessage && (
+                <div className={`mt-4 p-3 rounded-lg ${regenerateImageMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {regenerateImageMessage.text}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Batch Process Feature */}
+          {expandedFeature === 'batch-process' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Batch AI Processing</h3>
+              <form onSubmit={handleBatchUpdate} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="batch-size" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="batch-size" className="block text-sm font-medium text-gray-700 mb-2">
                       Batch Size
                     </label>
                     <input
@@ -756,11 +1111,11 @@ const AdminPage: React.FC = () => {
                       type="number"
                       value={batchSize}
                       onChange={(e) => setBatchSize(parseInt(e.target.value, 10))}
-                      className="w-24 px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                   </div>
                   <div>
-                    <label htmlFor="continue-token" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="continue-token" className="block text-sm font-medium text-gray-700 mb-2">
                       Continue Token (optional)
                     </label>
                     <input
@@ -769,219 +1124,55 @@ const AdminPage: React.FC = () => {
                       value={continueToken}
                       onChange={(e) => setContinueToken(e.target.value)}
                       placeholder="Last processed ID"
-                      className="w-48 px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                   </div>
-                  <div className="pt-5">
-                    <button
-                      type="submit"
-                      disabled={isBatchProcessing}
-                      className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-green-300"
-                    >
-                      {isBatchProcessing ? 'Processing...' : 'Start/Continue Batch'}
-                    </button>
-                  </div>
-                </form>
-
-                {batchMessage && (
-                   <div className={`mt-4 text-sm ${batchMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                    {batchMessage.text}
-                  </div>
-                )}
-                
-                {batchResults.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="font-bold">Batch Results:</h3>
-                    <ul className="list-disc list-inside text-sm max-h-60 overflow-y-auto">
-                      {batchResults.map((result) => (
-                        <li key={result.id} className={result.success ? 'text-gray-700' : 'text-red-700'}>
-                          Story {result.id}: {result.success ? `Updated ${result.updates?.join(', ')}` : `Failed - ${result.message}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-            </div>
-          </div>
-          
-          {/* Manual News Fetch from Google */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Manual News Fetch from Google</h2>
-              {searchQueries.length > 0 ? (
+                </div>
                 <button
-                  onClick={handleTriggerFetchClick}
-                  disabled={isFetching}
-                  className="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:bg-indigo-300"
+                  type="submit"
+                  disabled={isBatchProcessing}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  {isFetching ? `Processing Query ${currentQueryIndex !== null ? currentQueryIndex + 1 : ''}...` : 'Fetch All News Queries'}
+                  {isBatchProcessing ? 'Processing...' : 'Start/Continue Batch'}
                 </button>
-              ) : (
-                <p className="text-gray-500">Loading search queries or none available.</p>
-              )}
-
-              {fetchError && (
-                <div className="mt-4 text-red-600">
-                  <strong>Error:</strong> {fetchError}
+              </form>
+              {batchMessage && (
+                <div className={`mt-4 p-3 rounded-lg ${batchMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {batchMessage.text}
                 </div>
               )}
-              
-              {(isFetching || fetchCompleted) && (
+              {batchResults.length > 0 && (
                 <div className="mt-4">
-                  <p><strong>Total New Articles Added: {totalAdded}</strong></p>
-                  <ul className="list-disc list-inside mt-2">
-                    {searchQueries.map((query, index) => (
-                      <li key={index} className="text-sm">
-                        Query {index + 1}: {query} - 
-                        <span 
-                          className={`font-semibold ${
-                            fetchProgress[index]?.status === 'success' ? 'text-green-600' : 
-                            fetchProgress[index]?.status === 'error' ? 'text-red-600' : 
-                            'text-gray-500'
-                          }`}
-                        >
-                          {` ${fetchProgress[index]?.message || 'Queued'}`}
-                        </span>
-                      </li>
+                  <h4 className="font-semibold text-gray-900 mb-2">Batch Results:</h4>
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {batchResults.map((result) => (
+                      <div key={result.id} className={`p-3 rounded-lg text-sm ${result.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                        Story {result.id}: {result.success ? `Updated ${result.updates?.join(', ')}` : `Failed - ${result.message}`}
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
+          )}
 
-          {/* Twitter Integration */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4 text-gray-700">Post to Twitter</h2>
-                <div className="space-y-4">
-                  <button
-                      onClick={handleFetchTweetCandidates}
-                      disabled={isFetchingCandidates}
-                      className="bg-sky-500 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded disabled:bg-sky-300"
-                  >
-                      {isFetchingCandidates ? 'Fetching...' : 'Fetch Next Tweet Candidates'}
-                  </button>
-
-                  {tweetCandidateError && (
-                      <div className="mt-4 text-red-600">
-                          <strong>Error:</strong> {tweetCandidateError}
-                      </div>
-                  )}
-
-                  {postSuccessMessage && (
-                      <div className="mt-4 text-green-600">
-                          <strong>Success:</strong> {postSuccessMessage}
-                      </div>
-                  )}
-                  
-                  {tweetCandidates.length > 0 && (
-                      <div className="mt-6 space-y-6">
-                          {tweetCandidates.map((candidate) => (
-                              <div key={candidate.id} className="p-4 border rounded-lg">
-                                  <h3 className="font-bold text-lg">{candidate.title}</h3>
-                                  <a href={candidate.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline break-all">{candidate.url}</a>
-                                  
-                                  <div className="mt-4">
-                                      <label htmlFor={`tweet-text-${candidate.id}`} className="block text-sm font-medium text-gray-700">
-                                          Generated Tweet Text (Editable)
-                                      </label>
-                                      <textarea
-                                          id={`tweet-text-${candidate.id}`}
-                                          value={candidate.generatedTweetText}
-                                          onChange={(e) => handleTweetTextChange(candidate.id, e.target.value)}
-                                          rows={6}
-                                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-                                      />
-                                  </div>
-
-                                  <button
-                                      onClick={() => handlePostTweet(candidate.id)}
-                                      disabled={isPosting === candidate.id}
-                                      className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-green-300"
-                                  >
-                                      {isPosting === candidate.id ? 'Posting...' : 'Post This Tweet'}
-                                  </button>
-                              </div>
-                          ))}
-                      </div>
-                  )}
-                </div>
-            </div>
-          </div>
-
-          {/* Email Processing */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Email Processing</h2>
-              <button
-                onClick={handleCheckSubmittedEmails}
-                disabled={isCheckingEmails}
-                className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded disabled:bg-teal-300"
-              >
-                {isCheckingEmails ? 'Checking...' : 'Check Submitted Emails'}
-              </button>
-
-              {emailCheckResult && (
-                <div className="mt-4 p-4 bg-gray-100 rounded">
-                  <p><strong>Result:</strong> {emailCheckResult.message}</p>
-                  {emailCheckResult.error && <p className="text-red-600"><strong>Error:</strong> {emailCheckResult.error}</p>}
-                  
-                  {emailCheckResult.processedCount > 0 && <p>Successfully processed: {emailCheckResult.processedCount}</p>}
-                  {emailCheckResult.failedCount > 0 && <p>Failed to process: {emailCheckResult.failedCount}</p>}
-                  
-                  {emailCheckResult.processedUrls && emailCheckResult.processedUrls.length > 0 && (
-                    <div className="mt-3">
-                      <p className="font-bold text-green-700">Successfully Added URLs:</p>
-                      <ul className="list-disc list-inside text-sm">
-                        {emailCheckResult.processedUrls.map((url, index) => (
-                          <li key={index} className="mb-2">
-                            <span className="text-green-700 break-all">{url}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {emailCheckResult.failedUrls && emailCheckResult.failedUrls.length > 0 && (
-                    <div className="mt-3">
-                      <p className="font-bold text-red-700">Failed URLs:</p>
-                      <ul className="list-disc list-inside text-sm">
-                        {emailCheckResult.failedUrls.map((failure, index) => (
-                          <li key={index} className="mb-2">
-                            <span className="text-red-700 break-all">{failure.url || 'Unknown URL'}</span>
-                            {failure.reason && (
-                              <span className="text-gray-600 ml-2 break-normal">
-                                - {failure.reason}
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Database Duplicate URL Checker */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Database Integrity Check</h2>
+          {/* Check Database Feature */}
+          {expandedFeature === 'check-database' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Database Integrity Check</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Check for duplicate URLs in the database. This scans all {duplicateCheckResult?.databaseCount || '1200+'} records to identify any duplicates.
               </p>
               <button
                 onClick={handleCheckDuplicates}
                 disabled={isCheckingDuplicates}
-                className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:bg-purple-300"
+                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
               >
                 {isCheckingDuplicates ? 'Checking...' : 'Check for Duplicate URLs'}
               </button>
 
               {duplicateCheckError && (
-                <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg">
                   <strong>Error:</strong> {duplicateCheckError}
                 </div>
               )}
@@ -989,7 +1180,7 @@ const AdminPage: React.FC = () => {
               {duplicateCheckResult && (
                 <div className="mt-4">
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-bold text-lg mb-3">📊 Database Analysis Results</h3>
+                    <h4 className="font-bold text-lg mb-3">📊 Database Analysis Results</h4>
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       <div className="bg-blue-100 p-3 rounded text-center">
@@ -1023,7 +1214,7 @@ const AdminPage: React.FC = () => {
                       </div>
                     ) : (
                       <div>
-                        <h4 className="font-semibold mb-2">🔍 Top Duplicated URLs:</h4>
+                        <h5 className="font-semibold mb-2">🔍 Top Duplicated URLs:</h5>
                         <div className="space-y-2 max-h-60 overflow-y-auto">
                           {duplicateCheckResult.duplicateGroups.map((group, index) => (
                             <div key={index} className="bg-yellow-50 border border-yellow-200 p-3 rounded">
@@ -1053,150 +1244,132 @@ const AdminPage: React.FC = () => {
                 </div>
               )}
             </div>
-          </div>
+          )}
 
-          {/* Manual Automation Trigger */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Manual Automation Trigger</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Manually run the complete automation suite (Google fetch + Email check + Tweet post). 
-                This is the same process that runs automatically daily at 2:00 AM UTC.
-              </p>
-              <button
-                onClick={handleTriggerAutomation}
-                disabled={isRunningAutomation}
-                className="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:bg-indigo-300"
-              >
-                {isRunningAutomation ? 'Running Full Automation...' : 'Run Full Automation Suite'}
-              </button>
-
-              {automationError && (
-                <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                  <strong>Error:</strong> {automationError}
-                </div>
-              )}
-
-              {automationResult && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center mb-2">
-                    <span className="text-green-500 text-xl mr-2">✅</span>
-                    <span className="text-green-700 font-semibold">Automation completed successfully!</span>
+          {/* Cron Status Feature */}
+          {expandedFeature === 'cron-status' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Cron Job Status</h3>
+                <button
+                  onClick={fetchCronStatus}
+                  disabled={isFetchingCronStatus}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {isFetchingCronStatus ? 'Refreshing...' : 'Refresh Status'}
+                </button>
+              </div>
+              
+              {cronStatus ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-semibold text-gray-700 mb-3">Schedule Information</h4>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <p><strong>Schedule:</strong> {cronStatus.cronSchedule} (Daily at 2:00 AM UTC)</p>
+                      <p><strong>Next Run:</strong> {new Date(cronStatus.nextScheduledRun).toLocaleString()}</p>
+                      <p><strong>Current Time:</strong> {new Date(cronStatus.currentTime).toLocaleString()}</p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    <strong>Completed at:</strong> {new Date(automationResult.timestamp).toLocaleString()}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {automationResult.message}
-                  </p>
-                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
-                    <p className="text-sm text-blue-800">
-                      💡 <strong>Tip:</strong> Check the "Automation Task Logs" section above for detailed results of each task.
-                    </p>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-semibold text-gray-700 mb-3">System Status</h4>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <p>
+                        <strong>Cron Job Status:</strong> 
+                        <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
+                          cronStatus.cronJobRunning ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
+                        }`}>
+                          {cronStatus.cronJobRunning ? 'RUNNING' : 'STOPPED'}
+                        </span>
+                      </p>
+                      <p><strong>Server Uptime:</strong> {Math.floor(cronStatus.serverUptime / 3600)}h {Math.floor((cronStatus.serverUptime % 3600) / 60)}m</p>
+                      <p><strong>Timezone:</strong> {cronStatus.timezone}</p>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Batch Process AI Data */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Batch Process AI Data</h2>
-              <form onSubmit={handleBatchUpdate} className="flex items-center space-x-4">
-                <div>
-                  <label htmlFor="batch-size" className="block text-sm font-medium text-gray-700">
-                    Batch Size
-                  </label>
-                  <input
-                    id="batch-size"
-                    type="number"
-                    value={batchSize}
-                    onChange={(e) => setBatchSize(parseInt(e.target.value, 10))}
-                    className="w-24 px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="continue-token" className="block text-sm font-medium text-gray-700">
-                    Continue Token (optional)
-                  </label>
-                  <input
-                    id="continue-token"
-                    type="text"
-                    value={continueToken}
-                    onChange={(e) => setContinueToken(e.target.value)}
-                    placeholder="Last processed ID"
-                    className="w-48 px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div className="pt-5">
-                  <button
-                    type="submit"
-                    disabled={isBatchProcessing}
-                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-green-300"
-                  >
-                    {isBatchProcessing ? 'Processing...' : 'Start/Continue Batch'}
-                  </button>
-                </div>
-              </form>
-
-              {batchMessage && (
-                <div className={`mt-4 text-sm ${batchMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                  {batchMessage.text}
-                </div>
+              ) : (
+                <p className="text-red-600">Unable to fetch cron job status. Please check server connection.</p>
               )}
               
-              {batchResults.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="font-bold">Batch Results:</h3>
-                  <ul className="list-disc list-inside text-sm max-h-60 overflow-y-auto">
-                    {batchResults.map((result) => (
-                      <li key={result.id} className={result.success ? 'text-gray-700' : 'text-red-700'}>
-                        Story {result.id}: {result.success ? `Updated ${result.updates?.join(', ')}` : `Failed - ${result.message}`}
-                      </li>
-                    ))}
-                  </ul>
+              {cronStatus?.appSleepingWarning && (
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center">
+                    <span className="text-yellow-600 font-semibold mr-2">⚠️ Warning:</span>
+                    <p className="text-sm text-yellow-700">{cronStatus.appSleepingWarning}</p>
+                  </div>
+                  <p className="text-xs text-yellow-600 mt-2">
+                    Consider using an external cron service to call /api/admin/trigger-automation at 2am UTC, or upgrade to a Railway plan with always-on services.
+                  </p>
                 </div>
               )}
             </div>
-          </div>
+          )}
 
-          {/* Regenerate Image */}
-          <div className="w-full mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Regenerate Image by Article ID</h2>
-              <form onSubmit={handleRegenerateImageById} className="flex items-center space-x-4">
-                <div className="flex-grow">
-                  <label htmlFor="regenerate-id" className="block text-sm font-medium text-gray-700">
-                    Article ID (UUID)
-                  </label>
-                  <input
-                    id="regenerate-id"
-                    type="text"
-                    value={articleIdToRegenerate}
-                    onChange={(e) => setArticleIdToRegenerate(e.target.value)}
-                    placeholder="Enter the full article ID"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isRegeneratingImage}
-                  className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:bg-purple-300"
-                >
-                  {isRegeneratingImage ? 'Regenerating...' : 'Regenerate'}
-                </button>
-              </form>
-              {regenerateImageMessage && (
-                <div className={`mt-4 text-sm ${regenerateImageMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                  {regenerateImageMessage.text}
-                </div>
-              )}
+          {/* AI Usage Tracking Feature */}
+          {expandedFeature === 'ai-usage' && (
+            <AIUsageSection />
+          )}
+        </div>
+      )}
+
+      {/* View Logs Toggle */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <button
+          onClick={() => setExpandedFeature(expandedFeature === 'view-logs' ? null : 'view-logs')}
+          className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <span className="text-sm font-medium">View Logs</span>
+          <svg 
+            className={`w-4 h-4 ml-2 transition-transform ${expandedFeature === 'view-logs' ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* System Logs */}
+      {expandedFeature === 'view-logs' && (
+        <div className="space-y-6">
+          <AutomationLogSection />
+          <FailedUrlsSection />
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {renderOverview()}
+        </div>
+      </main>
     </div>
   );
 };
