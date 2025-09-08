@@ -4,6 +4,7 @@ import axios from 'axios'; // Import axios for API calls
 import AutomationLogSection from '../components/AutomationLogSection';
 import FailedUrlsSection from '../components/FailedUrlsSection';
 import AIUsageSection from '../components/AIUsageSection';
+import AdminChatInterface from '../components/AdminChatInterface';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : ''; // Fallback for safety
 
@@ -790,6 +791,20 @@ const AdminPage: React.FC = () => {
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
           </button>
+
+          <button
+            onClick={() => setExpandedFeature('ai-chat')}
+            className="group relative flex items-center justify-center p-4 bg-pink-50 hover:bg-pink-100 rounded-lg border border-pink-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-pink-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <span className="text-sm font-medium text-pink-700">AI Chat</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Chat with AI using general or microplastics research modes
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -1307,6 +1322,18 @@ const AdminPage: React.FC = () => {
           {/* AI Usage Tracking Feature */}
           {expandedFeature === 'ai-usage' && (
             <AIUsageSection />
+          )}
+
+          {/* AI Chat Feature */}
+          {expandedFeature === 'ai-chat' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Research Assistant</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Chat with AI using either general conversation or microplastics research mode. 
+                The research mode searches through your article database to provide research-backed answers.
+              </p>
+              <AdminChatInterface backendUrl={BACKEND_URL} />
+            </div>
           )}
         </div>
       )}
