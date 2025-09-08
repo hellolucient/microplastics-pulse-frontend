@@ -92,6 +92,8 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
 
       const result = await response.json();
       console.log('Email collected successfully:', result);
+      console.log('Current news item:', currentNews);
+      console.log('Is whitepaper:', isWhitepaper);
       
       // Only proceed with download after email is collected
       let pdfUrl;
