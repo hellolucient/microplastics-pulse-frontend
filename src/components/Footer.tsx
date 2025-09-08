@@ -19,7 +19,13 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Center: Powered by Lucient */}
-          <div className="flex justify-center">
+          <div className="flex justify-center items-center gap-2">
+            <div className="relative">
+              <div className="w-2 h-2 rounded-full bg-blue-400/30 animate-pulse"></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-cyan-400/20 animate-ping"></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400/25 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-violet-400/20 animate-ping" style={{ animationDelay: '1s' }}></div>
+            </div>
             <p className="text-xs text-gray-500 font-light">
               powered by{' '}
               <span className="font-medium text-gray-600">lucient</span>
