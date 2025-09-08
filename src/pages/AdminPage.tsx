@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import useAuth to access user info and signOut
 import axios from 'axios'; // Import axios for API calls
 import AutomationLogSection from '../components/AutomationLogSection';
@@ -125,6 +125,7 @@ const AdminPage: React.FC = () => {
   
   // --- State for UI Management ---
   const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
+  const expandedFeaturesRef = useRef<HTMLDivElement>(null);
   
   // --- State for Manual Submission Form ---
   const [submitUrl, setSubmitUrl] = useState('');
@@ -793,7 +794,13 @@ const AdminPage: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setExpandedFeature('ai-chat')}
+            onClick={() => {
+              setExpandedFeature('ai-chat');
+              // Scroll to the expanded features section
+              setTimeout(() => {
+                expandedFeaturesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }}
             className="group relative flex items-center justify-center p-4 bg-pink-50 hover:bg-pink-100 rounded-lg border border-pink-200 transition-colors"
           >
             <svg className="w-5 h-5 text-pink-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -810,7 +817,7 @@ const AdminPage: React.FC = () => {
 
       {/* Expanded Features */}
       {expandedFeature && (
-        <div className="space-y-6">
+        <div ref={expandedFeaturesRef} className="space-y-6">
           {/* Run Automation Feature */}
           {expandedFeature === 'run-automation' && (
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
