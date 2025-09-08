@@ -120,6 +120,49 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
         document.body.removeChild(link);
         
         console.log('PDF download initiated successfully');
+        
+        // Show success message to user
+        const successMessage = document.createElement('div');
+        successMessage.innerHTML = `
+          <div style="
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 300px;
+            animation: slideIn 0.3s ease-out;
+          ">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 18px;">🎉</span>
+              <div>
+                <div style="font-weight: 600; margin-bottom: 4px;">Download Started!</div>
+                <div style="font-size: 12px; opacity: 0.9;">Check your downloads folder</div>
+              </div>
+            </div>
+          </div>
+          <style>
+            @keyframes slideIn {
+              from { transform: translateX(100%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+          </style>
+        `;
+        document.body.appendChild(successMessage);
+        
+        // Remove the message after 4 seconds
+        setTimeout(() => {
+          if (successMessage.parentNode) {
+            successMessage.parentNode.removeChild(successMessage);
+          }
+        }, 4000);
       } else {
         // Open news article in new tab
         window.open(pdfUrl, '_blank');
