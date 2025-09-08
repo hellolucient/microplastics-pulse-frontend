@@ -21,8 +21,8 @@ const Footer: React.FC = () => {
           {/* Center: Powered by Lucient */}
           <div className="flex justify-center items-center gap-2">
             <div className="relative">
-              <div className="w-2 h-2 rounded-full bg-cyan-400/20 animate-pulse" style={{ animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-cyan-300/15 animate-ping" style={{ animationDuration: '4s' }}></div>
+              <div className="w-2 h-2 rounded-full bg-cyan-400/35 animate-pulse" style={{ animationDuration: '4s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-cyan-300/25 animate-ping" style={{ animationDuration: '4s' }}></div>
             </div>
             <p className="text-xs text-gray-500 font-light">
               powered by{' '}
