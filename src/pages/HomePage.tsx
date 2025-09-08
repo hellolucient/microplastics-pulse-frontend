@@ -49,25 +49,27 @@ const HomePage: React.FC = () => {
 
   // --- Effect to fetch latest news from API --- 
   useEffect(() => {
+    // Create the whitepaper card immediately (static content)
+    const whitepaperCard: NewsItem = {
+      id: 'whitepaper',
+      created_at: new Date().toISOString(),
+      url: '/Microplastics - the Elephant in the Wellness Room.pdf',
+      title: 'Download Our Comprehensive Whitepaper',
+      source: 'MicroplasticsWatch Research',
+      published_date: new Date(Date.now() - 86400000).toISOString(),
+      ai_summary: 'Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions. This comprehensive whitepaper covers the latest findings, policy implications, and actionable steps for addressing microplastic pollution.',
+      ai_image_url: whitepaperImage
+    };
+
+    // Show whitepaper card immediately
+    setLatestNews([whitepaperCard]);
+
     const fetchLatestNewsFromApi = async () => {
       setNewsLoading(true);
       setNewsError(null);
-      setLatestNews([]); // Clear previous items
       try {
         const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
         if (Array.isArray(response.data)) {
-          // Create a real whitepaper card using the actual PDF file
-          const whitepaperCard: NewsItem = {
-            id: 'whitepaper',
-            created_at: new Date().toISOString(),
-            url: '/Microplastics - the Elephant in the Wellness Room.pdf',
-            title: 'Download Our Comprehensive Whitepaper',
-            source: 'MicroplasticsWatch Research',
-            published_date: new Date(Date.now() - 86400000).toISOString(),
-            ai_summary: 'Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions. This comprehensive whitepaper covers the latest findings, policy implications, and actionable steps for addressing microplastic pollution.',
-            ai_image_url: whitepaperImage
-          };
-          
           // Take only the first 3 items returned by the API
           const apiNews = response.data.slice(0, 3);
           const newsWithWhitepaper = [whitepaperCard, ...apiNews];
@@ -75,12 +77,10 @@ const HomePage: React.FC = () => {
         } else {
           console.error('API Error: Expected an array of news items, but received:', response.data);
           setNewsError('Failed to load news: The server returned an unexpected response.');
-          setLatestNews([]); // No fallback to sample data
         }
       } catch (error: unknown) {
         console.error('Error fetching latest news for homepage:', error);
         setNewsError('Failed to load news from the server.');
-        setLatestNews([]); // No fallback to sample data
       } finally {
         setNewsLoading(false);
       }
@@ -149,6 +149,7 @@ const HomePage: React.FC = () => {
           </div>
           <NewsCarousel 
             news={latestNews}
+            isLoading={newsLoading}
           />
         </div>
       </section>

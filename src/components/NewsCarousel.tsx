@@ -17,11 +17,13 @@ interface NewsItem {
 interface NewsCarouselProps {
   news: NewsItem[];
   autoPlayInterval?: number;
+  isLoading?: boolean;
 }
 
 const NewsCarousel: React.FC<NewsCarouselProps> = ({ 
   news, 
-  autoPlayInterval = 5000 
+  autoPlayInterval = 5000,
+  isLoading = false
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -182,6 +184,36 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
   if (!currentNews) return null;
 
   const isWhitepaper = currentNews.id === 'whitepaper';
+
+  // Skeleton loading component
+  const SkeletonCard = () => (
+    <div className="relative rounded-2xl shadow-xl overflow-hidden max-w-6xl mx-auto bg-white animate-pulse">
+      <div className="grid md:grid-cols-2 gap-0">
+        {/* Image skeleton */}
+        <div className="relative h-64 md:h-auto bg-gray-200">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300"></div>
+        </div>
+        
+        {/* Content skeleton */}
+        <div className="p-6 flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-8 w-24 bg-gray-200 rounded-full"></div>
+            <div className="h-4 w-16 bg-gray-200 rounded"></div>
+          </div>
+          
+          <div className="h-8 w-3/4 bg-gray-200 rounded mb-4"></div>
+          
+          <div className="space-y-2 mb-6">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+            <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+          </div>
+          
+          <div className="h-12 w-48 bg-gray-200 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
