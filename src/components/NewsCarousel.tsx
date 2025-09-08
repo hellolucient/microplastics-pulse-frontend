@@ -185,14 +185,20 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
 
   return (
     <>
-      <div className={`relative rounded-2xl shadow-xl overflow-hidden max-w-6xl mx-auto ${
-        isWhitepaper 
-          ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200' 
-          : 'bg-white'
-      }`}>
+      <div 
+        className={`relative rounded-2xl shadow-xl overflow-hidden max-w-6xl mx-auto ${
+          isWhitepaper 
+            ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 cursor-pointer hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]' 
+            : 'bg-white'
+        }`}
+        onClick={isWhitepaper ? handleWhitepaperDownload : undefined}
+      >
         {/* Navigation Arrows */}
         <button
-          onClick={goToPrevious}
+          onClick={(e) => {
+            e.stopPropagation();
+            goToPrevious();
+          }}
           className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border-2 border-gray-200 rounded-full p-3 shadow-xl hover:border-brand-blue hover:bg-brand-blue hover:text-white transition-all duration-200"
           aria-label="Previous slide"
         >
@@ -200,7 +206,10 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
         </button>
 
         <button
-          onClick={goToNext}
+          onClick={(e) => {
+            e.stopPropagation();
+            goToNext();
+          }}
           className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border-2 border-gray-200 rounded-full p-3 shadow-xl hover:border-brand-blue hover:bg-brand-blue hover:text-white transition-all duration-200"
           aria-label="Next slide"
         >
@@ -307,7 +316,10 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
             <div className="space-y-3">
               {isWhitepaper ? (
                 <button
-                  onClick={handleWhitepaperDownload}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleWhitepaperDownload();
+                  }}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-full hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   <DownloadCloud size={18} />
