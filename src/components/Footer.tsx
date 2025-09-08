@@ -21,10 +21,14 @@ const Footer: React.FC = () => {
           {/* Center: Powered by Lucient */}
           <div className="flex justify-center items-center gap-2">
             <div className="relative">
-              <div className="w-2 h-2 rounded-full bg-blue-400/30 animate-pulse"></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-cyan-400/20 animate-ping"></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400/25 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-violet-400/20 animate-ping" style={{ animationDelay: '1s' }}></div>
+              <div className="w-2 h-2 rounded-full bg-blue-400/25 animate-pulse" style={{ animationDuration: '3s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-cyan-400/20 animate-ping" style={{ animationDuration: '2.5s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400/30 animate-pulse" style={{ animationDelay: '0.8s', animationDuration: '2.8s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-violet-400/20 animate-ping" style={{ animationDelay: '1.2s', animationDuration: '3.2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-rose-400/25 animate-pulse" style={{ animationDelay: '1.8s', animationDuration: '2.7s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-amber-400/20 animate-ping" style={{ animationDelay: '2.1s', animationDuration: '3.5s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-teal-400/30 animate-pulse" style={{ animationDelay: '2.5s', animationDuration: '2.9s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-pink-400/20 animate-ping" style={{ animationDelay: '3s', animationDuration: '3.1s' }}></div>
             </div>
             <p className="text-xs text-gray-500 font-light">
               powered by{' '}
