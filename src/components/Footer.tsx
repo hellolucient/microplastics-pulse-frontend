@@ -21,16 +21,19 @@ const Footer: React.FC = () => {
           {/* Center: Powered by Lucient */}
           <div className="flex justify-center items-center gap-2">
             <div className="relative">
-              <div className="w-2 h-2 rounded-full bg-blue-400/30 animate-pulse" style={{ animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-cyan-400/25 animate-ping" style={{ animationDelay: '4s', animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400/35 animate-pulse" style={{ animationDelay: '8s', animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-violet-400/25 animate-ping" style={{ animationDelay: '12s', animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-rose-400/30 animate-pulse" style={{ animationDelay: '16s', animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-amber-400/25 animate-ping" style={{ animationDelay: '20s', animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-teal-400/35 animate-pulse" style={{ animationDelay: '24s', animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-pink-400/25 animate-ping" style={{ animationDelay: '28s', animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-yellow-400/50 animate-pulse" style={{ animationDelay: '32s', animationDuration: '4s' }}></div>
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-red-400/45 animate-ping" style={{ animationDelay: '36s', animationDuration: '4s' }}></div>
+              <div className="w-2 h-2 rounded-full bg-blue-500/40 animate-pulse" style={{ animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-cyan-500/35 animate-ping" style={{ animationDelay: '2s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500/45 animate-pulse" style={{ animationDelay: '4s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-violet-500/35 animate-ping" style={{ animationDelay: '6s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-rose-500/40 animate-pulse" style={{ animationDelay: '8s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-amber-500/35 animate-ping" style={{ animationDelay: '10s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-teal-500/45 animate-pulse" style={{ animationDelay: '12s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-pink-500/35 animate-ping" style={{ animationDelay: '14s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-yellow-500/55 animate-pulse" style={{ animationDelay: '16s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-red-500/50 animate-ping" style={{ animationDelay: '18s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-orange-500/45 animate-pulse" style={{ animationDelay: '20s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-lime-500/40 animate-ping" style={{ animationDelay: '22s', animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-indigo-500/35 animate-pulse" style={{ animationDelay: '24s', animationDuration: '2s' }}></div>
             </div>
             <p className="text-xs text-gray-500 font-light">
               powered by{' '}
