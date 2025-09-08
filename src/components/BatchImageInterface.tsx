@@ -13,9 +13,11 @@ interface BatchResult {
 
 const BatchImageInterface: React.FC<BatchImageInterfaceProps> = ({ backendUrl }) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isFinding, setIsFinding] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [results, setResults] = useState<BatchResult[]>([]);
   const [batchSize, setBatchSize] = useState(2);
+  const [foundArticleIds, setFoundArticleIds] = useState<string[]>([]);
 
   const processBatch = async () => {
     setIsProcessing(true);
@@ -55,61 +57,81 @@ const BatchImageInterface: React.FC<BatchImageInterfaceProps> = ({ backendUrl })
     }
   };
 
-  const processAllMissingImages = async () => {
-    setIsProcessing(true);
-    setStatusMessage('Starting complete image generation for all missing images...');
-    setResults([]);
 
-    let allResults: BatchResult[] = [];
-    let continueToken = '';
-    let totalProcessed = 0;
-    let batchCount = 0;
+  const findMissingImages = async () => {
+    setIsFinding(true);
+    setStatusMessage('Searching for articles missing AI images...');
+    setResults([]);
+    setFoundArticleIds([]);
 
     try {
-      while (true) {
-        batchCount++;
-        setStatusMessage(`Processing batch ${batchCount}... (${totalProcessed} articles processed so far)`);
+      const response = await fetch(`${backendUrl}/api/find-missing-images`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-        const response = await fetch(`${backendUrl}/api/batch-generate-images`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            batch_size: batchSize,
-            continue_token: continueToken || undefined,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        // Add results to our collection
-        allResults = [...allResults, ...data.results];
-        totalProcessed += data.results.length;
-        
-        // Update continue token for next batch
-        continueToken = data.continue_token || '';
-
-        // Check if we're done
-        if (data.done || data.results.length === 0) {
-          setStatusMessage(`✅ Complete! Processed ${totalProcessed} articles across ${batchCount} batches. All articles now have images.`);
-          break;
-        }
-
-        // Small delay between batches to be nice to the API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const data = await response.json();
       
-      setResults(allResults);
+      if (data.articleIds && data.articleIds.length > 0) {
+        setFoundArticleIds(data.articleIds);
+        setStatusMessage(`✅ Found ${data.articleIds.length} articles missing AI images. Click "Process Found Articles" to generate images.`);
+      } else {
+        setStatusMessage('✅ No articles found missing AI images!');
+      }
 
     } catch (error) {
-      console.error('Error processing all images:', error);
-      setStatusMessage(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}. Processed ${totalProcessed} articles before error.`);
-      setResults(allResults); // Show what we did process
+      console.error('Error finding missing images:', error);
+      setStatusMessage(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsFinding(false);
+    }
+  };
+
+  const processFoundImages = async () => {
+    if (foundArticleIds.length === 0) {
+      setStatusMessage('❌ No articles found to process. Please click "Find Missing Images" first.');
+      return;
+    }
+
+    setIsProcessing(true);
+    setStatusMessage(`Processing ${foundArticleIds.length} found articles...`);
+    setResults([]);
+
+    try {
+      const response = await fetch(`${backendUrl}/api/batch-generate-images`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          article_ids: foundArticleIds,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.done) {
+        setStatusMessage('✅ All found articles processed!');
+        setFoundArticleIds([]);
+      } else {
+        setStatusMessage(`✅ Processed ${data.results.length} articles. ${data.message}`);
+      }
+      
+      setResults(data.results);
+
+    } catch (error) {
+      console.error('Error processing found images:', error);
+      setStatusMessage(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsProcessing(false);
     }
@@ -118,6 +140,7 @@ const BatchImageInterface: React.FC<BatchImageInterfaceProps> = ({ backendUrl })
   const resetProcess = () => {
     setResults([]);
     setStatusMessage('');
+    setFoundArticleIds([]);
   };
 
   return (
@@ -140,8 +163,46 @@ const BatchImageInterface: React.FC<BatchImageInterfaceProps> = ({ backendUrl })
         </div>
         <div className="flex items-end space-x-2">
           <button
+            onClick={findMissingImages}
+            disabled={isFinding || isProcessing}
+            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center"
+          >
+            {isFinding ? (
+              <>
+                <div className="flex space-x-1 mr-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+                Finding...
+              </>
+            ) : (
+              'Find Missing Images'
+            )}
+          </button>
+
+          <button
+            onClick={processFoundImages}
+            disabled={isProcessing || foundArticleIds.length === 0}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center"
+          >
+            {isProcessing ? (
+              <>
+                <div className="flex space-x-1 mr-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+                Processing...
+              </>
+            ) : (
+              `Process Found Articles (${foundArticleIds.length})`
+            )}
+          </button>
+
+          <button
             onClick={processBatch}
-            disabled={isProcessing}
+            disabled={isProcessing || isFinding}
             className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center"
           >
             {isProcessing ? (
@@ -157,27 +218,11 @@ const BatchImageInterface: React.FC<BatchImageInterfaceProps> = ({ backendUrl })
               'Process Missing Images'
             )}
           </button>
-          <button
-            onClick={processAllMissingImages}
-            disabled={isProcessing}
-            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center"
-          >
-            {isProcessing ? (
-              <>
-                <div className="flex space-x-1 mr-2">
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
-                Processing All...
-              </>
-            ) : (
-              'Process All Missing Images'
-            )}
-          </button>
+
+
           <button
             onClick={resetProcess}
-            disabled={isProcessing}
+            disabled={isProcessing || isFinding}
             className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             Reset
@@ -227,8 +272,9 @@ const BatchImageInterface: React.FC<BatchImageInterfaceProps> = ({ backendUrl })
       )}
 
       <div className="text-xs text-gray-500 space-y-1">
+        <p><strong>Find Missing Images:</strong> Searches for articles missing AI images</p>
+        <p><strong>Process Found Articles:</strong> Processes the articles found in the previous step</p>
         <p><strong>Process Missing Images:</strong> Processes only the specified batch size (1-3 articles) and stops</p>
-        <p><strong>Process All Missing Images:</strong> Continues processing until ALL articles have images (processes in batches automatically)</p>
         <p><strong>Batch Size:</strong> Number of articles to process per batch (2 recommended to avoid rate limiting)</p>
         <p><strong>Note:</strong> Each image takes ~3 seconds to generate due to API rate limiting</p>
       </div>

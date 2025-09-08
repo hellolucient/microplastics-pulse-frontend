@@ -47,12 +47,6 @@ interface BatchUpdateResponse {
   done: boolean;
 }
 
-// Interface for Regenerate Image response
-interface RegenerateImageResponse {
-  message: string;
-  article_id: number | string;
-  new_ai_image_url: string;
-}
 
 // Interface for email check success response
 interface FailedUrl {
@@ -421,14 +415,12 @@ const AdminPage: React.FC = () => {
     const idToRegenerate = articleIdToRegenerate;
 
     try {
-      // Explicitly type the expected success response data
-      const response = await axios.post<RegenerateImageResponse>(`${BACKEND_URL}/api/regenerate-image`, {
-        article_id: idToRegenerate // Send the UUID string
+      const response = await axios.post(`${BACKEND_URL}/api/regenerate-image`, {
+        article_id: idToRegenerate
       });
       
-      setRegenerateImageMessage({ type: 'success', text: response.data.message });
+      setRegenerateImageMessage({ type: 'success', text: (response.data as any).message });
       setArticleIdToRegenerate(''); // Clear input on success
-      // Optionally, you could trigger a refresh of any displayed data if needed
 
     } catch (err: any) {
       console.error('Error regenerating image by ID:', err);
