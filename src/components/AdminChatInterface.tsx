@@ -18,6 +18,9 @@ const AdminChatInterface: React.FC<AdminChatInterfaceProps> = ({ backendUrl }) =
   const [chatMode, setChatMode] = useState<'general' | 'microplastics-research'>('microplastics-research');
   const [selectedProvider, setSelectedProvider] = useState<'openai' | 'anthropic'>('openai');
   const [selectedModel, setSelectedModel] = useState('gpt-4o');
+  const [isGeneratingEmbeddings, setIsGeneratingEmbeddings] = useState(false);
+  const [embeddingStatus, setEmbeddingStatus] = useState<string | null>(null);
+  const [embeddingProgress, setEmbeddingProgress] = useState<{current: number, total: number} | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -106,6 +109,85 @@ const AdminChatInterface: React.FC<AdminChatInterfaceProps> = ({ backendUrl }) =
     setMessages([]);
   };
 
+  const generateEmbeddings = async () => {
+    setIsGeneratingEmbeddings(true);
+    setEmbeddingStatus('Starting embedding generation...');
+    setEmbeddingProgress(null);
+
+    try {
+      const response = await fetch(`${backendUrl}/api/admin/chat/generate-embeddings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start embedding generation');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataContent = line.slice(6).trim();
+            
+            // Handle completion signal
+            if (dataContent === '[DONE]') {
+              setIsGeneratingEmbeddings(false);
+              return;
+            }
+            
+            try {
+              const data = JSON.parse(dataContent);
+              
+              switch (data.type) {
+                case 'start':
+                  setEmbeddingStatus(data.message);
+                  break;
+                case 'total':
+                  setEmbeddingProgress({ current: 0, total: data.total });
+                  break;
+                case 'progress':
+                  setEmbeddingStatus(`Processing articles... ${data.processed}/${data.total} (${data.progress}%)`);
+                  setEmbeddingProgress({ current: data.processed, total: data.total });
+                  break;
+                case 'complete':
+                  setEmbeddingStatus(`✅ ${data.message} Processed: ${data.processed}, Errors: ${data.errors}, Total: ${data.total}`);
+                  setEmbeddingProgress({ current: data.processed, total: data.total });
+                  setIsGeneratingEmbeddings(false);
+                  return;
+                case 'error':
+                  setEmbeddingStatus(`❌ Error: ${data.error}`);
+                  setIsGeneratingEmbeddings(false);
+                  return;
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError, 'Raw data:', dataContent);
+            }
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Error generating embeddings:', error);
+      setEmbeddingStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsGeneratingEmbeddings(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <div className="mb-6">
@@ -167,15 +249,55 @@ const AdminChatInterface: React.FC<AdminChatInterfaceProps> = ({ backendUrl }) =
           </div>
         </div>
 
-        {/* Clear Chat Button */}
-        <div className="mb-4">
+        {/* Action Buttons */}
+        <div className="mb-4 flex gap-3">
           <button
             onClick={clearChat}
             className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
           >
             Clear Chat
           </button>
+          
+          <button
+            onClick={generateEmbeddings}
+            disabled={isGeneratingEmbeddings}
+            className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center"
+          >
+            {isGeneratingEmbeddings ? (
+              <>
+                <div className="flex space-x-1 mr-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+                Generating...
+              </>
+            ) : (
+              'Generate Embeddings'
+            )}
+          </button>
         </div>
+
+        {/* Embedding Status */}
+        {embeddingStatus && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800">{embeddingStatus}</p>
+            {embeddingProgress && (
+              <div className="mt-2">
+                <div className="flex justify-between text-xs text-blue-600 mb-1">
+                  <span>Progress: {embeddingProgress.current}/{embeddingProgress.total}</span>
+                  <span>{Math.round((embeddingProgress.current / embeddingProgress.total) * 100)}%</span>
+                </div>
+                <div className="w-full bg-blue-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${(embeddingProgress.current / embeddingProgress.total) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Chat Messages */}
@@ -286,7 +408,7 @@ const AdminChatInterface: React.FC<AdminChatInterfaceProps> = ({ backendUrl }) =
         </p>
         {chatMode === 'microplastics-research' && (
           <p className="mt-1">
-            💡 This mode searches through your article database to provide research-backed answers.
+            💡 This mode uses semantic search with embeddings to find the most relevant articles from your database. Generate embeddings first for optimal results.
           </p>
         )}
       </div>

@@ -5,6 +5,8 @@ import AutomationLogSection from '../components/AutomationLogSection';
 import FailedUrlsSection from '../components/FailedUrlsSection';
 import AIUsageSection from '../components/AIUsageSection';
 import AdminChatInterface from '../components/AdminChatInterface';
+import BatchSummaryInterface from '../components/BatchSummaryInterface';
+import BatchImageInterface from '../components/BatchImageInterface';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : ''; // Fallback for safety
 
@@ -153,6 +155,7 @@ const AdminPage: React.FC = () => {
   const [articleIdToRegenerate, setArticleIdToRegenerate] = useState('');
   const [isRegeneratingImage, setIsRegeneratingImage] = useState(false);
   const [regenerateImageMessage, setRegenerateImageMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  const [imageGenerationMode, setImageGenerationMode] = useState<'single' | 'batch'>('single');
 
   // --- State for Checking Submitted Emails ---
   const [isCheckingEmails, setIsCheckingEmails] = useState(false);
@@ -812,6 +815,26 @@ const AdminPage: React.FC = () => {
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
           </button>
+
+          <button
+            onClick={() => {
+              setExpandedFeature('batch-summaries');
+              // Scroll to the expanded features section
+              setTimeout(() => {
+                expandedFeaturesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }}
+            className="group relative flex items-center justify-center p-4 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="text-sm font-medium text-amber-700">Batch Summaries</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Generate AI summaries for articles missing summaries (processes 2 at a time)
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -1086,34 +1109,63 @@ const AdminPage: React.FC = () => {
           {/* Regenerate Image Feature */}
           {expandedFeature === 'regenerate-image' && (
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Regenerate Image</h3>
-              <form onSubmit={handleRegenerateImageById} className="space-y-4">
-                <div>
-                  <label htmlFor="regenerate-id" className="block text-sm font-medium text-gray-700 mb-2">
-                    Article ID (UUID)
-                  </label>
-                  <input
-                    id="regenerate-id"
-                    type="text"
-                    value={articleIdToRegenerate}
-                    onChange={(e) => setArticleIdToRegenerate(e.target.value)}
-                    placeholder="Enter the full article ID"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    required
-                  />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Regenerate Image</h3>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setImageGenerationMode('single')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      imageGenerationMode === 'single'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Single
+                  </button>
+                  <button
+                    onClick={() => setImageGenerationMode('batch')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      imageGenerationMode === 'batch'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Batch
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  disabled={isRegeneratingImage}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {isRegeneratingImage ? 'Regenerating...' : 'Regenerate Image'}
-                </button>
-              </form>
-              {regenerateImageMessage && (
-                <div className={`mt-4 p-3 rounded-lg ${regenerateImageMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                  {regenerateImageMessage.text}
-                </div>
+              </div>
+
+              {imageGenerationMode === 'single' ? (
+                <form onSubmit={handleRegenerateImageById} className="space-y-4">
+                  <div>
+                    <label htmlFor="regenerate-id" className="block text-sm font-medium text-gray-700 mb-2">
+                      Article ID (UUID)
+                    </label>
+                    <input
+                      id="regenerate-id"
+                      type="text"
+                      value={articleIdToRegenerate}
+                      onChange={(e) => setArticleIdToRegenerate(e.target.value)}
+                      placeholder="Enter the full article ID"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isRegeneratingImage}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isRegeneratingImage ? 'Regenerating...' : 'Regenerate Image'}
+                  </button>
+                  {regenerateImageMessage && (
+                    <div className={`mt-4 p-3 rounded-lg ${regenerateImageMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                      {regenerateImageMessage.text}
+                    </div>
+                  )}
+                </form>
+              ) : (
+                <BatchImageInterface backendUrl={BACKEND_URL} />
               )}
             </div>
           )}
@@ -1340,6 +1392,17 @@ const AdminPage: React.FC = () => {
                 The research mode searches through your article database to provide research-backed answers.
               </p>
               <AdminChatInterface backendUrl={BACKEND_URL} />
+            </div>
+          )}
+
+          {/* Batch Summaries Feature */}
+          {expandedFeature === 'batch-summaries' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Batch Summary Generation</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Generate AI summaries for articles that are missing summaries. This processes articles in batches of 2 to avoid rate limiting.
+              </p>
+              <BatchSummaryInterface backendUrl={BACKEND_URL} />
             </div>
           )}
         </div>
