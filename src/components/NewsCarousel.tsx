@@ -92,8 +92,6 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
 
       const result = await response.json();
       console.log('Email collected successfully:', result);
-      console.log('Current news item:', currentNews);
-      console.log('Is whitepaper:', isWhitepaper);
       
       // Only proceed with download after email is collected
       let pdfUrl;
@@ -107,41 +105,17 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
           : `${window.location.origin}${currentNews.url}`;
       }
       
-      console.log('Email collected, now downloading PDF from:', pdfUrl);
       
       if (isWhitepaper) {
         // Download the PDF file
-        console.log('Attempting to download PDF from:', pdfUrl);
-        
         const link = document.createElement('a');
         link.href = pdfUrl;
         link.download = 'Microplastics - the Elephant in the Wellness Room.pdf';
-        link.target = '_blank'; // Add this as fallback
-        
-        console.log('Created download link:', link);
         
         document.body.appendChild(link);
-        console.log('Link added to DOM, attempting click...');
-        
-        try {
-          link.click();
-          console.log('Link click executed successfully');
-          
-          // Also try a direct window.open as backup
-          setTimeout(() => {
-            window.open(pdfUrl, '_blank');
-            console.log('Backup: opened PDF in new tab');
-          }, 100);
-          
-        } catch (error) {
-          console.error('Error clicking download link:', error);
-          // Fallback: open in new tab
-          window.open(pdfUrl, '_blank');
-          console.log('Fallback: opened PDF in new tab');
-        }
-        
+        link.click();
         document.body.removeChild(link);
-        console.log('PDF download initiated successfully');
+        
         
         // Show success message to user
         const successMessage = document.createElement('div');
@@ -188,7 +162,6 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
       } else {
         // Open news article in new tab
         window.open(pdfUrl, '_blank');
-        console.log('News article opened in new tab');
       }
       
       // Close modal and reset
