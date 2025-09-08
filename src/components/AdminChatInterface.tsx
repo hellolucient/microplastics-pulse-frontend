@@ -192,32 +192,47 @@ const AdminChatInterface: React.FC<AdminChatInterfaceProps> = ({ backendUrl }) =
             </p>
           </div>
         ) : (
-          messages.map((message, index) => (
-            <div
-              key={index}
-              className={`mb-4 p-3 rounded-lg max-w-3xl ${
-                message.role === 'user'
-                  ? 'bg-blue-500 text-white ml-auto'
-                  : message.role === 'assistant'
-                  ? 'bg-white border border-gray-200 mr-auto'
-                  : 'bg-red-100 border border-red-300 text-red-800 mr-auto'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-semibold uppercase">
-                  {message.role === 'user' ? 'You' : message.role === 'assistant' ? 'AI Assistant' : 'Error'}
-                </span>
-                {message.timestamp && (
-                  <span className="text-xs opacity-75">
-                    {new Date(message.timestamp).toLocaleTimeString()}
+          <>
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`mb-4 p-3 rounded-lg max-w-3xl ${
+                  message.role === 'user'
+                    ? 'bg-blue-500 text-white ml-auto'
+                    : message.role === 'assistant'
+                    ? 'bg-white border border-gray-200 mr-auto'
+                    : 'bg-red-100 border border-red-300 text-red-800 mr-auto'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-semibold uppercase">
+                    {message.role === 'user' ? 'You' : message.role === 'assistant' ? 'AI Assistant' : 'Error'}
                   </span>
-                )}
+                  {message.timestamp && (
+                    <span className="text-xs opacity-75">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </span>
+                  )}
+                </div>
+                <div className="whitespace-pre-wrap text-sm">
+                  {message.content}
+                </div>
               </div>
-              <div className="whitespace-pre-wrap text-sm">
-                {message.content}
+            ))}
+            {isLoading && (
+              <div className="mb-4 p-3 rounded-lg max-w-3xl bg-white border border-gray-200 mr-auto">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-semibold uppercase">AI Assistant</span>
+                  <span className="text-xs opacity-75">Thinking...</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
               </div>
-            </div>
-          ))
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -248,9 +263,17 @@ const AdminChatInterface: React.FC<AdminChatInterfaceProps> = ({ backendUrl }) =
         <button
           type="submit"
           disabled={isLoading || !inputValue.trim()}
-          className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[80px]"
         >
-          {isLoading ? 'Sending...' : 'Send'}
+          {isLoading ? (
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          ) : (
+            'Send'
+          )}
         </button>
       </form>
 
