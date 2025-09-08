@@ -10,13 +10,23 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-brand-light border-t border-gray-900/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="md:flex md:items-center md:justify-between">
-          <div className="flex justify-center md:justify-start mb-4 md:mb-0">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Left: MicroplasticsWatch */}
+          <div className="flex justify-center md:justify-start">
             <Link to="/" onClick={scrollToTop} className="font-semibold text-brand-darker hover:text-brand-blue transition-colors no-underline">
               MicroplasticsWatch
             </Link>
           </div>
 
+          {/* Center: Powered by Lucient */}
+          <div className="flex justify-center">
+            <p className="text-xs text-gray-500 font-light">
+              powered by{' '}
+              <span className="font-medium text-gray-600">lucient</span>
+            </p>
+          </div>
+
+          {/* Right: Copyright */}
           <div className="text-center md:text-right">
             <p className="text-sm text-gray-600">
               &copy; {new Date().getFullYear()} MicroplasticsWatch
