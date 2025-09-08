@@ -102,7 +102,10 @@ const HomePage: React.FC = () => {
 
     setIsSubmittingEmail(true);
     try {
-      const response = await axios.post<{ message?: string; error?: string }>(`${BACKEND_URL}/api/whitepaper-signup`, { email: whitepaperEmail });
+      const response = await axios.post<{ message?: string; error?: string }>(`${BACKEND_URL}/api/collect-email`, { 
+        email: whitepaperEmail,
+        source: 'whitepaper_download'
+      });
       if (response.status === 200 || response.status === 201) {
         setShowDownloadLink(true);
         setWhitepaperEmail(''); // Clear email field
