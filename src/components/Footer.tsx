@@ -29,6 +29,8 @@ const Footer: React.FC = () => {
               <div className="absolute inset-0 w-2 h-2 rounded-full bg-amber-400/20 animate-ping" style={{ animationDelay: '2.1s', animationDuration: '3.5s' }}></div>
               <div className="absolute inset-0 w-2 h-2 rounded-full bg-teal-400/30 animate-pulse" style={{ animationDelay: '2.5s', animationDuration: '2.9s' }}></div>
               <div className="absolute inset-0 w-2 h-2 rounded-full bg-pink-400/20 animate-ping" style={{ animationDelay: '3s', animationDuration: '3.1s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-yellow-400/30 animate-pulse" style={{ animationDelay: '3.5s', animationDuration: '2.6s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-red-400/25 animate-ping" style={{ animationDelay: '4s', animationDuration: '3.3s' }}></div>
             </div>
             <p className="text-xs text-gray-500 font-light">
               powered by{' '}
