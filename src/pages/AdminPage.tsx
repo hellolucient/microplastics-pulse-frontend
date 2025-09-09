@@ -645,6 +645,16 @@ const AdminPage: React.FC = () => {
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div className="w-2 h-2 rounded-full bg-cyan-400/35 animate-pulse" style={{ animationDuration: '4s' }}></div>
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-cyan-300/25 animate-ping" style={{ animationDuration: '4s' }}></div>
+            </div>
+            <p className="text-xs text-gray-500 font-light">
+              powered by{' '}
+              <span className="font-medium text-gray-600">lucient</span>
+            </p>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
