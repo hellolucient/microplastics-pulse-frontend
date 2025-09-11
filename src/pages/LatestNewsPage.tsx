@@ -278,44 +278,54 @@ const LatestNewsPage: React.FC = () => {
       setErrorMessage(null);
       setNewsItems([]);
       try {
-        // First, get the total count and pagination info
-        const firstResponse = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=1&limit=1000`);
+        // Try new paginated API format first
+        const firstResponse = await axios.get(`${BACKEND_URL}/api/latest-news?page=1&limit=1000`);
         
-        if (!firstResponse.data || typeof firstResponse.data !== 'object' || !('data' in firstResponse.data)) {
-          throw new Error('Invalid API response format');
-        }
-
-        const { data: firstPageData, pagination } = firstResponse.data;
-        if (!Array.isArray(firstPageData)) {
-          throw new Error('Expected data to be an array');
-        }
-
-        console.log("Total articles in database:", pagination?.total);
-        console.log("Total pages:", pagination?.totalPages);
-
-        let allNewsItems = [...firstPageData];
-
-        // If there are more pages, fetch them
-        if (pagination?.totalPages > 1) {
-          console.log(`Fetching additional pages (2 to ${pagination.totalPages})...`);
+        // Check if response is new paginated format
+        if (firstResponse.data && typeof firstResponse.data === 'object' && 'data' in firstResponse.data) {
+          const { data: firstPageData, pagination } = firstResponse.data;
           
-          for (let page = 2; page <= pagination.totalPages; page++) {
-            try {
-              const pageResponse = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=${page}&limit=1000`);
-              if (pageResponse.data && pageResponse.data.data && Array.isArray(pageResponse.data.data)) {
-                allNewsItems = [...allNewsItems, ...pageResponse.data.data];
-                console.log(`Fetched page ${page}: ${pageResponse.data.data.length} articles`);
+          if (!Array.isArray(firstPageData)) {
+            throw new Error('Expected data to be an array');
+          }
+
+          console.log("Using new paginated API format");
+          console.log("Total articles in database:", pagination?.total);
+          console.log("Total pages:", pagination?.totalPages);
+
+          let allNewsItems = [...firstPageData];
+
+          // If there are more pages, fetch them
+          if (pagination?.totalPages > 1) {
+            console.log(`Fetching additional pages (2 to ${pagination.totalPages})...`);
+            
+            for (let page = 2; page <= pagination.totalPages; page++) {
+              try {
+                const pageResponse = await axios.get(`${BACKEND_URL}/api/latest-news?page=${page}&limit=1000`);
+                if (pageResponse.data && pageResponse.data.data && Array.isArray(pageResponse.data.data)) {
+                  allNewsItems = [...allNewsItems, ...pageResponse.data.data];
+                  console.log(`Fetched page ${page}: ${pageResponse.data.data.length} articles`);
+                }
+              } catch (pageError) {
+                console.error(`Error fetching page ${page}:`, pageError);
+                // Continue with other pages even if one fails
               }
-            } catch (pageError) {
-              console.error(`Error fetching page ${page}:`, pageError);
-              // Continue with other pages even if one fails
             }
           }
-        }
 
-        setNewsItems(allNewsItems);
-        console.log("Total fetched articles:", allNewsItems.length);
-        console.log("Expected total:", pagination?.total);
+          setNewsItems(allNewsItems);
+          console.log("Total fetched articles:", allNewsItems.length);
+          console.log("Expected total:", pagination?.total);
+          
+        } else if (Array.isArray(firstResponse.data)) {
+          // Fallback to old API format (backward compatibility)
+          console.log("Using legacy API format - pagination features may be limited");
+          setNewsItems(firstResponse.data);
+          console.log("Fetched news items count (legacy format):", firstResponse.data.length);
+          
+        } else {
+          throw new Error('Invalid API response format');
+        }
 
       } catch (error) {
         console.error('Error fetching news from API:', error);
