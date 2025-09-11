@@ -33,8 +33,13 @@ const ResearchTimeline: React.FC<ResearchTimelineProps> = () => {
       setIsLoading(true);
       setErrorMessage(null);
       try {
-        const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
-        setAllNewsItems(response.data || []);
+        const response = await axios.get(`${BACKEND_URL}/api/latest-news?page=1&limit=1000`);
+        if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+          setAllNewsItems(response.data.data || []);
+        } else {
+          console.error('API Error: Expected paginated response with data property, but received:', response.data);
+          setErrorMessage('Failed to load news: The server returned an unexpected response.');
+        }
       } catch (error) {
         console.error('Error fetching news for timeline:', error);
         setErrorMessage('Failed to load relevant news items.');

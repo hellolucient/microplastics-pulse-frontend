@@ -68,14 +68,14 @@ const HomePage: React.FC = () => {
       setNewsLoading(true);
       setNewsError(null);
       try {
-        const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
-        if (Array.isArray(response.data)) {
-          // Take only the first 3 items returned by the API
-          const apiNews = response.data.slice(0, 3);
+        const response = await axios.get(`${BACKEND_URL}/api/latest-news?page=1&limit=3`);
+        if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+          // Take the first 3 items from the paginated response
+          const apiNews = response.data.data.slice(0, 3);
           const newsWithWhitepaper = [whitepaperCard, ...apiNews];
           setLatestNews(newsWithWhitepaper);
         } else {
-          console.error('API Error: Expected an array of news items, but received:', response.data);
+          console.error('API Error: Expected paginated response with data property, but received:', response.data);
           setNewsError('Failed to load news: The server returned an unexpected response.');
         }
       } catch (error: unknown) {
