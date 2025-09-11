@@ -22,7 +22,7 @@ interface SearchResult {
   totalPages: number;
 }
 
-const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://microplastics-pulse-backend-production.up.railway.app';
 
 const ResearchLibraryPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
