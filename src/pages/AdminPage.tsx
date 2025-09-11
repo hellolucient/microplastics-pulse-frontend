@@ -8,6 +8,7 @@ import AdminChatInterface from '../components/AdminChatInterface';
 import BatchSummaryInterface from '../components/BatchSummaryInterface';
 import BatchImageInterface from '../components/BatchImageInterface';
 import DocumentUploadInterface from '../components/DocumentUploadInterface';
+import UnifiedEmbeddingsInterface from '../components/UnifiedEmbeddingsInterface';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : ''; // Fallback for safety
 
@@ -858,6 +859,27 @@ const AdminPage: React.FC = () => {
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
           </button>
+
+
+          <button
+            onClick={() => {
+              setExpandedFeature(expandedFeature === 'unified-embeddings' ? null : 'unified-embeddings');
+              // Scroll to the expanded features section
+              setTimeout(() => {
+                expandedFeaturesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }}
+            className="group relative flex items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm font-medium text-purple-700">Generate All Embeddings</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Generate embeddings for articles, documents, and chunks in one operation
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -1437,6 +1459,19 @@ const AdminPage: React.FC = () => {
                 Upload documents to enhance the AI Chat RAG system. Documents can be made public for the Research Library or kept admin-only.
               </p>
               <DocumentUploadInterface backendUrl={BACKEND_URL} />
+            </div>
+          )}
+
+
+          {/* Unified Embeddings Feature */}
+          {expandedFeature === 'unified-embeddings' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Generate All Embeddings</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Generate embeddings for all content in one operation: articles, RAG documents, and document chunks. 
+                This enables comprehensive semantic search across your entire knowledge base.
+              </p>
+              <UnifiedEmbeddingsInterface backendUrl={BACKEND_URL} />
             </div>
           )}
         </div>
