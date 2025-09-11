@@ -335,7 +335,7 @@ const DocumentUploadInterface: React.FC<DocumentUploadInterfaceProps> = ({ backe
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isUploading || !formData.title.trim() || !formData.content.trim()}
+            disabled={isUploading || !formData.title.trim() || (!formData.file && !formData.content.trim())}
             className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {isUploading ? 'Uploading...' : 'Upload Document'}
