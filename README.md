@@ -161,4 +161,6 @@ The admin panel now provides comprehensive tools for:
 
 ---
 
-This README provides a comprehensive overview of the MicroPlastics Pulse Project. 
+This README provides a comprehensive overview of the MicroPlastics Pulse Project.
+
+<!-- Updated: Research Library search fix deployed --> 
