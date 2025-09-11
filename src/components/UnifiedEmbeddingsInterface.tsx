@@ -49,16 +49,24 @@ const UnifiedEmbeddingsInterface: React.FC<UnifiedEmbeddingsInterfaceProps> = ({
         throw new Error('No response body');
       }
 
+      let buffer = '';
+      
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        
+        // Keep the last line in buffer as it might be incomplete
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const dataContent = line.slice(6).trim();
+            
+            // Skip empty data lines
+            if (!dataContent) continue;
             
             try {
               const data = JSON.parse(dataContent);
@@ -71,6 +79,7 @@ const UnifiedEmbeddingsInterface: React.FC<UnifiedEmbeddingsInterfaceProps> = ({
               }
             } catch (parseError) {
               console.error('Error parsing SSE data:', parseError);
+              console.error('Problematic data:', dataContent);
             }
           }
         }
