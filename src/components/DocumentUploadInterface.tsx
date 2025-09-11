@@ -130,8 +130,8 @@ const DocumentUploadInterface: React.FC<DocumentUploadInterfaceProps> = ({ backe
       setMessage({ 
         type: 'success', 
         text: formData.file 
-          ? `Document uploaded and processed successfully! (${data.document.wordCount} words, ${data.document.chunkCount} chunks)`
-          : 'Document saved successfully!'
+          ? `Document uploaded, processed, and embeddings generated! (${data.document.wordCount} words, ${data.document.chunkCount} chunks)`
+          : 'Document saved and embeddings generated!'
       });
       
       // Reset form
