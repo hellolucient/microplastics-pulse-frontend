@@ -7,6 +7,7 @@ import AIUsageSection from '../components/AIUsageSection';
 import AdminChatInterface from '../components/AdminChatInterface';
 import BatchSummaryInterface from '../components/BatchSummaryInterface';
 import BatchImageInterface from '../components/BatchImageInterface';
+import DocumentUploadInterface from '../components/DocumentUploadInterface';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : ''; // Fallback for safety
 
@@ -837,6 +838,26 @@ const AdminPage: React.FC = () => {
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
           </button>
+
+          <button
+            onClick={() => {
+              setExpandedFeature(expandedFeature === 'document-upload' ? null : 'document-upload');
+              // Scroll to the expanded features section
+              setTimeout(() => {
+                expandedFeaturesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }}
+            className="group relative flex items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors"
+          >
+            <svg className="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <span className="text-sm font-medium text-purple-700">Document Upload</span>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Upload documents to enhance AI Chat RAG system
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -1405,6 +1426,17 @@ const AdminPage: React.FC = () => {
                 Generate AI summaries for articles that are missing summaries. This processes articles in batches of 2 to avoid rate limiting.
               </p>
               <BatchSummaryInterface backendUrl={BACKEND_URL} />
+            </div>
+          )}
+
+          {/* Document Upload Feature */}
+          {expandedFeature === 'document-upload' && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">RAG Document Upload</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Upload documents to enhance the AI Chat RAG system. Documents can be made public for the Research Library or kept admin-only.
+              </p>
+              <DocumentUploadInterface backendUrl={BACKEND_URL} />
             </div>
           )}
         </div>
