@@ -28,6 +28,7 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex items-center gap-6">
           <Link to="/" onClick={handleLinkClick} className="text-sm font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Home</Link>
           <Link to="/latest-news" onClick={handleLinkClick} className="text-sm font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">News Archives</Link>
+          <Link to="/research-library" onClick={handleLinkClick} className="text-sm font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Research Library</Link>
           <Link to="/contact" onClick={handleLinkClick} className="text-sm font-medium text-brand-dark hover:text-brand-blue transition-colors duration-150 no-underline">Contact</Link>
         </nav>
 
@@ -45,6 +46,7 @@ const Header: React.FC = () => {
           <nav className="px-2 pt-2 pb-4 space-y-1 sm:px-3">
             <Link to="/" onClick={handleLinkClick} className="block px-3 py-2 rounded-md text-base font-medium text-brand-dark hover:bg-gray-100 hover:text-brand-blue no-underline">Home</Link>
             <Link to="/latest-news" onClick={handleLinkClick} className="block px-3 py-2 rounded-md text-base font-medium text-brand-dark hover:bg-gray-100 hover:text-brand-blue no-underline">Latest News</Link>
+            <Link to="/research-library" onClick={handleLinkClick} className="block px-3 py-2 rounded-md text-base font-medium text-brand-dark hover:bg-gray-100 hover:text-brand-blue no-underline">Research Library</Link>
             <Link to="/contact" onClick={handleLinkClick} className="block px-3 py-2 rounded-md text-base font-medium text-brand-dark hover:bg-gray-100 hover:text-brand-blue no-underline">Contact</Link>
           </nav>
         </div>

@@ -179,12 +179,10 @@ const DocumentUploadInterface: React.FC<DocumentUploadInterfaceProps> = ({ backe
           >
             <option value="admin">Admin Only</option>
             <option value="public">Public (Research Library)</option>
-            <option value="restricted">Restricted</option>
           </select>
           <p className="text-sm text-gray-500 mt-1">
             {formData.accessLevel === 'public' && 'This document will be visible to all users in the Research Library.'}
             {formData.accessLevel === 'admin' && 'This document will only be accessible to admins and in AI Chat.'}
-            {formData.accessLevel === 'restricted' && 'This document will have restricted access (future use).'}
           </p>
         </div>
 
