@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Search } from 'lucide-react'; // Removed ListFilter icon
+import { Search, Grid3X3, List } from 'lucide-react';
 import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png'; // Import the placeholder
 import SocialShare from '../components/SocialShare';
 
@@ -19,11 +19,27 @@ interface NewsItem {
   source?: string | null;
 }
 
+// Define API response types
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+interface NewsApiResponse {
+  data: NewsItem[];
+  pagination: PaginationInfo;
+}
+
 // chapterTitles constant REMOVED
 
 // const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x250?text=News+Image"; // REMOVED - Unused
 
-const STORIES_PER_PAGE = 10;
+const STORIES_PER_PAGE_GRID = 10;
+const STORIES_PER_PAGE_LIST = 20;
 
 // Function to generate a placeholder URL with specific text (if you still want to use via.placeholder.com for some cases)
 // const getPlaceholderImageUrl = (text: string, width: number = 400, height: number = 250) => {
@@ -33,6 +49,10 @@ const STORIES_PER_PAGE = 10;
 interface NewsItemCardProps {
   item: NewsItem;
   isFeatured: boolean;
+}
+
+interface ListViewItemProps {
+  item: NewsItem;
 }
 
 const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
@@ -146,6 +166,88 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
   );
 };
 
+const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
+  const imageUrl = item.ai_image_url || fallbackPlaceholderImage;
+  
+  // Date formatting
+  const displayDate = item.published_date ? new Date(item.published_date) : new Date(item.created_at);
+  const formattedDate = displayDate.toLocaleDateString('en-GB', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
+  // Extract domain from URL
+  const extractDomain = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      let domain = urlObj.hostname;
+      if (domain.startsWith('www.')) {
+        domain = domain.substring(4);
+      }
+      return domain;
+    } catch {
+      return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+    }
+  };
+  
+  const cleanSource = item.url ? extractDomain(item.url) : null;
+  
+  // Remove HTML tags
+  const cleanText = (text: string): string => {
+    return text.replace(/<[^>]*>/g, '');
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-start space-x-3 sm:space-x-4">
+        <img 
+          src={imageUrl} 
+          alt={item.title || 'News image'}
+          className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded flex-shrink-0"
+          onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 space-y-1 sm:space-y-0">
+            <span className="text-xs text-gray-500">{formattedDate}</span>
+            {cleanSource && <span className="text-xs text-gray-500 truncate">Source: {cleanSource}</span>}
+          </div>
+          <a 
+            href={item.url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-base sm:text-lg font-semibold text-brand-darker hover:text-brand-blue transition-colors duration-150 no-underline block mb-2 line-clamp-2"
+          >
+            {cleanText(item.title || 'No Title')}
+          </a>
+          <p className="text-brand-dark text-sm mb-3 line-clamp-2">
+            {cleanText(item.ai_summary || 'Summary unavailable.')}
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+            <a 
+              href={item.url} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline self-start"
+            >
+              Read Full Article →
+            </a>
+            <SocialShare 
+              title={cleanText(item.title || 'Microplastics Research')}
+              url={item.url}
+              summary={cleanText(item.ai_summary || '')}
+              storyId={item.id}
+              imageUrl={item.ai_image_url}
+              size="small"
+              className="self-start sm:self-auto"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LatestNewsPage: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,7 +261,7 @@ const LatestNewsPage: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState(getSearchTermFromUrl());
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageWindowStart, setPageWindowStart] = useState(1); // New state for pagination window
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // New state for view toggle
 
   useEffect(() => {
     // Sync search term from URL to state when URL changes (e.g., browser back/forward)
@@ -167,25 +269,54 @@ const LatestNewsPage: React.FC = () => {
     if (termFromUrl !== searchTerm) {
       setSearchTerm(termFromUrl);
       setCurrentPage(1);
-      setPageWindowStart(1);
     }
   }, [location.search]);
 
   useEffect(() => {
-    const fetchNewsFromApi = async () => {
+    const fetchAllNewsFromApi = async () => {
       setIsLoading(true);
       setErrorMessage(null);
       setNewsItems([]);
       try {
-        const response = await axios.get<NewsItem[]>(`${BACKEND_URL}/api/latest-news`);
-        if (Array.isArray(response.data)) {
-          setNewsItems(response.data);
-          console.log("Fetched news items count:", response.data.length);
-        } else {
-          // The response was not an array. This is an unexpected API response.
-          console.error('API Error: Expected an array of news items, but received:', response.data);
-          setErrorMessage('Failed to fetch news: The server returned an unexpected response.');
+        // First, get the total count and pagination info
+        const firstResponse = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=1&limit=1000`);
+        
+        if (!firstResponse.data || typeof firstResponse.data !== 'object' || !('data' in firstResponse.data)) {
+          throw new Error('Invalid API response format');
         }
+
+        const { data: firstPageData, pagination } = firstResponse.data;
+        if (!Array.isArray(firstPageData)) {
+          throw new Error('Expected data to be an array');
+        }
+
+        console.log("Total articles in database:", pagination?.total);
+        console.log("Total pages:", pagination?.totalPages);
+
+        let allNewsItems = [...firstPageData];
+
+        // If there are more pages, fetch them
+        if (pagination?.totalPages > 1) {
+          console.log(`Fetching additional pages (2 to ${pagination.totalPages})...`);
+          
+          for (let page = 2; page <= pagination.totalPages; page++) {
+            try {
+              const pageResponse = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=${page}&limit=1000`);
+              if (pageResponse.data && pageResponse.data.data && Array.isArray(pageResponse.data.data)) {
+                allNewsItems = [...allNewsItems, ...pageResponse.data.data];
+                console.log(`Fetched page ${page}: ${pageResponse.data.data.length} articles`);
+              }
+            } catch (pageError) {
+              console.error(`Error fetching page ${page}:`, pageError);
+              // Continue with other pages even if one fails
+            }
+          }
+        }
+
+        setNewsItems(allNewsItems);
+        console.log("Total fetched articles:", allNewsItems.length);
+        console.log("Expected total:", pagination?.total);
+
       } catch (error) {
         console.error('Error fetching news from API:', error);
         let message = 'Failed to fetch news due to an unknown error.';
@@ -210,7 +341,7 @@ const LatestNewsPage: React.FC = () => {
         setIsLoading(false);
       }
     };
-    fetchNewsFromApi();
+    fetchAllNewsFromApi();
   }, []);
 
   // Updated filteredNewsItems logic
@@ -232,19 +363,29 @@ const LatestNewsPage: React.FC = () => {
 
   // Pagination logic
   const totalStories = filteredNewsItems.length;
-  const totalPages = totalStories <= 1
-    ? 1
-    : Math.ceil((totalStories - 1) / STORIES_PER_PAGE) + 1;
+  const storiesPerPage = viewMode === 'grid' ? STORIES_PER_PAGE_GRID : STORIES_PER_PAGE_LIST;
+  
+  const totalPages = viewMode === 'grid' 
+    ? (totalStories <= 1 ? 1 : Math.ceil((totalStories - 1) / storiesPerPage) + 1)
+    : Math.ceil(totalStories / storiesPerPage);
 
   // Get stories for current page
   let featuredStory: NewsItem | null = null;
   let secondaryStories: NewsItem[] = [];
-  if (currentPage === 1) {
-    featuredStory = filteredNewsItems[0] || null;
-    secondaryStories = filteredNewsItems.slice(1, 1 + STORIES_PER_PAGE);
+  let listStories: NewsItem[] = [];
+  
+  if (viewMode === 'grid') {
+    if (currentPage === 1) {
+      featuredStory = filteredNewsItems[0] || null;
+      secondaryStories = filteredNewsItems.slice(1, 1 + storiesPerPage);
+    } else {
+      const startIdx = 1 + (currentPage - 2) * storiesPerPage;
+      secondaryStories = filteredNewsItems.slice(startIdx, startIdx + storiesPerPage);
+    }
   } else {
-    const startIdx = 1 + (currentPage - 2) * STORIES_PER_PAGE;
-    secondaryStories = filteredNewsItems.slice(startIdx, startIdx + STORIES_PER_PAGE);
+    // List view: no featured story, just paginated list
+    const startIdx = (currentPage - 1) * storiesPerPage;
+    listStories = filteredNewsItems.slice(startIdx, startIdx + storiesPerPage);
   }
 
   // Pagination controls
@@ -252,27 +393,106 @@ const LatestNewsPage: React.FC = () => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
-  const maxPagesToShow = 10; // Number of page links to show
-
-  const handlePreviousBlock = () => {
-    const newWindowStart = Math.max(1, pageWindowStart - maxPagesToShow);
-    setPageWindowStart(newWindowStart);
-    setCurrentPage(newWindowStart);
+  // Smart pagination for large datasets
+  const generatePageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 7; // Show up to 7 page numbers
+    const sidePages = 2; // Pages to show on each side of current page
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Smart pagination with ellipsis
+      const current = currentPage;
+      const total = totalPages;
+      
+      // Always show first page
+      pages.push(1);
+      
+      if (current > sidePages + 3) {
+        pages.push('...');
+      }
+      
+      // Show pages around current page
+      const start = Math.max(2, current - sidePages);
+      const end = Math.min(total - 1, current + sidePages);
+      
+      for (let i = start; i <= end; i++) {
+        if (i !== 1 && i !== total) {
+          pages.push(i);
+        }
+      }
+      
+      if (current < total - sidePages - 2) {
+        pages.push('...');
+      }
+      
+      // Always show last page (if more than 1 page)
+      if (total > 1) {
+        pages.push(total);
+      }
+    }
+    
+    return pages;
   };
 
-  const handleNextBlock = () => {
-    const newWindowStart = pageWindowStart + maxPagesToShow;
-    if (newWindowStart <= totalPages) {
-      setPageWindowStart(newWindowStart);
-      setCurrentPage(newWindowStart);
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handleFirstPage = () => {
+    setCurrentPage(1);
+  };
+
+  const handleLastPage = () => {
+    setCurrentPage(totalPages);
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <div className="sticky top-0 z-20 bg-brand-light px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-darker pb-2">Research, Updates & News</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-4 sm:space-y-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-brand-darker">Research, Updates & News</h1>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600 hidden sm:block">View:</span>
+              <div className="flex bg-white rounded-lg border border-gray-300 p-1">
+                <button
+                  onClick={() => { setViewMode('grid'); setCurrentPage(1); }}
+                  className={`flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-md text-sm font-medium transition-colors duration-150 ${
+                    viewMode === 'grid' 
+                      ? 'bg-brand-blue text-white' 
+                      : 'text-gray-600 hover:text-brand-blue hover:bg-gray-50'
+                  }`}
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Grid</span>
+                </button>
+                <button
+                  onClick={() => { setViewMode('list'); setCurrentPage(1); }}
+                  className={`flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-md text-sm font-medium transition-colors duration-150 ${
+                    viewMode === 'list' 
+                      ? 'bg-brand-blue text-white' 
+                      : 'text-gray-600 hover:text-brand-blue hover:bg-gray-50'
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">List</span>
+                </button>
+              </div>
+            </div>
+          </div>
           <div className="max-w-xl mx-auto">
             <label htmlFor="news-search" className="sr-only">Search News</label>
             <div className="relative">
@@ -283,7 +503,7 @@ const LatestNewsPage: React.FC = () => {
                     type="search"
                     id="news-search"
                     value={searchTerm}
-                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setPageWindowStart(1); }}
+                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     placeholder="Search news by title, summary, or source..."
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-brand-blue focus:border-brand-blue sm:text-sm"
                 />
@@ -300,53 +520,115 @@ const LatestNewsPage: React.FC = () => {
       {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
       {!isLoading && !errorMessage && totalStories > 0 && (
         <>
-          {/* Featured Story - only on page 1 and if search is not active or shows the first item */}
-          {currentPage === 1 && featuredStory && (
-            <NewsItemCard item={featuredStory} isFeatured={true} />
+          {viewMode === 'grid' ? (
+            <>
+              {/* Featured Story - only on page 1 and if search is not active or shows the first item */}
+              {currentPage === 1 && featuredStory && (
+                <NewsItemCard item={featuredStory} isFeatured={true} />
+              )}
+
+              {/* Grid for secondary stories */}
+              <div className={`grid grid-cols-1 ${secondaryStories.length > 0 ? 'md:grid-cols-2' : ''} gap-6 ${currentPage === 1 && featuredStory ? 'mt-8' : 'mt-0'}`}>
+                {secondaryStories.map(item => (
+                  <NewsItemCard key={item.id || item.url} item={item} isFeatured={false} />
+                ))}
+              </div>
+            </>
+          ) : (
+            /* List view */
+            <div className="space-y-4">
+              {listStories.map(item => (
+                <ListViewItem key={item.id || item.url} item={item} />
+              ))}
+            </div>
           )}
 
-          {/* Grid for secondary stories */}
-          <div className={`grid grid-cols-1 ${secondaryStories.length > 0 ? 'md:grid-cols-2' : ''} gap-6 ${currentPage === 1 && featuredStory ? 'mt-8' : 'mt-0'}`}>
-            {secondaryStories.map(item => (
-              <NewsItemCard key={item.id || item.url} item={item} isFeatured={false} />
-            ))}
-          </div>
-
           {/* Pagination Controls */}
-          <div className="flex flex-wrap justify-center items-center mt-12 space-x-1 md:space-x-2">
-            <button
-              onClick={() => handlePreviousBlock()}
-              disabled={pageWindowStart === 1}
-              className={`px-3 py-1 rounded-md border text-sm font-medium ${pageWindowStart === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
-            >
-              Previous
-            </button>
-            {
-              (() => {
-                const pageNumbers = [];
-                const endPageForWindow = Math.min(totalPages, pageWindowStart + maxPagesToShow - 1);
-
-                for (let i = pageWindowStart; i <= endPageForWindow; i++) {
-                  pageNumbers.push(
-                    <button
-                      key={i}
-                      onClick={() => goToPage(i)}
-                      className={`px-3 py-1 rounded-md border text-sm font-medium ${currentPage === i ? 'bg-brand-blue text-white border-brand-blue' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
-                    >
-                      {i}
-                    </button>
-                  );
-                }
-                return pageNumbers;
-              })()
-            }
-            <button
-              onClick={() => handleNextBlock()}
-              disabled={pageWindowStart + maxPagesToShow > totalPages}
-              className={`px-3 py-1 rounded-md border text-sm font-medium ${pageWindowStart + maxPagesToShow > totalPages ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
-            >
-              Next
-            </button>
+          <div className="flex flex-col items-center mt-12 space-y-4">
+            {/* Page Info */}
+            <div className="text-sm text-gray-600">
+              Showing {((currentPage - 1) * storiesPerPage) + 1} to {Math.min(currentPage * storiesPerPage, totalStories)} of {totalStories} articles
+              {viewMode === 'grid' && currentPage === 1 && featuredStory && ` (${totalStories - 1} after featured story)`}
+            </div>
+            
+            {/* Pagination Buttons */}
+            <div className="flex flex-wrap justify-center items-center space-x-1 md:space-x-2">
+              {/* First Page */}
+              {totalPages > 1 && currentPage > 1 && (
+                <button
+                  onClick={handleFirstPage}
+                  className="px-3 py-1 rounded-md border text-sm font-medium bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150"
+                >
+                  First
+                </button>
+              )}
+              
+              {/* Previous Page */}
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded-md border text-sm font-medium ${currentPage === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
+              >
+                Previous
+              </button>
+              
+              {/* Page Numbers */}
+              {generatePageNumbers().map((page, index) => (
+                page === '...' ? (
+                  <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page as number)}
+                    className={`px-3 py-1 rounded-md border text-sm font-medium ${currentPage === page ? 'bg-brand-blue text-white border-brand-blue' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
+                  >
+                    {page}
+                  </button>
+                )
+              ))}
+              
+              {/* Next Page */}
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded-md border text-sm font-medium ${currentPage === totalPages ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150'}`}
+              >
+                Next
+              </button>
+              
+              {/* Last Page */}
+              {totalPages > 1 && currentPage < totalPages && (
+                <button
+                  onClick={handleLastPage}
+                  className="px-3 py-1 rounded-md border text-sm font-medium bg-white text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white transition-colors duration-150"
+                >
+                  Last
+                </button>
+              )}
+            </div>
+            
+            {/* Quick Page Jump */}
+            {totalPages > 10 && (
+              <div className="flex items-center space-x-2 text-sm">
+                <span className="text-gray-600">Go to page:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={totalPages}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const page = parseInt(e.target.value);
+                    if (page >= 1 && page <= totalPages) {
+                      setCurrentPage(page);
+                    }
+                  }}
+                  className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue"
+                />
+                <span className="text-gray-600">of {totalPages}</span>
+              </div>
+            )}
           </div>
         </>
       )}
