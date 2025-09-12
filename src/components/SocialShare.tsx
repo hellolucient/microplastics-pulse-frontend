@@ -125,6 +125,39 @@ const SocialShare: React.FC<SocialShareProps> = ({
     }
   };
 
+  const copyImageToClipboard = async () => {
+    if (!modalContent?.imageUrl) return;
+    
+    try {
+      // Fetch the image
+      const response = await fetch(modalContent.imageUrl);
+      const blob = await response.blob();
+      
+      // Create clipboard item with the image
+      const clipboardItem = new ClipboardItem({
+        [blob.type]: blob
+      });
+      
+      await navigator.clipboard.write([clipboardItem]);
+      
+      // Show success feedback
+      const button = document.querySelector('[data-copy-image]') as HTMLButtonElement;
+      if (button) {
+        const originalText = button.textContent;
+        button.textContent = 'Image Copied!';
+        button.className = button.className.replace('bg-brand-blue', 'bg-green-100').replace('text-white', 'text-green-700');
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.className = button.className.replace('bg-green-100', 'bg-brand-blue').replace('text-green-700', 'text-white');
+        }, 2000);
+      }
+    } catch (err) {
+      console.error('Failed to copy image:', err);
+      // Fallback: open image in new tab for manual copy
+      window.open(modalContent.imageUrl, '_blank');
+    }
+  };
+
   const openSocialPlatform = () => {
     if (!modalContent) return;
     window.open(modalContent.url, '_blank', 'width=580,height=570');
@@ -261,24 +294,50 @@ const SocialShare: React.FC<SocialShareProps> = ({
               <div className="text-sm text-gray-600 mb-3">
                 {modalContent.imageUrl ? (
                   <>
-                    Copy this post (includes image URL), then paste in the {modalContent.platform} share popup.<br/>
-                    <span className="text-xs text-gray-500">💡 The image URL is included in the copied text - you can paste it directly into your post!</span>
+                    Copy the post text and image separately, then paste both in the {modalContent.platform} share popup.<br/>
+                    <span className="text-xs text-gray-500">💡 Copy the post first, then copy the image - you can paste both into your social media post!</span>
                   </>
                 ) : (
                   `Copy this post, then paste in the ${modalContent.platform} share popup`
                 )}
               </div>
-              <button
-                onClick={copyModalContent}
-                className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
-                  copied 
-                    ? 'bg-green-100 text-green-700 border border-green-300' 
-                    : 'bg-brand-blue text-white hover:bg-sky-700 border border-brand-blue'
-                }`}
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Copied!' : 'Copy Post'}
-              </button>
+              
+              {modalContent.imageUrl ? (
+                <div className="space-y-2">
+                  <button
+                    onClick={copyModalContent}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+                      copied 
+                        ? 'bg-green-100 text-green-700 border border-green-300' 
+                        : 'bg-brand-blue text-white hover:bg-sky-700 border border-brand-blue'
+                    }`}
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copied ? 'Post Copied!' : 'Copy Post Text'}
+                  </button>
+                  
+                  <button
+                    onClick={copyImageToClipboard}
+                    data-copy-image
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 bg-gray-600 text-white hover:bg-gray-700 border border-gray-600"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy Image
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={copyModalContent}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+                    copied 
+                      ? 'bg-green-100 text-green-700 border border-green-300' 
+                      : 'bg-brand-blue text-white hover:bg-sky-700 border border-brand-blue'
+                  }`}
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copied ? 'Copied!' : 'Copy Post'}
+                </button>
+              )}
             </div>
           </div>
         </div>
