@@ -17,7 +17,7 @@ interface Document {
   created_at: string;
 }
 
-const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://microplastics-pulse-backend-production.up.railway.app';
+const BACKEND_URL = 'https://microplastics-pulse-backend-production.up.railway.app';
 
 const DocumentViewerPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
