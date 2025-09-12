@@ -40,7 +40,9 @@ const SocialShare: React.FC<SocialShareProps> = ({
     // Generate a professional Facebook post
     const cleanTitle = title.replace(/<[^>]*>/g, '');
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
-    const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research\n\nRead more: ${shareUrl}`;
+    
+    // Include image URL in the post content for easy copy/paste
+    const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research\n\nRead more: ${shareUrl}${imageUrl ? `\n\n📸 AI-Generated Image: ${imageUrl}` : ''}`;
     
     // Reset copied state and show our beautiful modal
     setCopied(false);
@@ -58,7 +60,9 @@ const SocialShare: React.FC<SocialShareProps> = ({
     // Generate a professional LinkedIn post
     const cleanTitle = title.replace(/<[^>]*>/g, '');
     const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
-    const linkedinPost = `🔬 New Research Alert: ${cleanTitle}\n\n${cleanSummary}\n\nThis study highlights the critical impact of microplastics on our health and environment. As researchers continue to uncover the extent of this crisis, it's crucial we stay informed and take action.\n\n#microplastics #health #environment #research\n\nRead the full article: ${shareUrl}`;
+    
+    // Include image URL in the post content for easy copy/paste
+    const linkedinPost = `🔬 New Research Alert: ${cleanTitle}\n\n${cleanSummary}\n\nThis study highlights the critical impact of microplastics on our health and environment. As researchers continue to uncover the extent of this crisis, it's crucial we stay informed and take action.\n\n#microplastics #health #environment #research\n\nRead the full article: ${shareUrl}${imageUrl ? `\n\n📸 AI-Generated Image: ${imageUrl}` : ''}`;
     
     // Reset copied state and show our beautiful modal
     setCopied(false);
@@ -257,8 +261,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
               <div className="text-sm text-gray-600 mb-3">
                 {modalContent.imageUrl ? (
                   <>
-                    Copy this post, then paste in the {modalContent.platform} share popup.<br/>
-                    <span className="text-xs text-gray-500">💡 Tip: Right-click the image above to copy/save it, then add it to your post!</span>
+                    Copy this post (includes image URL), then paste in the {modalContent.platform} share popup.<br/>
+                    <span className="text-xs text-gray-500">💡 The image URL is included in the copied text - you can paste it directly into your post!</span>
                   </>
                 ) : (
                   `Copy this post, then paste in the ${modalContent.platform} share popup`
