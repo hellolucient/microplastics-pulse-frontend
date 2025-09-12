@@ -38,6 +38,13 @@ interface SearchResult {
   searchTerm: string;
 }
 
+interface DocumentOption {
+  id: string;
+  title: string;
+  file_type: string;
+  created_at: string;
+}
+
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://microplastics-pulse-backend-production.up.railway.app';
 
 // Function to highlight search terms in text
@@ -66,10 +73,14 @@ const ResearchLibraryPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
   const [showAllDocuments, setShowAllDocuments] = useState(true);
+  const [availableDocuments, setAvailableDocuments] = useState<DocumentOption[]>([]);
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
+  const [showDocumentFilter, setShowDocumentFilter] = useState(false);
 
   // Fetch all public documents on component mount
   useEffect(() => {
     fetchAllDocuments();
+    fetchAvailableDocuments();
   }, []);
 
   const fetchAllDocuments = async () => {
@@ -81,6 +92,18 @@ const ResearchLibraryPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching documents:', error);
+    }
+  };
+
+  const fetchAvailableDocuments = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/rag-documents/public/list`);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableDocuments(data.documents || []);
+      }
+    } catch (error) {
+      console.error('Error fetching available documents:', error);
     }
   };
 
@@ -96,9 +119,14 @@ const ResearchLibraryPage: React.FC = () => {
     setCurrentPage(page);
 
     try {
-      const response = await fetch(
-        `${BACKEND_URL}/api/rag-documents/public/search?q=${encodeURIComponent(searchTerm)}&page=${page}&limit=10`
-      );
+      let searchUrl = `${BACKEND_URL}/api/rag-documents/public/search?q=${encodeURIComponent(searchTerm)}&page=${page}&limit=10`;
+      
+      // Add document filter if documents are selected
+      if (selectedDocumentIds.length > 0) {
+        searchUrl += `&documentIds=${selectedDocumentIds.join(',')}`;
+      }
+      
+      const response = await fetch(searchUrl);
       
       if (response.ok) {
         const data = await response.json();
@@ -197,6 +225,69 @@ const ResearchLibraryPage: React.FC = () => {
               {isLoading ? 'Searching...' : 'Search'}
             </button>
           </form>
+          
+          {/* Document Filter Section */}
+          {availableDocuments.length > 1 && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-700">Filter by Document</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowDocumentFilter(!showDocumentFilter)}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  {showDocumentFilter ? 'Hide Filter' : 'Show Filter'}
+                </button>
+              </div>
+              
+              {showDocumentFilter && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="all-documents"
+                      checked={selectedDocumentIds.length === 0}
+                      onChange={() => setSelectedDocumentIds([])}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="all-documents" className="text-sm text-gray-700">
+                      Search all documents ({availableDocuments.length} available)
+                    </label>
+                  </div>
+                  
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {availableDocuments.map((doc) => (
+                      <div key={doc.id} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={`doc-${doc.id}`}
+                          checked={selectedDocumentIds.includes(doc.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedDocumentIds([...selectedDocumentIds, doc.id]);
+                            } else {
+                              setSelectedDocumentIds(selectedDocumentIds.filter(id => id !== doc.id));
+                            }
+                          }}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor={`doc-${doc.id}`} className="text-sm text-gray-700 flex-1">
+                          <span className="font-medium">{doc.title}</span>
+                          <span className="text-gray-500 ml-2">({doc.file_type.toUpperCase()})</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {selectedDocumentIds.length > 0 && (
+                    <div className="text-sm text-gray-600">
+                      Searching in {selectedDocumentIds.length} selected document{selectedDocumentIds.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
