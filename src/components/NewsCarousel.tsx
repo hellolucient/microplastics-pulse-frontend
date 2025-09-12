@@ -221,7 +221,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
       <div 
         className={`relative rounded-2xl shadow-xl overflow-hidden max-w-6xl mx-auto ${
           isWhitepaper 
-            ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 cursor-pointer hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]' 
+            ? 'bg-white cursor-pointer hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]' 
             : 'bg-white'
         }`}
         onClick={isWhitepaper ? handleWhitepaperDownload : undefined}
@@ -253,33 +253,38 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
         <div className="grid md:grid-cols-2 gap-0">
           {/* Image Section */}
           <div className="relative h-full overflow-hidden">
-            <img
-              src={currentNews.ai_image_url || fallbackPlaceholderImage}
-              alt={currentNews.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = fallbackPlaceholderImage;
-              }}
-            />
-            {isWhitepaper && (
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-emerald-600/30 flex items-center justify-center">
-                <div className="bg-white/95 backdrop-blur-sm rounded-full p-5 shadow-2xl border-2 border-green-300">
-                  <DownloadCloud size={52} className="text-green-600" />
-                </div>
+            {isWhitepaper ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                <img
+                  src={currentNews.ai_image_url || fallbackPlaceholderImage}
+                  alt={currentNews.title}
+                  className="w-32 h-40 object-cover rounded-lg shadow-lg"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = fallbackPlaceholderImage;
+                  }}
+                />
               </div>
+            ) : (
+              <img
+                src={currentNews.ai_image_url || fallbackPlaceholderImage}
+                alt={currentNews.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = fallbackPlaceholderImage;
+                }}
+              />
             )}
           </div>
 
           {/* Content Section */}
-          <div className={`p-6 flex flex-col justify-center ${
-            isWhitepaper ? 'bg-gradient-to-br from-green-50 to-emerald-50' : ''
-          }`}>
+          <div className="p-6 flex flex-col justify-center">
             {/* Source and Date */}
             <div className="flex items-center gap-3 mb-4">
               <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
                 isWhitepaper 
-                  ? 'bg-green-500 text-white shadow-lg' 
+                  ? 'bg-blue-100 text-blue-800 border border-blue-200' 
                   : 'bg-blue-100 text-blue-800 border border-blue-200'
               }`}>
                 {isWhitepaper ? '📚 Premium Research' : (() => {
@@ -297,9 +302,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
                   }
                 })()}
               </span>
-              <span className={`text-sm font-medium ${
-                isWhitepaper ? 'text-green-700' : 'text-gray-500'
-              }`}>
+              <span className="text-sm font-medium text-gray-500">
                 {isWhitepaper ? 'Free Download' : (() => {
                   try {
                     if (currentNews.published_date) {
