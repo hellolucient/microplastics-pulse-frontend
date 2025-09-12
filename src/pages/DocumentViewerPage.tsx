@@ -32,6 +32,7 @@ const DocumentViewerPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [highlightedText, setHighlightedText] = useState<string | null>(null);
+  const [pdfLoadError, setPdfLoadError] = useState(false);
 
   // Get highlight text from URL params
   const highlightText = searchParams.get('highlight');
@@ -262,15 +263,23 @@ const DocumentViewerPage: React.FC = () => {
 
       {/* Document Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isPDF(document.file_type) && document.file_url ? (
+        {isPDF(document.file_type) && document.file_url && !pdfLoadError ? (
           <PDFViewer
             pdfUrl={document.file_url}
             initialPage={currentPage}
             searchTerm={highlightedText || undefined}
             onPageChange={setCurrentPage}
+            onError={() => setPdfLoadError(true)}
           />
         ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            {pdfLoadError && (
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800">
+                  <strong>PDF unavailable:</strong> The PDF file could not be loaded. Showing text content instead.
+                </p>
+              </div>
+            )}
             <div id="document-content" className="prose prose-lg max-w-none">
               <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
                 {highlightSearchTerm(getCurrentPageContent(), highlightedText)}

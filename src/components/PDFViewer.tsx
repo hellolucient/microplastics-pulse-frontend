@@ -10,13 +10,15 @@ interface PDFViewerProps {
   initialPage?: number;
   searchTerm?: string;
   onPageChange?: (page: number) => void;
+  onError?: () => void;
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({ 
   pdfUrl, 
   initialPage = 1, 
   searchTerm, 
-  onPageChange 
+  onPageChange,
+  onError
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pdf, setPdf] = useState<any>(null);
@@ -60,6 +62,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     } catch (err) {
       setError('Failed to load PDF');
       console.error('PDF loading error:', err);
+      if (onError) {
+        onError();
+      }
     } finally {
       setIsLoading(false);
     }
