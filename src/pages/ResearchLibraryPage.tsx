@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Search, FileText, Calendar, User, ExternalLink } from 'lucide-react';
 
+interface ContentMatch {
+  snippet: string;
+  page: number;
+  position: number;
+}
+
 interface Document {
   id: string;
   title: string;
@@ -13,13 +19,23 @@ interface Document {
     notes?: string;
   };
   created_at: string;
+  relevanceScore?: number;
+  titleMatch?: boolean;
+  contentMatches?: ContentMatch[];
+  totalMatches?: number;
 }
 
 interface SearchResult {
   documents: Document[];
-  total: number;
-  page: number;
-  totalPages: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  searchTerm: string;
 }
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://microplastics-pulse-backend-production.up.railway.app';
@@ -123,8 +139,8 @@ const ResearchLibraryPage: React.FC = () => {
   };
 
   const documentsToShow = showAllDocuments ? allDocuments : (searchResults?.documents || []);
-  const totalPages = showAllDocuments ? Math.ceil(allDocuments.length / 10) : (searchResults?.totalPages || 1);
-  const totalCount = showAllDocuments ? allDocuments.length : (searchResults?.total || 0);
+  const totalPages = showAllDocuments ? Math.ceil(allDocuments.length / 10) : (searchResults?.pagination?.totalPages || 1);
+  const totalCount = showAllDocuments ? allDocuments.length : (searchResults?.pagination?.total || 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -217,11 +233,50 @@ const ResearchLibraryPage: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-gray-700 leading-relaxed">
-                    {truncateContent(document.content, 300)}
-                  </p>
-                </div>
+                {/* Enhanced content display for search results */}
+                {showAllDocuments ? (
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-gray-700 leading-relaxed">
+                      {truncateContent(document.content, 300)}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Show snippets for search results */}
+                    {document.contentMatches && document.contentMatches.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <span className="font-medium">Found {document.totalMatches} match{document.totalMatches !== 1 ? 'es' : ''}</span>
+                          {document.titleMatch && (
+                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                              Title Match
+                            </span>
+                          )}
+                        </div>
+                        {document.contentMatches.map((match, index) => (
+                          <div key={index} className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-md">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-sm font-medium text-blue-800">Page {match.page}</span>
+                              <span className="text-xs text-blue-600">Match {index + 1}</span>
+                            </div>
+                            <p className="text-gray-700 text-sm leading-relaxed">
+                              ...{match.snippet}...
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Fallback to truncated content if no matches */}
+                    {(!document.contentMatches || document.contentMatches.length === 0) && (
+                      <div className="prose prose-sm max-w-none">
+                        <p className="text-gray-700 leading-relaxed">
+                          {truncateContent(document.content, 300)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {document.metadata.notes && (
                   <div className="mt-4 p-3 bg-gray-50 rounded-md">
