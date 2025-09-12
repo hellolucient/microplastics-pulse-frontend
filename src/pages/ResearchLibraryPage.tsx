@@ -368,7 +368,7 @@ const ResearchLibraryPage: React.FC = () => {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <span className="font-medium">
-                            Found {document.totalMatches} match{document.totalMatches !== 1 ? 'es' : ''}
+                            Found {document.totalMatches} matching snippet{document.totalMatches !== 1 ? 's' : ''}
                           </span>
                           {document.titleMatch && (
                             <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
