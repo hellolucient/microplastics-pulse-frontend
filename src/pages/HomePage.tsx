@@ -57,7 +57,7 @@ const HomePage: React.FC = () => {
       title: 'Download Our Comprehensive Whitepaper',
       source: 'MicroplasticsWatch Research',
       published_date: new Date(Date.now() - 86400000).toISOString(),
-      ai_summary: 'Get your copy of "Microplastics - the Elephant in the Wellness Room" to dive deeper into the research, impacts, and potential solutions. This comprehensive whitepaper covers the latest findings, policy implications, and actionable steps for addressing microplastic pollution.',
+      ai_summary: 'Get your copy of "Understanding Microplastics Crisis : Framing a Wellness Response" to dive deeper into the research, impacts, and potential solutions. This comprehensive whitepaper covers the latest findings, policy implications, and actionable steps for addressing microplastic pollution.',
       ai_image_url: whitepaperImage
     };
 
