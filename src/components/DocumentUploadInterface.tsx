@@ -170,11 +170,11 @@ const DocumentUploadInterface: React.FC<DocumentUploadInterfaceProps> = ({ backe
             id="file"
             name="file"
             onChange={handleFileChange}
-            accept=".pdf,.docx,.doc,.txt"
+            accept=".pdf"
             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-sm text-gray-500 mt-1">
-            Supported formats: PDF, Word (.docx, .doc), Text (.txt). Max size: 10MB
+            Supported format: PDF only. Max size: 10MB
           </p>
           {formData.file && (
             <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
@@ -238,8 +238,6 @@ const DocumentUploadInterface: React.FC<DocumentUploadInterfaceProps> = ({ backe
           >
             <option value="manual">Manual Entry</option>
             <option value="pdf">PDF Document</option>
-            <option value="docx">Word Document</option>
-            <option value="txt">Text File</option>
             <option value="url">Web URL</option>
           </select>
         </div>
@@ -358,7 +356,7 @@ const DocumentUploadInterface: React.FC<DocumentUploadInterfaceProps> = ({ backe
       <div className="mt-8 p-4 bg-gray-50 rounded-md">
         <h3 className="text-lg font-medium text-gray-800 mb-2">Instructions</h3>
         <ul className="text-sm text-gray-600 space-y-1">
-          <li>• <strong>File Upload:</strong> Upload PDF, Word, or text files (max 10MB)</li>
+          <li>• <strong>File Upload:</strong> Upload PDF files only (max 10MB)</li>
           <li>• <strong>Manual Entry:</strong> Or paste content directly into the text area</li>
           <li>• <strong>Title:</strong> A clear, descriptive title for the document</li>
           <li>• <strong>Access Level:</strong> Choose who can see this document</li>
