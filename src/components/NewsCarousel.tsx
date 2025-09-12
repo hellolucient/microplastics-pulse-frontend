@@ -30,19 +30,20 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [email, setEmail] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const currentNews = news[currentIndex] || news[0];
 
   // Auto-play functionality
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || isShareModalOpen) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
     }, autoPlayInterval);
 
     return () => clearInterval(interval);
-  }, [currentIndex, isAutoPlaying, autoPlayInterval, news.length]);
+  }, [currentIndex, isAutoPlaying, autoPlayInterval, news.length, isShareModalOpen]);
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
@@ -377,6 +378,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
                 imageUrl={currentNews.ai_image_url}
                 size="small"
                 className="border-t border-gray-100 pt-3"
+                onModalStateChange={setIsShareModalOpen}
               />
             </div>
           </div>

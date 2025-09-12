@@ -9,6 +9,7 @@ interface SocialShareProps {
   size?: 'small' | 'medium' | 'large';
   storyId?: string | number; // Add storyId to generate your site's URL
   imageUrl?: string | null; // Add imageUrl to include in social posts
+  onModalStateChange?: (isOpen: boolean) => void; // Callback for modal state changes
 }
 
 const SocialShare: React.FC<SocialShareProps> = ({ 
@@ -18,7 +19,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
   className = '', 
   size = 'medium',
   storyId,
-  imageUrl 
+  imageUrl,
+  onModalStateChange
 }) => {
   // Generate your site's story URL if storyId is provided, otherwise use the original URL
   // This ensures social shares point to YOUR site first, not the source
@@ -52,6 +54,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
       imageUrl: imageUrl || null
     });
     setIsModalOpen(true);
+    onModalStateChange?.(true);
   };
 
   const shareToLinkedIn = () => {
@@ -70,6 +73,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
       imageUrl: imageUrl || null
     });
     setIsModalOpen(true);
+    onModalStateChange?.(true);
   };
 
   const copyToClipboard = async () => {
@@ -125,12 +129,14 @@ const SocialShare: React.FC<SocialShareProps> = ({
     if (!modalContent) return;
     window.open(modalContent.url, '_blank', 'width=580,height=570');
     setIsModalOpen(false);
+    onModalStateChange?.(false);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setModalContent(null);
     setCopied(false);
+    onModalStateChange?.(false);
   };
 
   // Size configurations
