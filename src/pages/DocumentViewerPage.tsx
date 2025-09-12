@@ -26,6 +26,12 @@ const DocumentViewerPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  
+  // Get highlight text and page from URL params
+  const highlightText = searchParams.get('highlight');
+  const pageParam = searchParams.get('page');
+  const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
+  
   const [document, setDocument] = useState<Document | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +39,6 @@ const DocumentViewerPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [highlightedText, setHighlightedText] = useState<string | null>(null);
   const [pdfLoadError, setPdfLoadError] = useState(false);
-
-  // Get highlight text and page from URL params
-  const highlightText = searchParams.get('highlight');
-  const pageParam = searchParams.get('page');
-  const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
 
   useEffect(() => {
     if (id) {
