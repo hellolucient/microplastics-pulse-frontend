@@ -40,6 +40,25 @@ interface SearchResult {
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://microplastics-pulse-backend-production.up.railway.app';
 
+// Function to highlight search terms in text
+const highlightSearchTerm = (text: string, searchTerm: string): React.ReactNode => {
+  if (!searchTerm.trim()) return text;
+  
+  const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const parts = text.split(regex);
+  
+  return parts.map((part, index) => {
+    if (regex.test(part)) {
+      return (
+        <mark key={index} className="bg-yellow-200 text-yellow-900 px-1 rounded font-medium">
+          {part}
+        </mark>
+      );
+    }
+    return part;
+  });
+};
+
 const ResearchLibraryPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
@@ -206,7 +225,10 @@ const ResearchLibraryPage: React.FC = () => {
                     <span className="text-2xl">{getFileTypeIcon(document.file_type)}</span>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                        {document.title}
+                        {!showAllDocuments && document.titleMatch 
+                          ? highlightSearchTerm(document.title, searchTerm)
+                          : document.title
+                        }
                       </h3>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
@@ -260,7 +282,7 @@ const ResearchLibraryPage: React.FC = () => {
                               <span className="text-xs text-blue-600">Match {index + 1}</span>
                             </div>
                             <p className="text-gray-700 text-sm leading-relaxed">
-                              ...{match.snippet}...
+                              ...{highlightSearchTerm(match.snippet, searchTerm)}...
                             </p>
                           </div>
                         ))}
