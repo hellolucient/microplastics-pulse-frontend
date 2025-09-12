@@ -77,10 +77,10 @@ const DocumentViewerPage: React.FC = () => {
       }
       
       const data = await response.json();
-      setDocument(data);
+      setDocument(data.document);
       
       // Calculate total pages (500 words per page)
-      const wordCount = data.content.split(/\s+/).length;
+      const wordCount = data.document.content.split(/\s+/).length;
       setTotalPages(Math.ceil(wordCount / 500));
       
     } catch (err) {
