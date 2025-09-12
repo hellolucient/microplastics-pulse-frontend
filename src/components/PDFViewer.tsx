@@ -30,6 +30,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  const [searchInput, setSearchInput] = useState(searchTerm || '');
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     loadPDF();
@@ -43,6 +45,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
   useEffect(() => {
     if (searchTerm && pdf) {
+      setSearchInput(searchTerm);
       searchInPDF(searchTerm);
     }
   }, [searchTerm, pdf]);
@@ -103,19 +106,30 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     if (!pdf || !term.trim()) return;
 
     try {
+      setIsSearching(true);
       const results = [];
       
       for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        const text = textContent.items.map((item: any) => item.str).join(' ');
         
-        if (text.toLowerCase().includes(term.toLowerCase())) {
-          results.push({
-            page: pageNum,
-            text: text,
-            matches: text.toLowerCase().split(term.toLowerCase()).length - 1
-          });
+        // Use PDF.js search functionality
+        const textContent = await page.getTextContent();
+        const textItems = textContent.items;
+        
+        // Search for term in text items
+        const matches = [];
+        textItems.forEach((item: any, index: number) => {
+          if (item.str && item.str.toLowerCase().includes(term.toLowerCase())) {
+            matches.push({
+              page: pageNum,
+              text: item.str,
+              index: index
+            });
+          }
+        });
+        
+        if (matches.length > 0) {
+          results.push(...matches);
         }
       }
       
@@ -128,6 +142,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       }
     } catch (err) {
       console.error('Search error:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      await searchInPDF(searchInput.trim());
     }
   };
 
@@ -234,6 +257,26 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           >
             <ChevronRight className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Search Box */}
+        <div className="flex items-center gap-2">
+          <form onSubmit={handleSearch} className="flex items-center gap-2">
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search in PDF..."
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="submit"
+              disabled={isSearching || !searchInput.trim()}
+              className="p-1 rounded-md border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </form>
         </div>
 
         {/* Search Results */}
