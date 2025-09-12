@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { FileText, DownloadCloud, Search } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-// import WhitepaperSection from '../components/WhitepaperSection'; // Remove unused import
-import axios from 'axios'; // <-- Add axios
-import mascotImage from '../assets/mascot-elephant.png'; // <-- Import the image
-import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png'; // Import the placeholder
-import whitepaperImage from '../assets/whitepaper-hero.png'; // Import the whitepaper image
-import SocialShare from '../components/SocialShare';
+import axios from 'axios';
+import whitepaperImage from '../assets/whitepaper-hero.png';
 import NewsCarousel from '../components/NewsCarousel';
 
 // Updated NewsItem interface
@@ -31,21 +25,10 @@ const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 
 
 const HomePage: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
   // --- State for Latest News --- 
   const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
-  const [newsError, setNewsError] = useState<string | null>(null);
   // --- End State ---
-
-  // --- State for Whitepaper Download ---
-  const [whitepaperEmail, setWhitepaperEmail] = useState('');
-  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
-  const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [showDownloadLink, setShowDownloadLink] = useState(false);
-  const whitepaperUrl = "/Microplastics - the Elephant in the Wellness Room.pdf";
-  // --- End Whitepaper State ---
 
   // --- Effect to fetch latest news from API --- 
   useEffect(() => {
@@ -66,21 +49,18 @@ const HomePage: React.FC = () => {
 
     const fetchLatestNewsFromApi = async () => {
       setNewsLoading(true);
-      setNewsError(null);
       try {
         const response = await axios.get(`${BACKEND_URL}/api/latest-news?page=1&limit=3`);
         if (response.data && typeof response.data === 'object' && 'data' in response.data) {
           // Take the first 3 items from the paginated response
-          const apiNews = response.data.data.slice(0, 3);
+          const apiNews = (response.data as { data: NewsItem[] }).data.slice(0, 3);
           const newsWithWhitepaper = [whitepaperCard, ...apiNews];
           setLatestNews(newsWithWhitepaper);
         } else {
           console.error('API Error: Expected paginated response with data property, but received:', response.data);
-          setNewsError('Failed to load news: The server returned an unexpected response.');
         }
       } catch (error: unknown) {
         console.error('Error fetching latest news for homepage:', error);
-        setNewsError('Failed to load news from the server.');
       } finally {
         setNewsLoading(false);
       }
@@ -90,42 +70,6 @@ const HomePage: React.FC = () => {
   }, []);
   // --- End Effect ---
 
-  // --- Whitepaper Email Submission Handler ---
-  const handleWhitepaperSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmissionError(null);
-
-    if (!whitepaperEmail || !/\S+@\S+\.\S+/.test(whitepaperEmail)) {
-      setSubmissionError('Please enter a valid email address.');
-      return;
-    }
-
-    setIsSubmittingEmail(true);
-    try {
-      const response = await axios.post<{ message?: string; error?: string }>(`${BACKEND_URL}/api/collect-email`, { 
-        email: whitepaperEmail,
-        source: 'whitepaper_download'
-      });
-      if (response.status === 200 || response.status === 201) {
-        setShowDownloadLink(true);
-        setWhitepaperEmail(''); // Clear email field
-      } else {
-        setSubmissionError(response.data.message || response.data.error || 'An unexpected error occurred.');
-      }
-    } catch (error: any) {
-      console.error('Error submitting email for whitepaper:', error);
-      if (error.response && error.response.data && (error.response.data.error || error.response.data.message) ) {
-        setSubmissionError(error.response.data.error || error.response.data.message);
-      } else if (error.message) {
-        setSubmissionError(error.message);
-      } else {
-        setSubmissionError('Failed to submit email. Please try again.');
-      }
-    } finally {
-      setIsSubmittingEmail(false);
-    }
-  };
-  // --- End Whitepaper Email Submission Handler ---
 
   return (
     <>
