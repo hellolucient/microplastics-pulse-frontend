@@ -29,13 +29,15 @@ const DocumentViewerPage: React.FC = () => {
   const [document, setDocument] = useState<Document | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [highlightedText, setHighlightedText] = useState<string | null>(null);
   const [pdfLoadError, setPdfLoadError] = useState(false);
 
-  // Get highlight text from URL params
+  // Get highlight text and page from URL params
   const highlightText = searchParams.get('highlight');
+  const pageParam = searchParams.get('page');
+  const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
 
   useEffect(() => {
     if (id) {
@@ -52,6 +54,16 @@ const DocumentViewerPage: React.FC = () => {
       }, 500);
     }
   }, [highlightText, document]);
+
+  useEffect(() => {
+    // Update current page when page parameter changes
+    if (pageParam) {
+      const newPage = parseInt(pageParam, 10);
+      if (newPage > 0) {
+        setCurrentPage(newPage);
+      }
+    }
+  }, [pageParam]);
 
   const fetchDocument = async () => {
     try {
