@@ -9,11 +9,13 @@ interface Document {
   content: string;
   file_type: string;
   file_size: number;
+  file_url?: string;
   metadata: {
     author?: string;
     date?: string;
     source?: string;
     notes?: string;
+    storageUrl?: string;
   };
   created_at: string;
 }
@@ -260,9 +262,9 @@ const DocumentViewerPage: React.FC = () => {
 
       {/* Document Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isPDF(document.file_type) ? (
+        {isPDF(document.file_type) && document.file_url ? (
           <PDFViewer
-            pdfUrl={generatePDFBlob(document.content, document.title)}
+            pdfUrl={document.file_url}
             initialPage={currentPage}
             searchTerm={highlightedText || undefined}
             onPageChange={setCurrentPage}
