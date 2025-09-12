@@ -258,7 +258,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
                 <img
                   src={currentNews.ai_image_url || fallbackPlaceholderImage}
                   alt={currentNews.title}
-                  className="w-32 h-40 object-cover rounded-lg shadow-lg"
+                  className="w-48 h-60 object-contain rounded-lg shadow-lg"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = fallbackPlaceholderImage;
