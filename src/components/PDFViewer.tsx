@@ -133,9 +133,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       setSearchResults(results);
       setCurrentSearchIndex(0);
       
-      // Jump to first result
+      // Jump to first result, but respect initialPage if it's different from 1
       if (results.length > 0) {
-        goToPage(results[0].page);
+        if (initialPage !== 1) {
+          // If we have a specific initial page, go to that page instead of first match
+          goToPage(initialPage);
+        } else {
+          // Otherwise, go to first match as usual
+          goToPage(results[0].page);
+        }
       }
     } catch (err) {
       console.error('Search error:', err);
