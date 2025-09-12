@@ -253,15 +253,29 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
         <div className="grid md:grid-cols-2 gap-0">
           {/* Image Section */}
           <div className="relative h-full overflow-hidden">
-            <img
-              src={currentNews.ai_image_url || fallbackPlaceholderImage}
-              alt={currentNews.title}
-              className={`w-full h-full ${isWhitepaper ? 'object-contain bg-gray-50' : 'object-cover'}`}
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = fallbackPlaceholderImage;
-              }}
-            />
+            {isWhitepaper ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                <img
+                  src={currentNews.ai_image_url || fallbackPlaceholderImage}
+                  alt={currentNews.title}
+                  className="w-3/4 h-3/4 object-contain rounded-lg shadow-lg"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = fallbackPlaceholderImage;
+                  }}
+                />
+              </div>
+            ) : (
+              <img
+                src={currentNews.ai_image_url || fallbackPlaceholderImage}
+                alt={currentNews.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = fallbackPlaceholderImage;
+                }}
+              />
+            )}
           </div>
 
           {/* Content Section */}
