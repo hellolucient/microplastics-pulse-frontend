@@ -23,7 +23,7 @@ const DocumentUploadInterface: React.FC<DocumentUploadInterfaceProps> = ({ backe
     title: '',
     content: '',
     fileType: 'manual',
-    accessLevel: 'admin',
+    accessLevel: 'public',
     file: null,
     metadata: {}
   });
@@ -139,7 +139,7 @@ const DocumentUploadInterface: React.FC<DocumentUploadInterfaceProps> = ({ backe
         title: '',
         content: '',
         fileType: 'manual',
-        accessLevel: 'admin',
+        accessLevel: 'public',
         file: null,
         metadata: {}
       });
