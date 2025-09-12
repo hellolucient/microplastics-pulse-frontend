@@ -32,6 +32,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [searchInput, setSearchInput] = useState(searchTerm || '');
   const [isSearching, setIsSearching] = useState(false);
+  const [highlightRects, setHighlightRects] = useState<any[]>([]);
 
   useEffect(() => {
     loadPDF();
@@ -41,7 +42,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     if (pdf && currentPage) {
       renderPage();
     }
-  }, [pdf, currentPage, scale, rotation]);
+  }, [pdf, currentPage, scale, rotation, highlightRects]);
 
   useEffect(() => {
     if (searchTerm && pdf) {
@@ -94,6 +95,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
       await page.render(renderContext).promise;
       
+      // Draw highlight rectangles for current page
+      drawHighlights(context, currentPage);
+      
       if (onPageChange) {
         onPageChange(currentPage);
       }
@@ -102,38 +106,65 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     }
   };
 
+  const drawHighlights = (context: CanvasRenderingContext2D, pageNum: number) => {
+    const pageHighlights = highlightRects.filter(rect => rect.page === pageNum);
+    
+    if (pageHighlights.length === 0) return;
+
+    // Set highlight style
+    context.fillStyle = 'rgba(255, 255, 0, 0.3)'; // Yellow with transparency
+    context.strokeStyle = 'rgba(255, 255, 0, 0.8)'; // Yellow border
+    context.lineWidth = 1;
+
+    // Draw highlight rectangles
+    pageHighlights.forEach(rect => {
+      context.fillRect(rect.x, rect.y, rect.width, rect.height);
+      context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+    });
+  };
+
   const searchInPDF = async (term: string) => {
     if (!pdf || !term.trim()) return;
 
     try {
       setIsSearching(true);
       const results = [];
+      const highlights = [];
       
       for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale, rotation });
         
         // Use PDF.js search functionality
         const textContent = await page.getTextContent();
         const textItems = textContent.items;
         
-        // Search for term in text items
-        const matches = [];
+        // Search for term in text items and create highlight rectangles
         textItems.forEach((item: any, index: number) => {
           if (item.str && item.str.toLowerCase().includes(term.toLowerCase())) {
-            matches.push({
+            // Create highlight rectangle
+            const highlightRect = {
+              page: pageNum,
+              x: item.transform[4],
+              y: viewport.height - item.transform[5] - item.height,
+              width: item.width,
+              height: item.height,
+              text: item.str
+            };
+            
+            highlights.push(highlightRect);
+            results.push({
               page: pageNum,
               text: item.str,
-              index: index
+              index: index,
+              rect: highlightRect
             });
           }
         });
-        
-        if (matches.length > 0) {
-          results.push(...matches);
-        }
       }
       
       setSearchResults(results);
+      setHighlightRects(highlights);
       setCurrentSearchIndex(0);
       
       // Jump to first result
