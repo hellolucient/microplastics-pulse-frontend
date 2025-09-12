@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, FileText, Calendar, User, ExternalLink } from 'lucide-react';
+import { Search, FileText, Calendar, User, ExternalLink, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ContentMatch {
   snippet: string;
@@ -67,6 +68,7 @@ const highlightSearchTerm = (text: string, searchTerm: string): React.ReactNode 
 };
 
 const ResearchLibraryPage: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -155,6 +157,12 @@ const ResearchLibraryPage: React.FC = () => {
     } else {
       setCurrentPage(newPage);
     }
+  };
+
+  const handleViewDocument = (documentId: string, page: number, searchTerm: string) => {
+    // Navigate to document viewer with highlight parameter
+    const url = `/document/${documentId}?highlight=${encodeURIComponent(searchTerm)}&page=${page}`;
+    navigate(url);
   };
 
   const formatDate = (dateString: string) => {
@@ -370,9 +378,18 @@ const ResearchLibraryPage: React.FC = () => {
                         </div>
                         {document.contentMatches.map((match, index) => (
                           <div key={index} className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-md">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm font-medium text-blue-800">Page {match.page}</span>
-                              <span className="text-xs text-blue-600">Match {index + 1}</span>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-blue-800">Page {match.page}</span>
+                                <span className="text-xs text-blue-600">Match {index + 1}</span>
+                              </div>
+                              <button
+                                onClick={() => handleViewDocument(document.id, match.page, searchTerm)}
+                                className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
+                              >
+                                <Eye className="w-3 h-3" />
+                                View Document
+                              </button>
                             </div>
                             <p className="text-gray-700 text-sm leading-relaxed">
                               ...{highlightSearchTerm(match.snippet, searchTerm)}...

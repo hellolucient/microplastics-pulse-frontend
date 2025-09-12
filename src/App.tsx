@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import HomePage from './pages/HomePage.tsx';
 import LatestNewsPage from './pages/LatestNewsPage_old.tsx';
 import ResearchLibraryPage from './pages/ResearchLibraryPage.tsx';
+import DocumentViewerPage from './pages/DocumentViewerPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
 import ContactPage from './pages/ContactPage.tsx';
@@ -24,6 +25,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/latest-news" element={<LatestNewsPage />} />
                 <Route path="/research-library" element={<ResearchLibraryPage />} />
+                <Route path="/document/:id" element={<DocumentViewerPage />} />
                 <Route path="/story/:id" element={<StoryPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/login" element={<LoginPage />} />
