@@ -33,6 +33,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const [searchInput, setSearchInput] = useState(searchTerm || '');
   const [isSearching, setIsSearching] = useState(false);
   const [highlightRects, setHighlightRects] = useState<any[]>([]);
+  const [textLayerRef, setTextLayerRef] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     loadPDF();
@@ -42,7 +43,13 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     if (pdf && currentPage) {
       renderPage();
     }
-  }, [pdf, currentPage, scale, rotation, highlightRects]);
+  }, [pdf, currentPage, scale, rotation]);
+
+  useEffect(() => {
+    if (searchInput.trim()) {
+      highlightSearchTerms(searchInput.trim());
+    }
+  }, [currentPage, searchInput]);
 
   useEffect(() => {
     if (searchTerm && pdf) {
@@ -95,8 +102,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
       await page.render(renderContext).promise;
       
-      // Draw highlight rectangles for current page
-      drawHighlights(context, currentPage);
+      // Create text layer for highlighting
+      await createTextLayer(page, viewport);
       
       if (onPageChange) {
         onPageChange(currentPage);
@@ -106,20 +113,55 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     }
   };
 
-  const drawHighlights = (context: CanvasRenderingContext2D, pageNum: number) => {
-    const pageHighlights = highlightRects.filter(rect => rect.page === pageNum);
-    
-    if (pageHighlights.length === 0) return;
+  const createTextLayer = async (page: any, viewport: any) => {
+    if (!textLayerRef) return;
 
-    // Set highlight style
-    context.fillStyle = 'rgba(255, 255, 0, 0.3)'; // Yellow with transparency
-    context.strokeStyle = 'rgba(255, 255, 0, 0.8)'; // Yellow border
-    context.lineWidth = 1;
+    // Clear previous text layer
+    textLayerRef.innerHTML = '';
 
-    // Draw highlight rectangles
-    pageHighlights.forEach(rect => {
-      context.fillRect(rect.x, rect.y, rect.width, rect.height);
-      context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+    const textContent = await page.getTextContent();
+    const textLayer = document.createElement('div');
+    textLayer.className = 'textLayer';
+    textLayer.style.position = 'absolute';
+    textLayer.style.left = '0';
+    textLayer.style.top = '0';
+    textLayer.style.right = '0';
+    textLayer.style.bottom = '0';
+    textLayer.style.overflow = 'hidden';
+    textLayer.style.opacity = '0.2';
+    textLayer.style.lineHeight = '1.0';
+
+    // Create text items
+    textContent.items.forEach((textItem: any) => {
+      const textDiv = document.createElement('div');
+      textDiv.style.position = 'absolute';
+      textDiv.style.fontSize = `${textItem.height}px`;
+      textDiv.style.fontFamily = textItem.fontName || 'sans-serif';
+      textDiv.style.transformOrigin = '0% 0%';
+      textDiv.style.left = `${textItem.transform[4]}px`;
+      textDiv.style.top = `${viewport.height - textItem.transform[5] - textItem.height}px`;
+      textDiv.style.color = 'transparent';
+      textDiv.style.userSelect = 'none';
+      textDiv.textContent = textItem.str;
+      
+      textLayer.appendChild(textDiv);
+    });
+
+    textLayerRef.appendChild(textLayer);
+  };
+
+  const highlightSearchTerms = (searchTerm: string) => {
+    if (!textLayerRef || !searchTerm.trim()) return;
+
+    const textDivs = textLayerRef.querySelectorAll('.textLayer div');
+    textDivs.forEach((div: any) => {
+      const text = div.textContent;
+      if (text && text.toLowerCase().includes(searchTerm.toLowerCase())) {
+        div.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+        div.style.color = 'transparent';
+      } else {
+        div.style.backgroundColor = 'transparent';
+      }
     });
   };
 
@@ -129,43 +171,31 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     try {
       setIsSearching(true);
       const results = [];
-      const highlights = [];
       
       for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale, rotation });
         
         // Use PDF.js search functionality
         const textContent = await page.getTextContent();
         const textItems = textContent.items;
         
-        // Search for term in text items and create highlight rectangles
+        // Search for term in text items
         textItems.forEach((item: any, index: number) => {
           if (item.str && item.str.toLowerCase().includes(term.toLowerCase())) {
-            // Create highlight rectangle
-            const highlightRect = {
-              page: pageNum,
-              x: item.transform[4],
-              y: viewport.height - item.transform[5] - item.height,
-              width: item.width,
-              height: item.height,
-              text: item.str
-            };
-            
-            highlights.push(highlightRect);
             results.push({
               page: pageNum,
               text: item.str,
-              index: index,
-              rect: highlightRect
+              index: index
             });
           }
         });
       }
       
       setSearchResults(results);
-      setHighlightRects(highlights);
       setCurrentSearchIndex(0);
+      
+      // Highlight current page
+      highlightSearchTerms(term);
       
       // Jump to first result
       if (results.length > 0) {
@@ -363,11 +393,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
       {/* PDF Canvas */}
       <div className="p-4 bg-gray-100">
-        <div className="flex justify-center">
+        <div className="flex justify-center relative">
           <canvas
             ref={canvasRef}
             className="shadow-lg border border-gray-300 bg-white"
             style={{ maxWidth: '100%', height: 'auto' }}
+          />
+          <div
+            ref={setTextLayerRef}
+            className="absolute inset-0 pointer-events-none"
           />
         </div>
       </div>
