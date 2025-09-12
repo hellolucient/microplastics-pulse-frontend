@@ -268,7 +268,14 @@ const ResearchLibraryPage: React.FC = () => {
                     {document.contentMatches && document.contentMatches.length > 0 && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <span className="font-medium">Found {document.totalMatches} match{document.totalMatches !== 1 ? 'es' : ''}</span>
+                          <span className="font-medium">
+                            Found {document.totalMatches} match{document.totalMatches !== 1 ? 'es' : ''}
+                            {document.contentMatches && document.contentMatches.length < document.totalMatches && (
+                              <span className="text-gray-500 ml-1">
+                                (showing {document.contentMatches.length})
+                              </span>
+                            )}
+                          </span>
                           {document.titleMatch && (
                             <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
                               Title Match
