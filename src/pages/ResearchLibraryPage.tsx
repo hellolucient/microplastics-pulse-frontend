@@ -46,7 +46,7 @@ interface DocumentOption {
   created_at: string;
 }
 
-const BACKEND_URL = 'https://microplastics-pulse-backend-production.up.railway.app';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : 'https://microplastics-pulse-backend-production.up.railway.app';
 
 // Function to highlight search terms in text
 const highlightSearchTerm = (text: string, searchTerm: string): React.ReactNode => {

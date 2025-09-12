@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Search, FileText, Calendar, User, ExternalLink } from 'lucide-react';
+import PDFViewer from '../components/PDFViewer';
 
 interface Document {
   id: string;
@@ -17,7 +18,7 @@ interface Document {
   created_at: string;
 }
 
-const BACKEND_URL = 'https://microplastics-pulse-backend-production.up.railway.app';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : 'https://microplastics-pulse-backend-production.up.railway.app';
 
 const DocumentViewerPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -137,6 +138,17 @@ const DocumentViewerPage: React.FC = () => {
     }
   };
 
+  const generatePDFBlob = (content: string, title: string) => {
+    // Create a simple PDF-like blob from text content
+    // This is a temporary solution - in production, you'd want to use a proper PDF generation library
+    const blob = new Blob([content], { type: 'text/plain' });
+    return URL.createObjectURL(blob);
+  };
+
+  const isPDF = (fileType: string) => {
+    return fileType.toLowerCase() === 'pdf';
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -209,50 +221,61 @@ const DocumentViewerPage: React.FC = () => {
               </div>
             </div>
             
-            {/* Page Navigation */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage <= 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              
+            {/* Page Navigation - Only show for non-PDF documents */}
+            {!isPDF(document.file_type) && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Page</span>
-                <input
-                  type="number"
-                  value={currentPage}
-                  onChange={(e) => goToPage(parseInt(e.target.value) || 1)}
-                  min={1}
-                  max={totalPages}
-                  className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-center"
-                />
-                <span className="text-sm text-gray-600">of {totalPages}</span>
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                  className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Page</span>
+                  <input
+                    type="number"
+                    value={currentPage}
+                    onChange={(e) => goToPage(parseInt(e.target.value) || 1)}
+                    min={1}
+                    max={totalPages}
+                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-center"
+                  />
+                  <span className="text-sm text-gray-600">of {totalPages}</span>
+                </div>
+                
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                  className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
-              
-              <button
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Document Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div id="document-content" className="prose prose-lg max-w-none">
-            <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-              {highlightSearchTerm(getCurrentPageContent(), highlightedText)}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {isPDF(document.file_type) ? (
+          <PDFViewer
+            pdfUrl={generatePDFBlob(document.content, document.title)}
+            initialPage={currentPage}
+            searchTerm={highlightedText || undefined}
+            onPageChange={setCurrentPage}
+          />
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <div id="document-content" className="prose prose-lg max-w-none">
+              <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                {highlightSearchTerm(getCurrentPageContent(), highlightedText)}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
