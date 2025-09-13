@@ -196,14 +196,29 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     if (foundMatches > 0) {
       console.log(`Highlighted ${foundMatches} instances of "${searchTerm}" on page ${currentPage}`);
       
-      // Scroll to first match
-      if (firstMatchElement) {
-        setTimeout(() => {
-          try {
-            console.log('Attempting to scroll to first match...');
+      // Scroll to first match - get fresh reference after highlighting
+      setTimeout(() => {
+        try {
+          console.log('Attempting to scroll to first match...');
+          
+          // Get fresh reference to the first highlighted element
+          const highlightedElements = textLayerDiv.querySelectorAll('span[data-text]');
+          let firstHighlightedElement: HTMLElement | null = null;
+          
+          // Find the first element that has highlighting styles applied
+          for (const element of highlightedElements) {
+            const htmlElement = element as HTMLElement;
+            if (htmlElement.style.backgroundColor && htmlElement.style.backgroundColor.includes('255, 255, 0')) {
+              firstHighlightedElement = htmlElement;
+              break;
+            }
+          }
+          
+          if (firstHighlightedElement) {
+            console.log('Found highlighted element for scrolling');
             
             // Method 1: Standard scrollIntoView
-            firstMatchElement!.scrollIntoView({ 
+            firstHighlightedElement.scrollIntoView({ 
               behavior: 'smooth', 
               block: 'center',
               inline: 'center'
@@ -222,7 +237,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             
             // Method 3: Manual scroll calculation
             setTimeout(() => {
-              const rect = firstMatchElement!.getBoundingClientRect();
+              const rect = firstHighlightedElement!.getBoundingClientRect();
               const viewportHeight = window.innerHeight;
               const elementTop = rect.top + window.pageYOffset;
               const scrollPosition = elementTop - (viewportHeight / 2);
@@ -232,12 +247,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 behavior: 'smooth'
               });
             }, 1000);
-            
-          } catch (error) {
-            console.log('Scroll error:', error);
+          } else {
+            console.log('Could not find highlighted element for scrolling');
           }
-        }, 1000);
-      }
+          
+        } catch (error) {
+          console.log('Scroll error:', error);
+        }
+      }, 1000);
     } else {
       console.log(`No matches found for "${searchTerm}"`);
     }
