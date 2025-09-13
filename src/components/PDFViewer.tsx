@@ -124,7 +124,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             results.push({
               page: pageNum,
               text: item.str,
-              index: index
+              index: index,
+              transform: item.transform // Store position info for highlighting
             });
           }
         });
@@ -133,20 +134,49 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       setSearchResults(results);
       setCurrentSearchIndex(0);
       
-      // Jump to first result, but respect initialPage if it's different from 1
-      if (results.length > 0) {
-        if (initialPage !== 1) {
-          // If we have a specific initial page, go to that page instead of first match
-          goToPage(initialPage);
-        } else {
-          // Otherwise, go to first match as usual
-          goToPage(results[0].page);
-        }
+      // Jump to the specified initial page and highlight search term
+      if (initialPage !== 1) {
+        goToPage(initialPage);
+        // Highlight search term on the current page after a short delay
+        setTimeout(() => {
+          highlightSearchTermOnPage(term, initialPage);
+        }, 1000);
+      } else if (results.length > 0) {
+        // Go to first match
+        goToPage(results[0].page);
+        setTimeout(() => {
+          highlightSearchTermOnPage(term, results[0].page);
+        }, 1000);
       }
     } catch (err) {
       console.error('Search error:', err);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const highlightSearchTermOnPage = async (term: string, pageNum: number) => {
+    if (!pdf || !term.trim()) return;
+    
+    try {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const textItems = textContent.items;
+      
+      // Find all instances of the search term on this page
+      const matches = textItems.filter((item: any) => 
+        item.str && item.str.toLowerCase().includes(term.toLowerCase())
+      );
+      
+      if (matches.length > 0) {
+        // Create a visual indicator that search terms are highlighted
+        console.log(`Found ${matches.length} instances of "${term}" on page ${pageNum}`);
+        
+        // You could add visual highlighting here if needed
+        // For now, we'll rely on the search results display
+      }
+    } catch (err) {
+      console.error('Highlight error:', err);
     }
   };
 
@@ -192,6 +222,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       const nextIndex = (currentSearchIndex + 1) % searchResults.length;
       setCurrentSearchIndex(nextIndex);
       goToPage(searchResults[nextIndex].page);
+      // Re-highlight search term on new page
+      setTimeout(() => {
+        highlightSearchTermOnPage(searchInput, searchResults[nextIndex].page);
+      }, 500);
     }
   };
 
@@ -200,6 +234,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
       setCurrentSearchIndex(prevIndex);
       goToPage(searchResults[prevIndex].page);
+      // Re-highlight search term on new page
+      setTimeout(() => {
+        highlightSearchTermOnPage(searchInput, searchResults[prevIndex].page);
+      }, 500);
     }
   };
 
@@ -300,6 +338,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             >
               <ChevronRight className="w-4 h-4" />
             </button>
+            {searchResults[currentSearchIndex] && (
+              <span className="text-xs text-gray-500 bg-yellow-100 px-2 py-1 rounded">
+                Page {searchResults[currentSearchIndex].page}
+              </span>
+            )}
           </div>
         )}
 

@@ -160,8 +160,8 @@ const ResearchLibraryPage: React.FC = () => {
   };
 
   const handleViewDocument = (documentId: string, page: number, searchTerm: string) => {
-    // Navigate to document viewer with highlight parameter
-    const url = `/document/${documentId}?highlight=${encodeURIComponent(searchTerm)}&page=${page}`;
+    // Navigate to document viewer with highlight parameter and search context
+    const url = `/document/${documentId}?highlight=${encodeURIComponent(searchTerm)}&page=${page}&searchContext=true`;
     navigate(url);
   };
 

@@ -30,6 +30,7 @@ const DocumentViewerPage: React.FC = () => {
   // Get highlight text and page from URL params
   const highlightText = searchParams.get('highlight');
   const pageParam = searchParams.get('page');
+  const searchContext = searchParams.get('searchContext') === 'true';
   const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
   
   const [document, setDocument] = useState<Document | null>(null);
@@ -276,6 +277,15 @@ const DocumentViewerPage: React.FC = () => {
 
       {/* Document Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search Context Indicator */}
+        {searchContext && highlightedText && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800">
+              <strong>Search Context:</strong> Showing results for "{highlightedText}" on page {initialPage}
+            </p>
+          </div>
+        )}
+        
         {isPDF(document.file_type) && document.file_url && !pdfLoadError ? (
           <PDFViewer
             pdfUrl={document.file_url}
