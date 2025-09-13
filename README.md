@@ -40,6 +40,13 @@ The project operates through a combination of automated fetching, AI processing,
     *   **Image Regeneration:** Regenerate AI images for specific articles by UUID
     *   **Real-time Status Updates:** Live progress tracking with success/error states and timestamps
 *   **Public News Feed:** Displays the curated and AI-enhanced articles to users.
+*   **Research Library:** Advanced document search and viewing system with:
+    *   **PDF Document Upload:** Upload and store research documents (PDFs) with automatic text extraction
+    *   **Semantic Search:** Search through document content with AI-powered relevance scoring
+    *   **Document Filtering:** Filter search results by specific documents
+    *   **Precise Navigation:** Click "View Document" to navigate directly to the exact page and text position
+    *   **Whole Word Matching:** Intelligent search that matches complete words only (e.g., "national" won't match "international")
+    *   **Snippet Display:** Shows relevant text snippets with highlighted search terms
 *   **Secure Image Storage:** Utilizes Vercel Blob for reliable image hosting.
 *   **Robust Database:** Employs Supabase (PostgreSQL) for structured data storage.
 
@@ -142,7 +149,23 @@ To set up and run the project locally, you'll generally need to:
 *   **Error Recovery**: Graceful error handling with detailed error messages
 *   **Success Celebrations**: Clear confirmation of successful operations with helpful tips
 
-## 9. Current Production Status
+## 9. Research Library Implementation (January 2025)
+
+**🔍 Advanced Document Search System:**
+*   **PDF Processing:** Uses `pdf-parse-pages` for accurate page-by-page text extraction
+*   **Intelligent Search:** Whole word matching with regex boundaries to prevent partial matches
+*   **Precise Navigation:** Click "View Document" to scroll directly to the exact text position on the correct page
+*   **Document Filtering:** Search within specific documents or across all documents
+*   **Snippet Display:** Shows relevant text excerpts with highlighted search terms
+*   **Page-Aware Processing:** Accurate page number calculation using actual PDF page data
+
+**🛠 Technical Implementation:**
+*   **Frontend:** PDF.js integration with custom text layer and precise scroll positioning
+*   **Search Logic:** Word boundary regex matching for accurate whole-word search
+*   **Navigation:** Smooth scrolling to exact text coordinates within PDF pages
+*   **UI Components:** Enhanced PDF viewer with search functionality and document filtering
+
+## 10. Current Production Status
 
 **✅ Frontend Status: FULLY OPERATIONAL**
 
@@ -151,8 +174,9 @@ The admin panel now provides comprehensive tools for:
 *   **✅ Database Management**: Monitor data integrity with automated duplicate detection
 *   **✅ Production Monitoring**: Real-time status updates and detailed logging
 *   **✅ User-friendly Interface**: Beautiful, responsive design with excellent UX
+*   **✅ Research Library**: Advanced document search with precise navigation and whole-word matching
 
-## 10. Future Considerations
+## 11. Future Considerations
 
 *   **UI for Search Query Management**: Allow admins to add/edit/delete search queries directly
 *   **Enhanced Analytics Dashboard**: Detailed metrics on article engagement and automation performance  
