@@ -46,6 +46,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
   useEffect(() => {
     if (searchTerm && pdf) {
+      console.log('PDF viewer: Search term received:', searchTerm);
       setSearchInput(searchTerm);
       searchInPDF(searchTerm);
     }
@@ -108,8 +109,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
   const renderTextLayer = async (page: any, viewport: any) => {
     try {
+      console.log('Rendering text layer for page:', currentPage);
       const textContent = await page.getTextContent();
       const textLayerDiv = document.getElementById(`text-layer-${currentPage}`);
+      
+      console.log('Text layer div found:', !!textLayerDiv);
+      console.log('Search input:', searchInput);
       
       if (textLayerDiv) {
         textLayerDiv.innerHTML = '';
@@ -124,8 +129,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         textLayer.setTextContent(textContent);
         textLayer.render();
         
+        console.log('Text layer rendered, checking for search terms...');
+        
         // Highlight search terms if searchInput exists
         if (searchInput.trim()) {
+          console.log('Highlighting search terms:', searchInput);
           highlightSearchTermsInTextLayer(textLayerDiv, searchInput);
         }
       }
