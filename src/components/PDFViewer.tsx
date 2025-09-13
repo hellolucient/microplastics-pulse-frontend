@@ -309,7 +309,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     }
   };
 
-  const showSearchIndicator = (term: string, pageNum: number) => {
+  const showSearchIndicator = async (term: string, pageNum: number) => {
     console.log(`Showing search indicator for "${term}" on page ${pageNum}`);
     
     // Create a simple visual indicator
@@ -340,13 +340,68 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       }
     }, 3000);
     
-    // Scroll to PDF viewer
+    // Scroll to PDF viewer first
     const pdfViewer = document.querySelector('.pdf-viewer-container');
     if (pdfViewer) {
       pdfViewer.scrollIntoView({ 
         behavior: 'smooth', 
         block: 'start' 
       });
+      
+      // Then try to scroll to the specific text position
+      setTimeout(() => {
+        scrollToTextPosition(term, pageNum);
+      }, 1000);
+    }
+  };
+
+  const scrollToTextPosition = async (term: string, pageNum: number) => {
+    try {
+      if (!pdf) return;
+      
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const viewport = page.getViewport({ scale, rotation });
+      
+      // Find the first occurrence of the search term
+      let foundPosition = null;
+      
+      for (const item of textContent.items) {
+        if (item.str && item.str.toLowerCase().includes(term.toLowerCase())) {
+          // Get the transform matrix
+          const transform = item.transform;
+          const x = transform[4];
+          const y = transform[5];
+          
+          // Convert PDF coordinates to viewport coordinates
+          const viewportX = x;
+          const viewportY = viewport.height - y; // PDF coordinates are bottom-up
+          
+          foundPosition = { x: viewportX, y: viewportY };
+          console.log(`Found "${term}" at position:`, foundPosition);
+          break;
+        }
+      }
+      
+      if (foundPosition) {
+        // Calculate scroll position to center the text
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const canvasRect = canvas.getBoundingClientRect();
+          const scrollTop = window.pageYOffset + canvasRect.top + foundPosition.y - (window.innerHeight / 2);
+          
+          window.scrollTo({
+            top: Math.max(0, scrollTop),
+            behavior: 'smooth'
+          });
+          
+          console.log(`Scrolled to position: ${scrollTop}`);
+        }
+      } else {
+        console.log(`Could not find position for "${term}"`);
+      }
+    } catch (error) {
+      console.error('Error scrolling to text position:', error);
     }
   };
 
