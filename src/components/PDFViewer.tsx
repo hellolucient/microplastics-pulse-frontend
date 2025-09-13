@@ -310,21 +310,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   };
 
   const scrollToSearchTerm = async (term: string, pageNum: number) => {
-    console.log(`Scrolling to "${term}" on page ${pageNum}`);
+    console.log(`Scrolling to "${term}" on page ${pageNum} - NO POPUP VERSION`);
     
-    // Scroll to PDF viewer first
-    const pdfViewer = document.querySelector('.pdf-viewer-container');
-    if (pdfViewer) {
-      pdfViewer.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
-      
-      // Then scroll to the specific text position
-      setTimeout(() => {
-        scrollToTextPosition(term, pageNum);
-      }, 1000);
-    }
+    // Wait a bit for the page to render, then scroll directly to text position
+    setTimeout(() => {
+      scrollToTextPosition(term, pageNum);
+    }, 1500);
   };
 
   const scrollToTextPosition = async (term: string, pageNum: number) => {
@@ -360,14 +351,19 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         const canvas = canvasRef.current;
         if (canvas) {
           const canvasRect = canvas.getBoundingClientRect();
-          const scrollTop = window.pageYOffset + canvasRect.top + foundPosition.y - (window.innerHeight / 2);
+          const pdfViewer = document.querySelector('.pdf-viewer-container');
           
-          window.scrollTo({
-            top: Math.max(0, scrollTop),
-            behavior: 'smooth'
-          });
-          
-          console.log(`Scrolled to position: ${scrollTop}`);
+          if (pdfViewer) {
+            const viewerRect = pdfViewer.getBoundingClientRect();
+            const scrollTop = window.pageYOffset + viewerRect.top + foundPosition.y - (window.innerHeight / 2);
+            
+            window.scrollTo({
+              top: Math.max(0, scrollTop),
+              behavior: 'smooth'
+            });
+            
+            console.log(`Scrolled to position: ${scrollTop}`);
+          }
         }
       } else {
         console.log(`Could not find position for "${term}"`);
