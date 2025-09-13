@@ -376,26 +376,28 @@ const ResearchLibraryPage: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        {document.contentMatches.map((match, index) => (
-                          <div key={index} className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-md">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-blue-800">Page {match.page}</span>
-                                <span className="text-xs text-blue-600">Match {index + 1}</span>
+                        <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
+                          {document.contentMatches.map((match, index) => (
+                            <div key={index} className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-md">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium text-blue-800">Page {match.page}</span>
+                                  <span className="text-xs text-blue-600">Match {index + 1}</span>
+                                </div>
+                                <button
+                                  onClick={() => handleViewDocument(document.id, match.page, searchTerm)}
+                                  className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  View Document
+                                </button>
                               </div>
-                              <button
-                                onClick={() => handleViewDocument(document.id, match.page, searchTerm)}
-                                className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
-                              >
-                                <Eye className="w-3 h-3" />
-                                View Document
-                              </button>
+                              <p className="text-gray-700 text-sm leading-relaxed">
+                                ...{highlightSearchTerm(match.snippet, searchTerm)}...
+                              </p>
                             </div>
-                            <p className="text-gray-700 text-sm leading-relaxed">
-                              ...{highlightSearchTerm(match.snippet, searchTerm)}...
-                            </p>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     )}
                     
