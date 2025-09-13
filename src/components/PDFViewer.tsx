@@ -291,15 +291,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       // Jump to the specified initial page
       if (initialPage !== 1) {
         goToPage(initialPage);
-        // Show search indicator
+        // Scroll to search term
         setTimeout(() => {
-          showSearchIndicator(term, initialPage);
+          scrollToSearchTerm(term, initialPage);
         }, 1000);
       } else if (results.length > 0) {
         // Go to first match
         goToPage(results[0].page);
         setTimeout(() => {
-          showSearchIndicator(term, results[0].page);
+          scrollToSearchTerm(term, results[0].page);
         }, 1000);
       }
     } catch (err) {
@@ -309,36 +309,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     }
   };
 
-  const showSearchIndicator = async (term: string, pageNum: number) => {
-    console.log(`Showing search indicator for "${term}" on page ${pageNum}`);
-    
-    // Create a simple visual indicator
-    const indicator = document.createElement('div');
-    indicator.innerHTML = `
-      <div style="
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 255, 0, 0.9);
-        color: #000;
-        padding: 10px 15px;
-        border-radius: 5px;
-        font-weight: bold;
-        z-index: 10000;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      ">
-        🔍 Found "${term}" on page ${pageNum}
-      </div>
-    `;
-    
-    document.body.appendChild(indicator);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-      if (indicator.parentNode) {
-        indicator.parentNode.removeChild(indicator);
-      }
-    }, 3000);
+  const scrollToSearchTerm = async (term: string, pageNum: number) => {
+    console.log(`Scrolling to "${term}" on page ${pageNum}`);
     
     // Scroll to PDF viewer first
     const pdfViewer = document.querySelector('.pdf-viewer-container');
@@ -348,7 +320,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         block: 'start' 
       });
       
-      // Then try to scroll to the specific text position
+      // Then scroll to the specific text position
       setTimeout(() => {
         scrollToTextPosition(term, pageNum);
       }, 1000);
