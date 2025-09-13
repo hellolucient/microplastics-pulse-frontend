@@ -119,17 +119,39 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       if (textLayerDiv) {
         textLayerDiv.innerHTML = '';
         
-        // Create text layer
-        const textLayer = new pdfjsLib.TextLayerBuilder({
-          textLayerDiv: textLayerDiv,
-          pageIndex: currentPage - 1,
-          viewport: viewport,
+        // Create a simple text layer manually instead of using TextLayerBuilder
+        const textItems = textContent.items;
+        let textLayerHTML = '';
+        
+        textItems.forEach((item: any, index: number) => {
+          if (item.str) {
+            const transform = item.transform;
+            const fontSize = Math.abs(transform[0]);
+            const x = transform[4];
+            const y = transform[5];
+            
+            textLayerHTML += `
+              <span 
+                style="
+                  position: absolute;
+                  left: ${x}px;
+                  top: ${y}px;
+                  font-size: ${fontSize}px;
+                  font-family: sans-serif;
+                  color: transparent;
+                  pointer-events: none;
+                  user-select: text;
+                "
+                data-text="${item.str}"
+              >
+                ${item.str}
+              </span>
+            `;
+          }
         });
         
-        textLayer.setTextContent(textContent);
-        textLayer.render();
-        
-        console.log('Text layer rendered, checking for search terms...');
+        textLayerDiv.innerHTML = textLayerHTML;
+        console.log('Simple text layer created with', textItems.length, 'items');
         
         // Highlight search terms if searchInput exists
         if (searchInput.trim()) {
@@ -143,18 +165,26 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   };
 
   const highlightSearchTermsInTextLayer = (textLayerDiv: HTMLElement, searchTerm: string) => {
-    const textSpans = textLayerDiv.querySelectorAll('span');
+    const textSpans = textLayerDiv.querySelectorAll('span[data-text]');
     let foundMatches = 0;
     let firstMatchElement: HTMLElement | null = null;
     
+    console.log(`Searching ${textSpans.length} text spans for "${searchTerm}"`);
+    
     textSpans.forEach((span) => {
-      const text = span.textContent || '';
+      const text = span.getAttribute('data-text') || '';
       const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
       
       if (regex.test(text)) {
-        const highlightedText = text.replace(regex, '<mark class="pdf-search-highlight">$1</mark>');
-        span.innerHTML = highlightedText;
+        // Make text visible and highlight it
+        span.style.color = '#000';
+        span.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+        span.style.fontWeight = 'bold';
+        span.style.borderRadius = '2px';
+        span.style.padding = '1px 2px';
+        
         foundMatches++;
+        console.log(`Found match ${foundMatches}: "${text}"`);
         
         // Store reference to first match for scrolling
         if (foundMatches === 1) {
@@ -166,10 +196,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     if (foundMatches > 0) {
       console.log(`Highlighted ${foundMatches} instances of "${searchTerm}" on page ${currentPage}`);
       
-      // Scroll to first match with better timing and positioning
+      // Scroll to first match
       if (firstMatchElement) {
         setTimeout(() => {
           try {
+            console.log('Attempting to scroll to first match...');
+            
             // Method 1: Standard scrollIntoView
             firstMatchElement!.scrollIntoView({ 
               behavior: 'smooth', 
@@ -204,8 +236,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           } catch (error) {
             console.log('Scroll error:', error);
           }
-        }, 1000); // Increased delay to ensure text layer is fully rendered
+        }, 1000);
       }
+    } else {
+      console.log(`No matches found for "${searchTerm}"`);
     }
   };
 
