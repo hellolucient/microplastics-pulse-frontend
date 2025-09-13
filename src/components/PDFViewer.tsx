@@ -96,9 +96,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
       await page.render(renderContext).promise;
       
-      // Render text layer for search highlighting
-      await renderTextLayer(page, viewport);
-      
       if (onPageChange) {
         onPageChange(currentPage);
       }
@@ -282,7 +279,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               page: pageNum,
               text: item.str,
               index: index,
-              transform: item.transform // Store position info for highlighting
+              transform: item.transform
             });
           }
         });
@@ -291,24 +288,65 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       setSearchResults(results);
       setCurrentSearchIndex(0);
       
-      // Jump to the specified initial page and highlight search term
+      // Jump to the specified initial page
       if (initialPage !== 1) {
         goToPage(initialPage);
-        // Highlight search term on the current page after rendering
+        // Show search indicator
         setTimeout(() => {
-          highlightSearchTermsInTextLayer(document.getElementById(`text-layer-${initialPage}`), term);
-        }, 1500);
+          showSearchIndicator(term, initialPage);
+        }, 1000);
       } else if (results.length > 0) {
         // Go to first match
         goToPage(results[0].page);
         setTimeout(() => {
-          highlightSearchTermsInTextLayer(document.getElementById(`text-layer-${results[0].page}`), term);
-        }, 1500);
+          showSearchIndicator(term, results[0].page);
+        }, 1000);
       }
     } catch (err) {
       console.error('Search error:', err);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const showSearchIndicator = (term: string, pageNum: number) => {
+    console.log(`Showing search indicator for "${term}" on page ${pageNum}`);
+    
+    // Create a simple visual indicator
+    const indicator = document.createElement('div');
+    indicator.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 0, 0.9);
+        color: #000;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-weight: bold;
+        z-index: 10000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      ">
+        🔍 Found "${term}" on page ${pageNum}
+      </div>
+    `;
+    
+    document.body.appendChild(indicator);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      if (indicator.parentNode) {
+        indicator.parentNode.removeChild(indicator);
+      }
+    }, 3000);
+    
+    // Scroll to PDF viewer
+    const pdfViewer = document.querySelector('.pdf-viewer-container');
+    if (pdfViewer) {
+      pdfViewer.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
     }
   };
 
@@ -541,36 +579,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
       {/* PDF Canvas */}
       <div className="p-4 bg-gray-100">
-        <div className="flex justify-center relative">
+        <div className="flex justify-center">
           <canvas
             ref={canvasRef}
             className="shadow-lg border border-gray-300 bg-white"
             style={{ maxWidth: '100%', height: 'auto' }}
           />
-          {/* Text layer for search highlighting */}
-          <div
-            id={`text-layer-${currentPage}`}
-            className="absolute top-0 left-0 pointer-events-none"
-            style={{
-              transform: `scale(${scale})`,
-              transformOrigin: 'top left',
-              width: '100%',
-              height: '100%'
-            }}
-          />
         </div>
       </div>
-      
-      {/* CSS for search highlighting */}
-      <style jsx>{`
-        .pdf-search-highlight {
-          background-color: rgba(255, 255, 0, 0.3) !important;
-          color: #000 !important;
-          font-weight: bold !important;
-          border-radius: 2px !important;
-          padding: 1px 2px !important;
-        }
-      `}</style>
     </div>
   );
 };
