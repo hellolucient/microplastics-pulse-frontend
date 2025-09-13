@@ -272,9 +272,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         const textContent = await page.getTextContent();
         const textItems = textContent.items;
         
-        // Search for term in text items
+        // Search for term in text items (whole word matches only)
+        const wordBoundaryRegex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        
         textItems.forEach((item: any, index: number) => {
-          if (item.str && item.str.toLowerCase().includes(term.toLowerCase())) {
+          if (item.str && wordBoundaryRegex.test(item.str)) {
             results.push({
               page: pageNum,
               text: item.str,
@@ -326,11 +328,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       const textContent = await page.getTextContent();
       const viewport = page.getViewport({ scale, rotation });
       
-      // Find the first occurrence of the search term
+      // Find the first occurrence of the search term (whole word matches only)
       let foundPosition = null;
+      const wordBoundaryRegex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
       
       for (const item of textContent.items) {
-        if (item.str && item.str.toLowerCase().includes(term.toLowerCase())) {
+        if (item.str && wordBoundaryRegex.test(item.str)) {
           // Get the transform matrix
           const transform = item.transform;
           const x = transform[4];
@@ -341,7 +344,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           const viewportY = viewport.height - y; // PDF coordinates are bottom-up
           
           foundPosition = { x: viewportX, y: viewportY };
-          console.log(`Found "${term}" at position:`, foundPosition);
+          console.log(`Found whole word "${term}" at position:`, foundPosition);
           break;
         }
       }
