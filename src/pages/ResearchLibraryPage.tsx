@@ -380,10 +380,10 @@ const ResearchLibraryPage: React.FC = () => {
                           {document.contentMatches.map((match, index) => (
                             <div key={index} className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-md">
                               <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-blue-800">Page {match.page}</span>
-                                  <span className="text-xs text-blue-600">Match {index + 1}</span>
-                                </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-blue-800">Page {match.page}</span>
+                                <span className="text-xs text-blue-600">Match {index + 1}</span>
+                              </div>
                                 <button
                                   onClick={() => handleViewDocument(document.id, match.page, searchTerm)}
                                   className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
