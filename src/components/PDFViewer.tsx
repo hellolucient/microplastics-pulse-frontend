@@ -95,11 +95,109 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
       await page.render(renderContext).promise;
       
+      // Render text layer for search highlighting
+      await renderTextLayer(page, viewport);
+      
       if (onPageChange) {
         onPageChange(currentPage);
       }
     } catch (err) {
       console.error('Page rendering error:', err);
+    }
+  };
+
+  const renderTextLayer = async (page: any, viewport: any) => {
+    try {
+      const textContent = await page.getTextContent();
+      const textLayerDiv = document.getElementById(`text-layer-${currentPage}`);
+      
+      if (textLayerDiv) {
+        textLayerDiv.innerHTML = '';
+        
+        // Create text layer
+        const textLayer = new pdfjsLib.TextLayerBuilder({
+          textLayerDiv: textLayerDiv,
+          pageIndex: currentPage - 1,
+          viewport: viewport,
+        });
+        
+        textLayer.setTextContent(textContent);
+        textLayer.render();
+        
+        // Highlight search terms if searchInput exists
+        if (searchInput.trim()) {
+          highlightSearchTermsInTextLayer(textLayerDiv, searchInput);
+        }
+      }
+    } catch (err) {
+      console.error('Text layer rendering error:', err);
+    }
+  };
+
+  const highlightSearchTermsInTextLayer = (textLayerDiv: HTMLElement, searchTerm: string) => {
+    const textSpans = textLayerDiv.querySelectorAll('span');
+    let foundMatches = 0;
+    let firstMatchElement: HTMLElement | null = null;
+    
+    textSpans.forEach((span) => {
+      const text = span.textContent || '';
+      const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      
+      if (regex.test(text)) {
+        const highlightedText = text.replace(regex, '<mark class="pdf-search-highlight">$1</mark>');
+        span.innerHTML = highlightedText;
+        foundMatches++;
+        
+        // Store reference to first match for scrolling
+        if (foundMatches === 1) {
+          firstMatchElement = span as HTMLElement;
+        }
+      }
+    });
+    
+    if (foundMatches > 0) {
+      console.log(`Highlighted ${foundMatches} instances of "${searchTerm}" on page ${currentPage}`);
+      
+      // Scroll to first match with better timing and positioning
+      if (firstMatchElement) {
+        setTimeout(() => {
+          try {
+            // Method 1: Standard scrollIntoView
+            firstMatchElement!.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'center'
+            });
+            
+            // Method 2: Scroll the entire page to the PDF viewer
+            setTimeout(() => {
+              const pdfViewer = document.querySelector('.pdf-viewer-container');
+              if (pdfViewer) {
+                pdfViewer.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'start' 
+                });
+              }
+            }, 500);
+            
+            // Method 3: Manual scroll calculation
+            setTimeout(() => {
+              const rect = firstMatchElement!.getBoundingClientRect();
+              const viewportHeight = window.innerHeight;
+              const elementTop = rect.top + window.pageYOffset;
+              const scrollPosition = elementTop - (viewportHeight / 2);
+              
+              window.scrollTo({
+                top: scrollPosition,
+                behavior: 'smooth'
+              });
+            }, 1000);
+            
+          } catch (error) {
+            console.log('Scroll error:', error);
+          }
+        }, 1000); // Increased delay to ensure text layer is fully rendered
+      }
     }
   };
 
@@ -137,16 +235,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       // Jump to the specified initial page and highlight search term
       if (initialPage !== 1) {
         goToPage(initialPage);
-        // Highlight search term on the current page after a short delay
+        // Highlight search term on the current page after rendering
         setTimeout(() => {
-          highlightSearchTermOnPage(term, initialPage);
-        }, 1000);
+          highlightSearchTermsInTextLayer(document.getElementById(`text-layer-${initialPage}`), term);
+        }, 1500);
       } else if (results.length > 0) {
         // Go to first match
         goToPage(results[0].page);
         setTimeout(() => {
-          highlightSearchTermOnPage(term, results[0].page);
-        }, 1000);
+          highlightSearchTermsInTextLayer(document.getElementById(`text-layer-${results[0].page}`), term);
+        }, 1500);
       }
     } catch (err) {
       console.error('Search error:', err);
@@ -224,8 +322,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       goToPage(searchResults[nextIndex].page);
       // Re-highlight search term on new page
       setTimeout(() => {
-        highlightSearchTermOnPage(searchInput, searchResults[nextIndex].page);
-      }, 500);
+        const textLayerDiv = document.getElementById(`text-layer-${searchResults[nextIndex].page}`);
+        if (textLayerDiv) {
+          highlightSearchTermsInTextLayer(textLayerDiv, searchInput);
+        }
+      }, 1500);
     }
   };
 
@@ -236,8 +337,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       goToPage(searchResults[prevIndex].page);
       // Re-highlight search term on new page
       setTimeout(() => {
-        highlightSearchTermOnPage(searchInput, searchResults[prevIndex].page);
-      }, 500);
+        const textLayerDiv = document.getElementById(`text-layer-${searchResults[prevIndex].page}`);
+        if (textLayerDiv) {
+          highlightSearchTermsInTextLayer(textLayerDiv, searchInput);
+        }
+      }, 1500);
     }
   };
 
@@ -265,7 +369,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="pdf-viewer-container bg-white rounded-lg shadow-sm border border-gray-200">
       {/* PDF Controls */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-2">
@@ -378,14 +482,36 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
       {/* PDF Canvas */}
       <div className="p-4 bg-gray-100">
-        <div className="flex justify-center">
+        <div className="flex justify-center relative">
           <canvas
             ref={canvasRef}
             className="shadow-lg border border-gray-300 bg-white"
             style={{ maxWidth: '100%', height: 'auto' }}
           />
+          {/* Text layer for search highlighting */}
+          <div
+            id={`text-layer-${currentPage}`}
+            className="absolute top-0 left-0 pointer-events-none"
+            style={{
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+              width: '100%',
+              height: '100%'
+            }}
+          />
         </div>
       </div>
+      
+      {/* CSS for search highlighting */}
+      <style jsx>{`
+        .pdf-search-highlight {
+          background-color: rgba(255, 255, 0, 0.3) !important;
+          color: #000 !important;
+          font-weight: bold !important;
+          border-radius: 2px !important;
+          padding: 1px 2px !important;
+        }
+      `}</style>
     </div>
   );
 };
