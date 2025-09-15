@@ -192,7 +192,14 @@ const LatestNewsPage: React.FC = () => {
       setNewsItems([]);
       
       try {
-        const storiesPerPage = viewMode === 'grid' ? STORIES_PER_PAGE_GRID : STORIES_PER_PAGE_LIST;
+        let storiesPerPage = viewMode === 'grid' ? STORIES_PER_PAGE_GRID : STORIES_PER_PAGE_LIST;
+        
+        // For grid view, page 1 needs 11 items (1 featured + 10 regular)
+        // Subsequent pages need 10 items each
+        if (viewMode === 'grid' && currentPage === 1) {
+          storiesPerPage = STORIES_PER_PAGE_GRID + 1; // 11 items for first page
+        }
+        
         const response = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=${currentPage}&limit=${storiesPerPage}`);
         
         if (!response.data || typeof response.data !== 'object' || !('data' in response.data)) {
@@ -259,10 +266,10 @@ const LatestNewsPage: React.FC = () => {
   if (viewMode === 'grid') {
     if (currentPage === 1) {
       featuredStory = newsItems[0] || null;
-      secondaryStories = newsItems.slice(1, 1 + STORIES_PER_PAGE_GRID);
+      secondaryStories = newsItems.slice(1, 1 + STORIES_PER_PAGE_GRID); // 10 secondary stories
     } else {
-      const startIdx = 1 + (currentPage - 2) * STORIES_PER_PAGE_GRID;
-      secondaryStories = newsItems.slice(startIdx, startIdx + STORIES_PER_PAGE_GRID);
+      // For page 2+: each page has 10 items
+      secondaryStories = newsItems.slice(0, STORIES_PER_PAGE_GRID); // Take all 10 items from current page
     }
   } else {
     listStories = newsItems; // All items for list view
