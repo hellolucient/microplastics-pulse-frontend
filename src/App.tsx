@@ -3,7 +3,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage.tsx';
-import LatestNewsPage from './pages/LatestNewsPage_old.tsx';
+import LatestNewsPage from './pages/LatestNewsPage.tsx';
 import ResearchLibraryPage from './pages/ResearchLibraryPage.tsx';
 import DocumentViewerPage from './pages/DocumentViewerPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
