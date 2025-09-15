@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import whitepaperImage from '../assets/whitepaper-hero.png';
+import whitepaperImage from '../assets/whitepaper-hero.png';  
 import NewsCarousel from '../components/NewsCarousel';
 
 // Updated NewsItem interface
