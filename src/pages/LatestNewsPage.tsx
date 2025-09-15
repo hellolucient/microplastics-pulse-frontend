@@ -356,7 +356,7 @@ const LatestNewsPage: React.FC = () => {
             )}
 
             {/* Secondary Stories */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {secondaryStories.map((item) => (
                 <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
                   <NewsItemCard item={item} isFeatured={false} />
