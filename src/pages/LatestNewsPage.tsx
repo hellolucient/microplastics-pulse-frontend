@@ -246,12 +246,14 @@ const LatestNewsPage: React.FC = () => {
         
         let response;
         
+        const cacheBuster = `&_t=${Date.now()}`;
+        
         if (debouncedSearchTerm.trim()) {
           // Use search endpoint when there's a search term
-          response = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news/search?q=${encodeURIComponent(debouncedSearchTerm)}&page=${currentPage}&limit=${storiesPerPage}`);
+          response = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news/search?q=${encodeURIComponent(debouncedSearchTerm)}&page=${currentPage}&limit=${storiesPerPage}${cacheBuster}`);
         } else {
           // Use regular endpoint when no search term
-          response = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=${currentPage}&limit=${storiesPerPage}`);
+          response = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=${currentPage}&limit=${storiesPerPage}${cacheBuster}`);
         }
         
         if (!response.data || typeof response.data !== 'object' || !('data' in response.data)) {
