@@ -179,7 +179,7 @@ const LatestNewsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -348,14 +348,41 @@ const LatestNewsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header with View Toggle */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <div className="text-center sm:text-left mb-4 sm:mb-0">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Latest News</h1>
-            <p className="text-gray-600">Stay updated with the latest microplastics research and news</p>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Latest News</h1>
+          <p className="text-gray-600">Stay updated with the latest microplastics research and news</p>
+        </div>
+
+        {/* Search Bar and View Toggle */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          {/* Search Bar */}
+          <div className="flex-1 max-w-xl">
+            <label htmlFor="news-search" className="sr-only">Search News</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="search"
+                id="news-search"
+                value={searchTerm}
+                onChange={(e) => { 
+                  setSearchTerm(e.target.value); 
+                  setCurrentPage(1); 
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="Search news by title, summary, or source..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              />
+            </div>
           </div>
           
-          {/* View Toggle - Right Side */}
+          {/* View Toggle */}
           <div className="flex justify-center sm:justify-end">
             <div className="bg-white rounded-lg p-1 shadow-sm border border-gray-200">
               <button
@@ -381,27 +408,6 @@ const LatestNewsPage: React.FC = () => {
                 <span className="hidden sm:inline">List View</span>
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="max-w-xl mx-auto mb-8">
-          <label htmlFor="news-search" className="sr-only">Search News</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="search"
-              id="news-search"
-              value={searchTerm}
-              onChange={(e) => { 
-                setSearchTerm(e.target.value); 
-                setCurrentPage(1); 
-              }}
-              placeholder="Search news by title, summary, or source..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
-            />
           </div>
         </div>
 
