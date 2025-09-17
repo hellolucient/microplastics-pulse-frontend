@@ -183,6 +183,7 @@ const LatestNewsPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   const location = useLocation();
 
@@ -197,6 +198,7 @@ const LatestNewsPage: React.FC = () => {
     const termFromUrl = getSearchTermFromUrl();
     if (termFromUrl !== searchTerm) {
       setSearchTerm(termFromUrl);
+      setSearchInput(termFromUrl);
       setCurrentPage(1);
     }
   }, [location.search]);
@@ -295,6 +297,20 @@ const LatestNewsPage: React.FC = () => {
     setCurrentPage(1); // Reset to first page when changing view
   };
 
+  // Handle search
+  const handleSearch = () => {
+    setSearchTerm(searchInput);
+    setCurrentPage(1);
+  };
+
+  // Handle Enter key in search input
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    }
+  };
+
   // Get stories for current page
   let featuredStory: NewsItem | null = null;
   let secondaryStories: NewsItem[] = [];
@@ -364,27 +380,26 @@ const LatestNewsPage: React.FC = () => {
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                type="search"
+                type="text"
                 id="news-search"
-                value={searchTerm}
-                onChange={(e) => { 
-                  setSearchTerm(e.target.value); 
-                  setCurrentPage(1); 
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                  }
-                }}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Search news by title, summary, or source..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+                className="block w-full pl-10 pr-20 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
+              <button
+                onClick={handleSearch}
+                className="absolute inset-y-0 right-0 px-3 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              >
+                Search
+              </button>
             </div>
           </div>
           
           {/* View Toggle */}
           <div className="flex justify-center sm:justify-end">
-            <div className="bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-lg p-1 shadow-sm border border-gray-200 flex">
               <button
                 onClick={() => handleViewModeChange('grid')}
                 className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
