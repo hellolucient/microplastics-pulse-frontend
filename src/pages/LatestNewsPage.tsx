@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Grid3X3, List, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Search, Grid3X3, List, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import NewsItemCard from '../components/NewsItemCard';
 import SocialShare from '../components/SocialShare';
 import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload.png';
@@ -181,8 +181,24 @@ const LatestNewsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const location = useLocation();
+
+  // Get search term from URL
+  const getSearchTermFromUrl = () => {
+    const queryParams = new URLSearchParams(location.search);
+    return queryParams.get('q') || '';
+  };
+
+  // Initialize search term from URL
+  useEffect(() => {
+    const termFromUrl = getSearchTermFromUrl();
+    if (termFromUrl !== searchTerm) {
+      setSearchTerm(termFromUrl);
+      setCurrentPage(1);
+    }
+  }, [location.search]);
 
   // Fetch current page from API
   useEffect(() => {
@@ -200,7 +216,15 @@ const LatestNewsPage: React.FC = () => {
           storiesPerPage = STORIES_PER_PAGE_GRID + 1; // 11 items for first page
         }
         
-        const response = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=${currentPage}&limit=${storiesPerPage}`);
+        let response;
+        
+        if (searchTerm.trim()) {
+          // Use search endpoint when there's a search term
+          response = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news/search?q=${encodeURIComponent(searchTerm)}&page=${currentPage}&limit=${storiesPerPage}`);
+        } else {
+          // Use regular endpoint when no search term
+          response = await axios.get<NewsApiResponse>(`${BACKEND_URL}/api/latest-news?page=${currentPage}&limit=${storiesPerPage}`);
+        }
         
         if (!response.data || typeof response.data !== 'object' || !('data' in response.data)) {
           throw new Error('Invalid API response format');
@@ -214,6 +238,9 @@ const LatestNewsPage: React.FC = () => {
         console.log("Fetched page:", currentPage, "Articles:", pageData.length);
         console.log("Total articles in database:", pagination?.total);
         console.log("Total pages:", pagination?.totalPages);
+        if (searchTerm.trim()) {
+          console.log("Search term:", searchTerm);
+        }
 
         setNewsItems(pageData);
         setTotalPages(pagination?.totalPages || 1);
@@ -244,7 +271,7 @@ const LatestNewsPage: React.FC = () => {
     };
 
     fetchCurrentPageFromApi();
-  }, [currentPage, viewMode]);
+  }, [currentPage, viewMode, searchTerm]);
 
   // Handle page changes
   const handlePageChange = (page: number) => {
@@ -317,6 +344,27 @@ const LatestNewsPage: React.FC = () => {
           <p className="text-gray-600">Stay updated with the latest microplastics research and news</p>
         </div>
 
+        {/* Search Bar */}
+        <div className="max-w-xl mx-auto mb-8">
+          <label htmlFor="news-search" className="sr-only">Search News</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="search"
+              id="news-search"
+              value={searchTerm}
+              onChange={(e) => { 
+                setSearchTerm(e.target.value); 
+                setCurrentPage(1); 
+              }}
+              placeholder="Search news by title, summary, or source..."
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+            />
+          </div>
+        </div>
+
         {/* View Toggle */}
         <div className="flex justify-center mb-8">
           <div className="bg-white rounded-lg p-1 shadow-sm border border-gray-200">
@@ -372,6 +420,31 @@ const LatestNewsPage: React.FC = () => {
           </div>
         )}
 
+        {/* Empty State */}
+        {!isLoading && !errorMessage && newsItems.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <Search className="w-16 h-16 mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm ? `No results found for "${searchTerm}"` : 'No news articles found'}
+            </h3>
+            <p className="text-gray-600">
+              {searchTerm 
+                ? 'Try adjusting your search terms or browse all articles.' 
+                : 'There are currently no news articles available.'}
+            </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Clear Search
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Pagination */}
         {totalPages > 1 && (
           <Pagination
@@ -384,6 +457,7 @@ const LatestNewsPage: React.FC = () => {
         {/* Page Info */}
         <div className="text-center mt-4 text-sm text-gray-500">
           Page {currentPage} of {totalPages}
+          {searchTerm && <span> for "{searchTerm}"</span>}
         </div>
       </div>
     </div>
