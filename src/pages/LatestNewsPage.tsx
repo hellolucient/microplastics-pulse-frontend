@@ -206,12 +206,17 @@ const LatestNewsPage: React.FC = () => {
     return queryParams.get('q') || '';
   };
 
-  // Initialize search term from URL
+  // Reset page when navigating to this page (e.g., clicking News Archives)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [location.pathname]);
+
+  // Initialize search term from URL and reset page
   useEffect(() => {
     const termFromUrl = getSearchTermFromUrl();
     setSearchTerm(termFromUrl);
     setSearchInput(termFromUrl);
-    setCurrentPage(1);
+    setCurrentPage(1); // Always reset to page 1 when navigating to this page
   }, [location.search]);
 
   // Debounce search term - wait 500ms after user stops typing
