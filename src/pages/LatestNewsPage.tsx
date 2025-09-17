@@ -271,6 +271,14 @@ const LatestNewsPage: React.FC = () => {
         if (debouncedSearchTerm.trim()) {
           console.log("Search term:", debouncedSearchTerm);
         }
+        
+        // Debug specific story
+        const debugStory = pageData.find(item => item.id === '51d55286-da22-4be7-8440-f40116cefcfd');
+        if (debugStory) {
+          console.log("DEBUG - Found story 51d55286-da22-4be7-8440-f40116cefcfd:");
+          console.log("Title:", debugStory.title);
+          console.log("Summary:", debugStory.ai_summary);
+        }
 
         setNewsItems(pageData);
         setTotalPages(pagination?.totalPages || 1);
