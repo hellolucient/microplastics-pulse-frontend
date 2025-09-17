@@ -275,9 +275,12 @@ const LatestNewsPage: React.FC = () => {
         // Debug specific story
         const debugStory = pageData.find(item => item.id === '51d55286-da22-4be7-8440-f40116cefcfd');
         if (debugStory) {
-          console.log("DEBUG - Found story 51d55286-da22-4be7-8440-f40116cefcfd:");
+          console.log("🚨🚨🚨 FOUND THE PROBLEM STORY 🚨🚨🚨");
           console.log("Title:", debugStory.title);
           console.log("Summary:", debugStory.ai_summary);
+          console.log("🚨🚨🚨 END DEBUG 🚨🚨🚨");
+        } else {
+          console.log("❌ Story 51d55286-da22-4be7-8440-f40116cefcfd NOT FOUND on this page");
         }
 
         setNewsItems(pageData);
