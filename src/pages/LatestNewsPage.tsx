@@ -209,11 +209,9 @@ const LatestNewsPage: React.FC = () => {
   // Initialize search term from URL
   useEffect(() => {
     const termFromUrl = getSearchTermFromUrl();
-    if (termFromUrl !== searchTerm) {
-      setSearchTerm(termFromUrl);
-      setSearchInput(termFromUrl);
-      setCurrentPage(1);
-    }
+    setSearchTerm(termFromUrl);
+    setSearchInput(termFromUrl);
+    setCurrentPage(1);
   }, [location.search]);
 
   // Debounce search term - wait 500ms after user stops typing
@@ -316,6 +314,13 @@ const LatestNewsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  // Handle clear search
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
   // Handle Enter key in search input
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -399,14 +404,27 @@ const LatestNewsPage: React.FC = () => {
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Search news by title, summary, or source..."
-                className="block w-full pl-10 pr-20 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+                className="block w-full pl-10 pr-32 py-2 border border-gray-300 rounded-md shadow-sm leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
-              <button
-                onClick={handleSearch}
-                className="absolute inset-y-0 right-0 px-3 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Search
-              </button>
+              <div className="absolute inset-y-0 right-0 flex">
+                {searchTerm && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="px-2 py-2 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                    title="Clear search"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+                <button
+                  onClick={handleSearch}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                >
+                  Search
+                </button>
+              </div>
             </div>
           </div>
           
