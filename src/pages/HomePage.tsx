@@ -36,7 +36,7 @@ const HomePage: React.FC = () => {
     const whitepaperCard: NewsItem = {
       id: 'whitepaper',
       created_at: new Date().toISOString(),
-      url: '/Microplastics - the Elephant in the Wellness Room.pdf',
+      url: '/Understanding-the-Microplastics-Crisis_Framing-a-Wellness-Response.pdf',
       title: 'Download Our Comprehensive Whitepaper',
       source: 'MicroplasticsWatch Research',
       published_date: new Date(Date.now() - 86400000).toISOString(),
