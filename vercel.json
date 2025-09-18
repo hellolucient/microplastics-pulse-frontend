@@ -5,7 +5,7 @@
       "destination": "https://microplastics-pulse-backend-production.up.railway.app/api/:path*"
     },
     { 
-      "source": "/((?!api/|_next/|static/|favicon.ico|logo).*)", 
+      "source": "/((?!api/|_next/|static/|favicon.ico|logo|.*\\.pdf).*)", 
       "destination": "/index.html" 
     }
   ]
