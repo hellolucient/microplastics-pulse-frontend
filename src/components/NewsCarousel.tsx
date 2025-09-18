@@ -100,7 +100,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
       let pdfUrl;
       if (isWhitepaper) {
         // For whitepaper, use the actual PDF file path
-        pdfUrl = `${window.location.origin}/Understanding-the-Microplastics-Crisis_Framing-a-Wellness-Response.pdf`;
+        pdfUrl = `${window.location.origin}/Understanding-the-Microplastics-Crisis_Framing-a-Wellness-Response.pdf?v=${Date.now()}`;
       } else {
         // For news articles, use the article URL
         pdfUrl = currentNews.url.startsWith('http') 
