@@ -113,7 +113,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
         // Download the PDF file
         const link = document.createElement('a');
         link.href = pdfUrl;
-        link.download = 'Microplastics - the Elephant in the Wellness Room.pdf';
+        link.download = 'Understanding-the-Microplastics-Crisis_Framing-a-Wellness-Response.pdf';
         
         document.body.appendChild(link);
         link.click();
@@ -427,7 +427,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
             </div>
             
             <p className="text-gray-600 mb-6">
-              Enter your email to download "Microplastics - the Elephant in the Wellness Room" and stay updated with our latest research.
+              Enter your email to download "Understanding the Microplastics Crisis: Framing a Wellness Response" and stay updated with our latest research.
             </p>
             
             <form onSubmit={handleEmailSubmit} className="space-y-4">
