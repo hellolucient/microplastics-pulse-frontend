@@ -45,22 +45,51 @@ const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
   const imageUrl = item.ai_image_url || fallbackPlaceholderImage;
   
+  // Clean text function to remove HTML tags
+  const cleanText = (text: string): string => {
+    return text.replace(/<[^>]*>/g, '');
+  };
+  
+  // Better date formatting
+  const displayDate = item.published_date ? new Date(item.published_date) : new Date(item.processed_at);
+  const formattedDate = displayDate.toLocaleDateString('en-GB', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
+  // Extract domain from URL for cleaner source display
+  const extractDomain = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      let domain = urlObj.hostname;
+      if (domain.startsWith('www.')) {
+        domain = domain.substring(4);
+      }
+      return domain;
+    } catch {
+      return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+    }
+  };
+  
+  const cleanSource = item.url ? extractDomain(item.url) : item.source;
+  
   return (
     <div className="flex items-start space-x-4 p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
       <div className="flex-shrink-0">
         <img
           src={imageUrl}
-          alt={item.title}
+          alt={cleanText(item.title)}
           className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg"
           onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
         />
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 mb-1">
-          {item.title}
+          {cleanText(item.title)}
         </h3>
         <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-2">
-          {item.ai_summary}
+          {cleanText(item.ai_summary)}
         </p>
         <div className="mb-2">
           <a
@@ -76,12 +105,19 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
           </a>
         </div>
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>{item.source}</span>
-          <span>{new Date(item.processed_at).toLocaleDateString()}</span>
+          <span>{cleanSource}</span>
+          <span>{formattedDate}</span>
         </div>
       </div>
       <div className="flex-shrink-0">
-        <SocialShare url={item.url} title={item.title} />
+        <SocialShare 
+          url={item.url} 
+          title={cleanText(item.title)}
+          summary={cleanText(item.ai_summary)}
+          storyId={item.id}
+          imageUrl={item.ai_image_url}
+          size="small"
+        />
       </div>
     </div>
   );
