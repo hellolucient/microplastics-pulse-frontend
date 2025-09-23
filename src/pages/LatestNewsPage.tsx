@@ -75,20 +75,21 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
   const cleanSource = item.url ? extractDomain(item.url) : item.source;
   
   return (
-    <div className="flex items-start space-x-4 p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+    <div className="flex items-start space-x-3 sm:space-x-4 p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
       <div className="flex-shrink-0">
         <img
           src={imageUrl}
           alt={cleanText(item.title)}
-          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg"
+          className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-cover rounded-lg"
           onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
+          loading="lazy"
         />
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0" style={{ minWidth: '200px' }}>
         <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 mb-1">
           {cleanText(item.title)}
         </h3>
-        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-2">
+        <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 mb-2">
           {cleanText(item.ai_summary)}
         </p>
         <div className="mb-2">
@@ -96,7 +97,7 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-colors"
+            className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-colors"
           >
             Read Full Article
             <svg className="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,8 +106,8 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
           </a>
         </div>
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>{cleanSource}</span>
-          <span>{formattedDate}</span>
+          <span className="truncate">{cleanSource}</span>
+          <span className="ml-2 flex-shrink-0">{formattedDate}</span>
         </div>
       </div>
       <div className="flex-shrink-0">
