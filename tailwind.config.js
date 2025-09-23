@@ -6,8 +6,11 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   safelist: [
     'md:hidden',
+    'sm:hidden',
     'hidden',
     'md:block',
+    'sm:block',
+    'block',
     'line-clamp-3',
     'line-clamp-2',
   ],

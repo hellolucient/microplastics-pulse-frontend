@@ -97,8 +97,8 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
   // Secondary story card (non-featured)
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-      {/* Mobile-first layout: Stack image and content vertically */}
-      <div className="md:hidden">
+      {/* Mobile layout: Stack image and content vertically */}
+      <div className="block sm:hidden">
         <img 
           src={imageUrl} 
           alt={item.title || 'News image'}
@@ -133,7 +133,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
       </div>
       
       {/* Desktop layout: Side-by-side image and content */}
-      <div className="hidden md:block p-4 md:p-6 flow-root">
+      <div className="hidden sm:block p-4 md:p-6 flow-root">
         <img 
           src={imageUrl} 
           alt={item.title || 'News image'}
