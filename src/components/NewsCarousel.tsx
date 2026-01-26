@@ -31,6 +31,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
   const [email, setEmail] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [downloadingWhitepaper, setDownloadingWhitepaper] = useState(false);
 
   const currentNews = news[currentIndex] || news[0];
 
@@ -60,6 +61,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
   };
 
   const handleWhitepaperDownload = () => {
+    setDownloadingWhitepaper(true);
     setShowEmailModal(true);
   };
 
@@ -73,32 +75,38 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
     const backendUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
     
     try {
-      // First, collect the email via API - this is mandatory
+      // Try to collect the email via API (non-blocking - download will proceed even if this fails)
       console.log('Collecting email before download...');
       
-      const response = await fetch(`${backendUrl}/api/collect-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          source: 'whitepaper_download'
-        })
-      });
+      try {
+        const response = await fetch(`${backendUrl}/api/collect-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            source: 'whitepaper_download'
+          })
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Email collection failed:', errorData);
-        throw new Error(`Email collection failed: ${errorData.error || 'Unknown error'}`);
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Email collected successfully:', result);
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.warn('Email collection failed (non-blocking):', errorData);
+        }
+      } catch (emailError) {
+        // If email collection fails (e.g., backend not running), log but don't block download
+        console.warn('Email collection error (non-blocking, download will proceed):', emailError);
       }
-
-      const result = await response.json();
-      console.log('Email collected successfully:', result);
       
       // Only proceed with download after email is collected
+      // Use downloadingWhitepaper state to ensure we always download the correct PDF
+      // even if the carousel has advanced while the modal was open
       let pdfUrl;
-      if (isWhitepaper) {
+      if (downloadingWhitepaper) {
         // For whitepaper, use the actual PDF file path
         pdfUrl = `${window.location.origin}/Understanding-the-Microplastics-Crisis_Framing-a-Wellness-Response.pdf?v=${Date.now()}`;
       } else {
@@ -109,7 +117,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
       }
       
       
-      if (isWhitepaper) {
+      if (downloadingWhitepaper) {
         // Download the PDF file
         const link = document.createElement('a');
         link.href = pdfUrl;
@@ -171,10 +179,12 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
       setShowEmailModal(false);
       setEmail('');
       setIsDownloading(false);
+      setDownloadingWhitepaper(false);
       
     } catch (error) {
       console.error('Process failed:', error);
       setIsDownloading(false);
+      setDownloadingWhitepaper(false);
       
       // Show error to user
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -419,7 +429,10 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900">Download Your Whitepaper</h3>
               <button
-                onClick={() => setShowEmailModal(false)}
+                onClick={() => {
+                  setShowEmailModal(false);
+                  setDownloadingWhitepaper(false);
+                }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X size={24} />
