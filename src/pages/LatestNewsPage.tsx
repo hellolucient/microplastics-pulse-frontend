@@ -9,11 +9,11 @@ import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload
 // Types
 interface NewsItem {
   id: string;
-  title: string;
-  ai_summary: string;
-  ai_image_url: string;
-  url: string;
-  source: string;
+  title?: string | null;
+  ai_summary?: string | null;
+  ai_image_url?: string | null;
+  url?: string | null;
+  source?: string | null;
   processed_at: string;
   published_date?: string;
 }
@@ -46,7 +46,8 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
   const imageUrl = item.ai_image_url || fallbackPlaceholderImage;
   
   // Clean text function to remove HTML tags
-  const cleanText = (text: string): string => {
+  const cleanText = (text: unknown): string => {
+    if (typeof text !== 'string') return '';
     return text.replace(/<[^>]*>/g, '');
   };
   
@@ -59,7 +60,8 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
   });
   
   // Extract domain from URL for cleaner source display
-  const extractDomain = (url: string): string => {
+  const extractDomain = (url: unknown): string => {
+    if (typeof url !== 'string') return '';
     try {
       const urlObj = new URL(url);
       let domain = urlObj.hostname;
@@ -72,14 +74,14 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
     }
   };
   
-  const cleanSource = item.url ? extractDomain(item.url) : item.source;
+  const cleanSource = item.url ? extractDomain(item.url) : (item.source || '');
   
   return (
     <div className="flex items-start space-x-3 sm:space-x-4 p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
       <div className="flex-shrink-0">
         <img
           src={imageUrl}
-          alt={cleanText(item.title)}
+          alt={cleanText(item.title) || 'News image'}
           className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-cover rounded-lg"
           onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
           loading="lazy"
@@ -87,14 +89,14 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
       </div>
       <div className="flex-1 min-w-0" style={{ minWidth: '200px' }}>
         <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 mb-1">
-          {cleanText(item.title)}
+          {cleanText(item.title) || 'No Title'}
         </h3>
         <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 mb-2">
-          {cleanText(item.ai_summary)}
+          {cleanText(item.ai_summary) || 'Summary unavailable.'}
         </p>
         <div className="mb-2">
           <a
-            href={item.url}
+            href={item.url || '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-colors"
@@ -112,9 +114,9 @@ const ListViewItem: React.FC<ListViewItemProps> = ({ item }) => {
       </div>
       <div className="flex-shrink-0">
         <SocialShare 
-          url={item.url} 
-          title={cleanText(item.title)}
-          summary={cleanText(item.ai_summary)}
+          url={item.url || undefined} 
+          title={cleanText(item.title) || 'Microplastics Research'}
+          summary={cleanText(item.ai_summary) || ''}
           storyId={item.id}
           imageUrl={item.ai_image_url}
           size="small"

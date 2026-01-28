@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Share2, Twitter, Facebook, Linkedin, X, Copy, Check } from 'lucide-react';
 
 interface SocialShareProps {
-  title: string;
-  url: string;
+  title?: string | null;
+  url?: string | null;
   summary?: string | null;
   className?: string;
   size?: 'small' | 'medium' | 'large';
@@ -22,9 +22,19 @@ const SocialShare: React.FC<SocialShareProps> = ({
   imageUrl,
   onModalStateChange
 }) => {
+  const safeTitle = typeof title === 'string' ? title : '';
+  const safeUrl = typeof url === 'string' ? url : '';
+
+  const cleanText = (text: unknown): string => {
+    if (typeof text !== 'string') return '';
+    return text.replace(/<[^>]*>/g, '');
+  };
+
   // Generate your site's story URL if storyId is provided, otherwise use the original URL
   // This ensures social shares point to YOUR site first, not the source
-  const shareUrl = storyId ? `${window.location.origin}/story/${storyId}` : url;
+  const shareUrl = storyId
+    ? `${window.location.origin}/story/${storyId}`
+    : (safeUrl || window.location.href);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,15 +43,15 @@ const SocialShare: React.FC<SocialShareProps> = ({
   const shareToTwitter = () => {
     // Twitter accepts pre-filled content directly (title, hashtags, URL)
     // This is why Twitter works - no crawling needed!
-    const text = `${title} - Important microplastics research`;
+    const text = `${cleanText(safeTitle) || 'Microplastics Research'} - Important microplastics research`;
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}&hashtags=microplastics,health,environment`;
     window.open(twitterShareUrl, '_blank', 'width=550,height=420');
   };
 
   const shareToFacebook = () => {
     // Generate a professional Facebook post
-    const cleanTitle = title.replace(/<[^>]*>/g, '');
-    const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
+    const cleanTitle = cleanText(safeTitle) || 'Microplastics Research';
+    const cleanSummary = cleanText(summary ?? safeTitle) || cleanTitle;
     const facebookPost = `📰 Important Research Update:\n\n${cleanTitle}\n\n${cleanSummary}\n\nThis is exactly the kind of research we need to be sharing and discussing. The findings are concerning but also highlight why platforms like MicroplasticsWatch are so important.\n\nWhat are your thoughts on this research? Share below!\n\n#microplastics #health #environment #research\n\nRead more: ${shareUrl}`;
     
     // Reset copied state and show our beautiful modal
@@ -59,8 +69,8 @@ const SocialShare: React.FC<SocialShareProps> = ({
 
   const shareToLinkedIn = () => {
     // Generate a professional LinkedIn post
-    const cleanTitle = title.replace(/<[^>]*>/g, '');
-    const cleanSummary = (summary || title).replace(/<[^>]*>/g, '');
+    const cleanTitle = cleanText(safeTitle) || 'Microplastics Research';
+    const cleanSummary = cleanText(summary ?? safeTitle) || cleanTitle;
     const linkedinPost = `🔬 New Research Alert: ${cleanTitle}\n\n${cleanSummary}\n\nThis study highlights the critical impact of microplastics on our health and environment. As researchers continue to uncover the extent of this crisis, it's crucial we stay informed and take action.\n\n#microplastics #health #environment #research\n\nRead the full article: ${shareUrl}`;
     
     // Reset copied state and show our beautiful modal

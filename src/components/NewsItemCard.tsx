@@ -5,11 +5,11 @@ import fallbackPlaceholderImage from '../assets/fail whale elephant_404 overload
 // Types
 interface NewsItem {
   id: string;
-  title: string;
-  ai_summary: string;
-  ai_image_url: string;
-  url: string;
-  source: string;
+  title?: string | null;
+  ai_summary?: string | null;
+  ai_image_url?: string | null;
+  url?: string | null;
+  source?: string | null;
   processed_at: string;
   published_date?: string;
   created_at?: string;
@@ -32,7 +32,8 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
   });
   
   // Extract domain from the actual article URL for cleaner source display
-  const extractDomain = (url: string): string => {
+  const extractDomain = (url: unknown): string => {
+    if (typeof url !== 'string') return '';
     try {
       const urlObj = new URL(url);
       let domain = urlObj.hostname;
@@ -51,7 +52,8 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
   const cleanSource = item.url ? extractDomain(item.url) : null;
   
   // Remove HTML tags from title and summary
-  const cleanText = (text: string): string => {
+  const cleanText = (text: unknown): string => {
+    if (typeof text !== 'string') return '';
     return text.replace(/<[^>]*>/g, '');
   };
 
@@ -61,7 +63,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
         <div className="md:w-2/5 flex-shrink-0">
           <img 
             src={imageUrl}
-            alt={item.title || 'News image'}
+            alt={cleanText(item.title) || 'News image'}
             className="w-full h-64 md:h-full object-cover"
             onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }} // Fallback for broken AI URL
           />
@@ -76,12 +78,12 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
           </a>
           <p className="text-brand-dark text-base mb-6 flex-grow">{cleanText(item.ai_summary || 'Summary unavailable.')}</p>
           <div className="mt-auto">
-            <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline self-start transition-colors duration-150 block mb-4">
+            <a href={item.url || '#'} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-base no-underline self-start transition-colors duration-150 block mb-4">
               Read Full Article →
             </a>
             <SocialShare 
               title={cleanText(item.title || 'Microplastics Research')}
-              url={item.url}
+              url={item.url || undefined}
               summary={cleanText(item.ai_summary || '')}
               storyId={item.id}
               imageUrl={item.ai_image_url}
@@ -101,7 +103,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
       <div className="block sm:hidden">
         <img 
           src={imageUrl} 
-          alt={item.title || 'News image'}
+          alt={cleanText(item.title) || 'News image'}
           className="w-full h-48 object-cover"
           onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
         />
@@ -110,19 +112,19 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
             <span className="text-xs text-gray-500">{formattedDate}</span>
             {cleanSource && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {cleanSource}</span>}
           </div>
-          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors duration-150 no-underline leading-tight block">
+          <a href={item.url || '#'} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors duration-150 no-underline leading-tight block">
             {cleanText(item.title || 'No Title')}
           </a>
           <p className="text-gray-600 text-sm mb-4 break-words line-clamp-3">
             {cleanText(item.ai_summary || 'Summary unavailable.')}
           </p>
           <div className="flex items-center justify-between">
-            <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium text-sm no-underline transition-colors duration-150">
+            <a href={item.url || '#'} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium text-sm no-underline transition-colors duration-150">
               Read Full Article →
             </a>
             <SocialShare 
               title={cleanText(item.title || 'Microplastics Research')}
-              url={item.url}
+              url={item.url || undefined}
               summary={cleanText(item.ai_summary || '')}
               storyId={item.id}
               imageUrl={item.ai_image_url}
@@ -136,7 +138,7 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
       <div className="hidden sm:block p-4 md:p-6 flow-root">
         <img 
           src={imageUrl} 
-          alt={item.title || 'News image'}
+          alt={cleanText(item.title) || 'News image'}
           className="float-left w-36 h-36 object-cover mr-4 mb-2 rounded"
           onError={(e) => { (e.target as HTMLImageElement).src = fallbackPlaceholderImage; }}
         />
@@ -144,19 +146,19 @@ const NewsItemCard: React.FC<NewsItemCardProps> = ({ item, isFeatured }) => {
           <span className="text-xs text-gray-500">{formattedDate}</span>
           {cleanSource && <span className="text-xs text-gray-500 truncate max-w-[60%]">Source: {cleanSource}</span>}
         </div>
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-md md:text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline leading-tight block">
+        <a href={item.url || '#'} target="_blank" rel="noopener noreferrer" className="text-md md:text-lg font-semibold text-brand-darker mb-2 hover:text-brand-blue transition-colors duration-150 no-underline leading-tight block">
           {cleanText(item.title || 'No Title')}
         </a>
         <p className="text-brand-dark text-sm mb-3 md:mb-4 break-words">
           {cleanText(item.ai_summary || 'Summary unavailable.')}
         </p>
         <div className="flex items-center justify-between">
-          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline transition-colors duration-150">
+          <a href={item.url || '#'} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:text-sky-700 font-medium text-sm no-underline transition-colors duration-150">
             Read Full Article →
           </a>
           <SocialShare 
             title={cleanText(item.title || 'Microplastics Research')}
-            url={item.url}
+            url={item.url || undefined}
             summary={cleanText(item.ai_summary || '')}
             storyId={item.id}
             imageUrl={item.ai_image_url}
