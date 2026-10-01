@@ -6,7 +6,6 @@ import FailedUrlsSection from '../components/FailedUrlsSection';
 import AIUsageSection from '../components/AIUsageSection';
 import AdminChatInterface from '../components/AdminChatInterface';
 import BatchSummaryInterface from '../components/BatchSummaryInterface';
-import BatchImageInterface from '../components/BatchImageInterface';
 import DocumentUploadInterface from '../components/DocumentUploadInterface';
 import UnifiedEmbeddingsInterface from '../components/UnifiedEmbeddingsInterface';
 
@@ -1210,7 +1209,11 @@ const AdminPage: React.FC = () => {
                   )}
                 </form>
               ) : (
-                <BatchImageInterface backendUrl={BACKEND_URL} />
+                <iframe
+                  title="Generate missing images"
+                  src={`${BACKEND_URL}/admin/missing-images`}
+                  className="w-full h-[720px] rounded-lg border border-gray-200"
+                />
               )}
             </div>
           )}

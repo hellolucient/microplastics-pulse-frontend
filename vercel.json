@@ -4,6 +4,10 @@
       "source": "/api/:path*",
       "destination": "https://microplastics-pulse-backend-production.up.railway.app/api/:path*"
     },
+    {
+      "source": "/admin/missing-images",
+      "destination": "https://microplastics-pulse-backend-production.up.railway.app/admin/missing-images"
+    },
     { 
       "source": "/((?!api/|_next/|static/|favicon.ico|logo|.*\\.pdf).*)", 
       "destination": "/index.html" 
